@@ -78,20 +78,51 @@ const PrayerTimes = {
 
     /** Shahar nomini olish (Reverse Geocoding) + API'ga mos regionni tozalash */
     async getCityName(lat, lon) {
+        // IslomAPI tomonidan qo'llab-quvvatlanadigan asosiy hududlar
+        const regionMapping = {
+            'Toshkent': 'Toshkent',
+            'Andijon': 'Andijon',
+            'Farg\'ona': 'Farg\'ona',
+            'Namangan': 'Namangan',
+            'Sirdaryo': 'Guliston',
+            'Jizzax': 'Jizzax',
+            'Samarqand': 'Samarqand',
+            'Qashqadaryo': 'Qarshi',
+            'Surxondaryo': 'Termiz',
+            'Navoiy': 'Navoiy',
+            'Buxoro': 'Buxoro',
+            'Xorazm': 'Urganch',
+            'Qoraqalpog\'iston': 'Nukus'
+        };
+
         try {
             const geoResp = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json&zoom=12`);
             const geoData = await geoResp.json();
             const addr = geoData.address;
             if (!addr) return { displayCity: 'Toshkent shahri', apiRegion: 'Toshkent' };
 
-            // Display uchun: Tuman + Shahar
-            const district = addr.suburb || addr.district || addr.borough || addr.subdistrict;
-            const city = addr.city || addr.town || addr.village || addr.state || 'Toshkent';
+            const district = addr.suburb || addr.district || addr.borough || addr.subdistrict || addr.county;
+            const city = addr.city || addr.town || addr.village;
+            const state = addr.state || '';
 
-            // API uchun: Faqat tozalangan shahar nomi (masalan: "Toshkent")
-            let apiRegion = city.replace(/shahri|viloyati|region|city|province/gi, '').trim();
+            // API uchun regionni aniqlash
+            let apiRegion = 'Toshkent';
+            const locationString = (city + ' ' + state).toLowerCase();
 
-            let displayCity = (district && district !== city) ? `${district}, ${city}` : `${city} shahri`;
+            for (const [key, val] of Object.entries(regionMapping)) {
+                if (locationString.includes(key.toLowerCase())) {
+                    apiRegion = val;
+                    break;
+                }
+            }
+
+            // Agar mappingdan topilmasa, shahar nomini tozalab ishlatish
+            if (apiRegion === 'Toshkent' && city) {
+                apiRegion = city.replace(/shahri|viloyati|region|city|province/gi, '').trim();
+            }
+
+            let displayCity = (district && city && district !== city) ? `${district}, ${city}` : (city ? `${city} shahri` : state);
+            if (!displayCity) displayCity = 'Toshkent shahri';
 
             return { displayCity, apiRegion };
         } catch (e) {
