@@ -123,9 +123,18 @@ const PrayerTimes = {
                 }
             }
 
-            // Tashrif buyurilgan shahar nomini chiroyli chiqarish
-            let displayCity = city || province || 'Toshkent shahri';
-            if (displayCity.toLowerCase().includes('district')) displayCity = province || city;
+            // Tashrif buyurilgan shahar va tumanni chiroyli chiqarish
+            const district = addr.district || addr.city_district || addr.suburb || '';
+            let displayCity = '';
+
+            if (district && city && district !== city) {
+                displayCity = `${district}, ${city}`;
+            } else {
+                displayCity = city || province || 'Toshkent shahri';
+            }
+
+            // Agar juda qisqa bo'lib qolsa yoki faqat davlat bo'lsa
+            if (!displayCity || displayCity === 'Oʻzbekiston') displayCity = 'Toshkent shahri';
 
             return { displayCity, apiRegion };
         } catch (e) {
