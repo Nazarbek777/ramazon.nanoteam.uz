@@ -1,6 +1,6 @@
-    /**
- * Namoz vaqtlari va Ro'za vaqtlari — Geolocation + Aladhan API
- */
+/**
+* Namoz vaqtlari va Ro'za vaqtlari — Geolocation + Aladhan API
+*/
 
 const PrayerTimes = {
     CACHE_KEY: 'ramazon_prayer_data',
@@ -180,7 +180,6 @@ const PrayerTimes = {
         const container = document.getElementById('prayerTimesWidget');
         if (!container) return;
 
-        // Loading holati
         container.innerHTML = `
             <div style="text-align:center;padding:16px;">
                 <i class="ri-loader-4-line" style="font-size:1.4rem;color:var(--gold);animation:spin 1s linear infinite;"></i>
@@ -206,7 +205,13 @@ const PrayerTimes = {
         const suhoorTime = times.Fajr;
         const iftarTime = times.Maghrib;
 
-        // Asosiy namoz vaqtlari
+        // Saharlik / Iftorlik widgetlarini yangilash
+        const suhoorEl = document.getElementById('suhoorTime');
+        const iftarEl = document.getElementById('iftarTime');
+        if (suhoorEl) suhoorEl.textContent = suhoorTime;
+        if (iftarEl) iftarEl.textContent = iftarTime;
+
+        // Namoz vaqtlari ro'yxati
         const prayerList = ['Fajr', 'Sunrise', 'Dhuhr', 'Asr', 'Maghrib', 'Isha'];
         let prayerRows = '';
 
@@ -214,9 +219,8 @@ const PrayerTimes = {
             const t = times[name];
             if (!t) return;
             const isNext = nextPrayer && nextPrayer.name === name;
-            const isNamaz = name !== 'Sunrise';
             prayerRows += `
-                <div class="prayer-row ${isNext ? 'prayer-next' : ''}" style="display:flex;align-items:center;gap:10px;padding:8px 12px;border-bottom:1px solid var(--white-5);${isNext ? 'background:var(--accent-bg);border-radius:8px;border:1px solid var(--border-color);' : ''}">
+                <div style="display:flex;align-items:center;gap:10px;padding:8px 12px;border-bottom:1px solid var(--white-5);${isNext ? 'background:var(--accent-bg);border-radius:8px;border:1px solid var(--border-color);' : ''}">
                     <i class="${this.icons[name]}" style="font-size:1rem;width:20px;color:${isNext ? 'var(--gold)' : 'var(--text-muted)'};"></i>
                     <span style="flex:1;font-size:0.85rem;font-weight:${isNext ? '600' : '400'};color:${isNext ? 'var(--text-primary)' : 'var(--text-secondary)'};">${this.names[name]}</span>
                     <span style="font-size:0.88rem;font-weight:600;color:${isNext ? 'var(--gold)' : 'var(--text-primary)'};">${t}</span>
@@ -230,58 +234,7 @@ const PrayerTimes = {
                 <i class="ri-map-pin-2-fill" style="color:var(--accent-light);font-size:0.9rem;"></i>
                 <span style="font-size:0.78rem;color:var(--text-muted);">${cityName}</span>
             </div>
-
-            <!-- Saharlik / Iftorlik -->
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;">
-                <div style="background:linear-gradient(135deg,rgba(91,140,255,0.1),rgba(91,140,255,0.03));border:1px solid rgba(91,140,255,0.15);border-radius:12px;padding:12px;text-align:center;">
-                    <i class="ri-sun-line" style="font-size:1.2rem;color:#7da1ff;"></i>
-                    <div style="font-size:0.7rem;color:var(--text-muted);margin:4px 0 2px;">Saharlik</div>
-                    <div style="font-size:1.1rem;font-weight:700;color:var(--text-primary);">${suhoorTime}</div>
-                </div>
-                <div style="background:linear-gradient(135deg,rgba(212,168,67,0.1),rgba(212,168,67,0.03));border:1px solid rgba(212,168,67,0.15);border-radius:12px;padding:12px;text-align:center;">
-                    <i class="ri-moon-line" style="font-size:1.2rem;color:var(--gold);"></i>
-                    <div style="font-size:0.7rem;color:var(--text-muted);margin:4px 0 2px;">Iftorlik</div>
-                    <div style="font-size:1.1rem;font-weight:700;color:var(--gold);">${iftarTime}</div>
-                </div>
-            </div>
-
-            <!-- Namoz vaqtlari -->
             <div>${prayerRows}</div>
-        `;
-
-        // Duolar widgetini ham yangilash
-        this.renderDuas(suhoorTime, iftarTime);
-    },
-
-    /** Duolarni ko'rsatish */
-    renderDuas(suhoorTime, iftarTime) {
-        const duaContainer = document.getElementById('duasWidget');
-        if (!duaContainer) return;
-
-        duaContainer.innerHTML = `
-            <div style="margin-bottom:16px;">
-                <div style="display:flex;align-items:center;gap:6px;margin-bottom:8px;">
-                    <i class="ri-sun-line" style="color:#7da1ff;"></i>
-                    <span style="font-weight:600;font-size:0.88rem;">Saharlik duosi</span>
-                    <span style="font-size:0.7rem;color:var(--text-muted);margin-left:auto;">${suhoorTime} gacha</span>
-                </div>
-                <div style="background:var(--white-5);border-radius:10px;padding:12px;">
-                    <p style="font-family:'Amiri',serif;font-size:1.1rem;line-height:2;color:var(--gold-light);text-align:right;direction:rtl;margin-bottom:8px;">${this.duas.suhoor.arabic}</p>
-                    <p style="font-size:0.78rem;color:var(--text-secondary);line-height:1.5;">${this.duas.suhoor.uzbek}</p>
-                </div>
-            </div>
-
-            <div>
-                <div style="display:flex;align-items:center;gap:6px;margin-bottom:8px;">
-                    <i class="ri-moon-line" style="color:var(--gold);"></i>
-                    <span style="font-weight:600;font-size:0.88rem;">Iftorlik duosi</span>
-                    <span style="font-size:0.7rem;color:var(--text-muted);margin-left:auto;">${iftarTime} da</span>
-                </div>
-                <div style="background:var(--white-5);border-radius:10px;padding:12px;">
-                    <p style="font-family:'Amiri',serif;font-size:1.1rem;line-height:2;color:var(--gold-light);text-align:right;direction:rtl;margin-bottom:8px;">${this.duas.iftar.arabic}</p>
-                    <p style="font-size:0.78rem;color:var(--text-secondary);line-height:1.5;">${this.duas.iftar.uzbek}</p>
-                </div>
-            </div>
         `;
     }
 };
