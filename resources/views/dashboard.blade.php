@@ -34,13 +34,6 @@
             <i class="ri-moon-clear-line"></i> Ramazongacha {{ $ramadan['days_until'] }} kun
         </span>
     </div>
-@endif
-
-<div style="text-align:center;margin-bottom:18px;">
-    <div style="font-size:0.9rem;font-weight:700;color:var(--text-primary);padding:4px 12px;background:var(--white-5);display:inline-block;border-radius:20px;">
-        <i class="ri-calendar-line" style="color:var(--gold);margin-right:4px;"></i> {{ now()->translatedFormat('j-F, l') }}
-    </div>
-</div>
 
 {{-- ⚡ TEZKOR NAVIGATSIYA --}}
 <div class="quick-nav">
@@ -137,7 +130,14 @@
 </div>
 
 {{-- 🕐 SAHARLIK / IFTORLIK --}}
-<div id="saharlik-iftorlik">
+<div id="saharlik-iftorlik" style="margin-bottom:24px;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;padding:0 8px;">
+        <button onclick="PrayerTimes.changeDate(-1)" style="background:var(--white-5);border:none;color:var(--gold);width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;"><i class="ri-arrow-left-s-line"></i></button>
+        <div id="topDateDisplay" style="font-size:0.85rem;font-weight:700;color:var(--text-primary);text-align:center;">
+            {{ now()->translatedFormat('j-F, l') }}
+        </div>
+        <button onclick="PrayerTimes.changeDate(1)" style="background:var(--white-5);border:none;color:var(--gold);width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;"><i class="ri-arrow-right-s-line"></i></button>
+    </div>
     <div class="suhoor-iftar-grid" id="suhoorIftarWidget">
         <div class="si-card si-suhoor">
             <div class="si-icon"><i class="ri-sun-line"></i></div>

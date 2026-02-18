@@ -304,6 +304,11 @@ const PrayerTimes = {
         // Navbar sync
         this.updateNavbarLocation(loc.displayCity);
 
+        // Date Display Sync (Top section)
+        const dateString = this.currentDay.toLocaleDateString('uz-UZ', { day: 'numeric', month: 'long', weekday: 'long' });
+        const topDateEl = document.getElementById('topDateDisplay');
+        if (topDateEl) topDateEl.textContent = dateString;
+
         if (!container) return;
 
         const isToday = this.currentDay.toDateString() === new Date().toDateString();
@@ -338,7 +343,7 @@ const PrayerTimes = {
             `;
         });
 
-        const dateString = this.currentDay.toLocaleDateString('uz-UZ', { day: 'numeric', month: 'long', weekday: 'long' });
+        dateString = this.currentDay.toLocaleDateString('uz-UZ', { day: 'numeric', month: 'long', weekday: 'long' });
 
         container.innerHTML = `
             <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;padding:0 4px;">
