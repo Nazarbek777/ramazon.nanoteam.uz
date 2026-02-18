@@ -231,6 +231,71 @@ const PrayerTimes = {
         await this.render();
     },
 
+    /** Keyingi namozni aniqlash */
+    getNextPrayer(times) {
+        if (!times) return null;
+        const now = new Date();
+        const currentMinutes = now.getHours() * 60 + now.getMinutes();
+        const prayerOrder = ['Fajr', 'Sunrise', 'Dhuhr', 'Asr', 'Maghrib', 'Isha'];
+
+        for (const name of prayerOrder) {
+            const t = times[name];
+            if (!t) continue;
+            const [h, m] = t.split(':').map(Number);
+            const prayerMinutes = h * 60 + m;
+            if (prayerMinutes > currentMinutes) {
+                return {
+                    name: name,
+                    uzName: this.names[name],
+                    time: t,
+                    icon: this.icons[name],
+                    minutesLeft: prayerMinutes - currentMinutes
+                };
+            }
+        }
+        return {
+            name: 'Fajr',
+            uzName: this.names['Fajr'],
+            time: times['Fajr'],
+            icon: this.icons['Fajr'],
+            minutesLeft: null
+        };
+    },
+
+    formatRemaining(minutes) {
+        if (!minutes) return '';
+        const h = Math.floor(minutes / 60);
+        const m = minutes % 60;
+        return h > 0 ? `${h}s ${m}d` : `${m}d`;
+    },
+
+    /** Navbar lokatsiyasini yangilash */
+    updateNavbarLocation(city) {
+        const fullDisplay = city.includes('shahri') ? city : `${city}`;
+        document.querySelectorAll('#navLocationMobile .loc-text, #navLocationDesktop .loc-text').forEach(el => {
+            el.textContent = fullDisplay;
+        });
+    },
+
+    /** Joylashuvni yangilash (Cache'ni tozalash) */
+    async refreshLocation() {
+        const btns = document.querySelectorAll('.refresh-loc-btn');
+        btns.forEach(btn => btn.style.animation = 'spin 1s linear infinite');
+
+        // Faqat lokatsiya va shu oyning namoz vaqtlarini tozalash
+        localStorage.removeItem(this.LOCATION_KEY);
+        // Barcha oylik namoz keshlarini tozalash (ixtiyoriy)
+        const keysToRemove = [];
+        for (let i = 0; i < localStorage.length; i++) {
+            const key = localStorage.key(i);
+            if (key.startsWith(this.CACHE_KEY)) keysToRemove.push(key);
+        }
+        keysToRemove.forEach(k => localStorage.removeItem(k));
+
+        await this.render();
+        btns.forEach(btn => btn.style.animation = 'none');
+    },
+
     /** UI'ni yangilash */
     async render() {
         const container = document.getElementById('prayerTimesWidget');
