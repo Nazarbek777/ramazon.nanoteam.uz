@@ -49,34 +49,33 @@
         <div style="flex:1;height:1px;background:linear-gradient(90deg, var(--gold-border), transparent);"></div>
     </div>
     
+    @php
+        $prayers = [
+            ['id' => 'fajr', 'label' => 'Bomdod', 'icon' => 'ri-sun-foggy-line'],
+            ['id' => 'dhuhr', 'label' => 'Peshin', 'icon' => 'ri-sun-line'],
+            ['id' => 'asr', 'label' => 'Asr', 'icon' => 'ri-sun-cloudy-line'],
+            ['id' => 'maghrib', 'label' => 'Shom', 'icon' => 'ri-moon-line'],
+            ['id' => 'isha', 'label' => 'Xufton', 'icon' => 'ri-moon-clear-line'],
+            ['id' => 'qazo', 'label' => 'Qazo', 'icon' => 'ri-history-line'],
+        ];
+        $data = $log->data ?? [];
+        $namozData = $data['namoz'] ?? [];
+    @endphp
+
     <h3 class="section-title"><i class="ri-heart-pulse-line"></i> Namozlarim</h3>
-    <div class="card mb-24">
-        <div class="namoz-tracker-grid">
-            @php
-                $prayers = [
-                    ['id' => 'fajr', 'label' => 'Bomdod', 'icon' => 'ri-sun-foggy-line'],
-                    ['id' => 'dhuhr', 'label' => 'Peshin', 'icon' => 'ri-sun-line'],
-                    ['id' => 'asr', 'label' => 'Asr', 'icon' => 'ri-sun-cloudy-line'],
-                    ['id' => 'maghrib', 'label' => 'Shom', 'icon' => 'ri-moon-line'],
-                    ['id' => 'isha', 'label' => 'Xufton', 'icon' => 'ri-moon-clear-line'],
-                    ['id' => 'qazo', 'label' => 'Qazo', 'icon' => 'ri-history-line'],
-                ];
-                $data = $log->data ?? [];
-                $namozData = $data['namoz'] ?? [];
-            @endphp
-            @foreach($prayers as $p)
-                <div class="namoz-tracker-item {{ ($namozData[$p['id']] ?? false) ? 'active' : '' }}" 
-                     onclick="toggleDataField('namoz.{{ $p['id'] }}', this)"
-                     style="position:relative;">
-                    <i class="ri-checkbox-circle-fill check-icon"></i>
-                    <i class="{{ $p['icon'] }}"></i>
-                    <span class="namoz-tracker-label">{{ $p['label'] }}</span>
-                </div>
-            @endforeach
-        </div>
+    <div class="deeds-grid">
+        @foreach($prayers as $p)
+            <div class="deed-card {{ ($namozData[$p['id']] ?? false) ? 'active' : '' }}" 
+                 onclick="toggleDataField('namoz.{{ $p['id'] }}', this)">
+                <i class="ri-checkbox-circle-fill check-icon"></i>
+                <i class="{{ $p['icon'] }} main-icon"></i>
+                <span class="deed-label">{{ $p['label'] }}</span>
+            </div>
+        @endforeach
+    </div>
 
         <div style="text-align:center;margin-top:10px;">
-            <span class="namoz-tracker-label" style="color:var(--text-muted);display:block;margin-bottom:8px;">Tarovih namozi</span>
+            <span class="deed-label" style="color:var(--text-muted);display:block;margin-bottom:8px;font-size:0.8rem;">Tarovih namozi</span>
             <div class="rakat-selector">
                 @foreach([8, 10, 20] as $rakat)
                     <div class="rakat-btn {{ ($data['taroweh_rakat'] ?? 0) == $rakat ? 'active' : '' }}" 
@@ -164,37 +163,30 @@
     </div>
 
     <h3 class="section-title"><i class="ri-checkbox-multiple-line"></i> Vazifalar</h3>
-    <div class="card mb-24">
-        <ul class="checklist" id="habitList">
-            @foreach($habits as $habit)
-                @php $isDone = $completedMap[$habit->id] ?? false; @endphp
-                <li class="checklist-item {{ $isDone ? 'completed' : '' }}" id="item-{{ $habit->id }}" data-habit-id="{{ $habit->id }}" data-type="{{ $habit->type }}" style="{{ $isDone ? 'background:var(--accent-bg);border-color:var(--accent);' : '' }}">
-                    <div class="habit-icon"><i class="{{ $habit->icon }}"></i></div>
-                    <span class="habit-name">{{ $habit->name }}</span>
-                    <span class="habit-input">
-                        @if($habit->type === 'checkbox')
-                            <div class="custom-check">
-                                <input type="checkbox"
-                                       id="habit_{{ $habit->id }}"
-                                       data-habit-id="{{ $habit->id }}"
-                                       {{ $isDone ? 'checked' : '' }}
-                                       onchange="toggleHabit({{ $habit->id }}, this.checked)">
-                                <span class="checkmark"></span>
-                            </div>
-                        @else
-                            <input type="number"
-                                   id="value_{{ $habit->id }}"
-                                   data-habit-id="{{ $habit->id }}"
-                                   class="number-input"
-                                   value="{{ $valuesMap[$habit->id] ?? '' }}"
-                                   min="0" max="999"
-                                   placeholder="0"
-                                   onchange="toggleHabit({{ $habit->id }}, null, this.value)">
-                        @endif
-                    </span>
-                </li>
-            @endforeach
-        </ul>
+    <div class="deeds-grid">
+        @foreach($habits as $habit)
+            @php $isDone = $completedMap[$habit->id] ?? false; @endphp
+            <div class="deed-card {{ $habit->type === 'number' ? 'type-number' : 'type-checkbox' }} {{ $isDone ? 'active' : '' }}" 
+                 id="item-{{ $habit->id }}"
+                 data-type="{{ $habit->type }}"
+                 @if($habit->type === 'checkbox') onclick="toggleHabit({{ $habit->id }}, !this.classList.contains('active'))" @endif>
+                
+                <i class="ri-checkbox-circle-fill check-icon"></i>
+                <i class="{{ $habit->icon }} main-icon"></i>
+                <span class="deed-label">{{ $habit->name }}</span>
+                
+                @if($habit->type === 'number')
+                    <input type="number"
+                           id="value_{{ $habit->id }}"
+                           class="deed-num-input"
+                           value="{{ $valuesMap[$habit->id] ?? '' }}"
+                           min="0" max="999"
+                           placeholder="0"
+                           onclick="event.stopPropagation()"
+                           onchange="toggleHabit({{ $habit->id }}, null, this.value)">
+                @endif
+            </div>
+        @endforeach
     </div>
 
     {{-- Izoh (oddiy form) --}}
@@ -275,15 +267,11 @@
 
         // Darhol vizual yangilash (optimistic UI)
         if (completed) {
-            item.style.background = 'var(--accent-bg)';
-            item.style.borderColor = 'var(--accent)';
-            item.classList.add('completed');
+            item.classList.add('active');
             if (isCheckbox) completedCount++;
             showMotivation(completedCount, totalHabits);
         } else {
-            item.style.background = '';
-            item.style.borderColor = '';
-            item.classList.remove('completed');
+            item.classList.remove('active');
             if (isCheckbox) completedCount--;
         }
 
