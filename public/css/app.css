@@ -1675,12 +1675,14 @@ body::before {
 /* === Quick Navigation === */
 .quick-nav {
     display: flex;
-    gap: 8px;
+    gap: 10px;
     margin-bottom: 16px;
     overflow-x: auto;
     scrollbar-width: none;
     -ms-overflow-style: none;
-    padding-bottom: 2px;
+    padding: 0 16px 4px 16px;
+    margin-left: -16px;
+    margin-right: -16px;
 }
 
 .quick-nav::-webkit-scrollbar {
@@ -1690,8 +1692,8 @@ body::before {
 .quick-nav-btn {
     display: flex;
     align-items: center;
-    gap: 5px;
-    padding: 8px 14px;
+    gap: 6px;
+    padding: 10px 16px;
     background: var(--card-bg);
     border: 1px solid var(--border-color);
     border-radius: 50px;
@@ -1734,7 +1736,7 @@ body::before {
     backdrop-filter: blur(20px);
     border: 1px solid var(--border-color);
     border-radius: var(--radius-lg);
-    padding: 16px 12px;
+    padding: 14px 10px;
     text-align: center;
     position: relative;
     overflow: hidden;
@@ -1871,7 +1873,7 @@ body::before {
 
 .tree-scene {
     position: relative;
-    height: 160px;
+    height: 140px;
     border-radius: 12px;
     background: linear-gradient(180deg, #0a1628 0%, #132040 40%, #1a2a4f 70%, #1e3355 100%);
     overflow: hidden;
@@ -2525,6 +2527,36 @@ body::before {
 
     .chart-bar-group {
         height: 100px;
+    }
+
+    .tree-scene {
+        height: 130px;
+    }
+
+    .si-time {
+        font-size: 1.35rem;
+    }
+
+    .si-card {
+        padding: 12px 8px;
+    }
+
+    .dua-card {
+        padding: 12px !important;
+    }
+
+    .dua-arabic {
+        font-size: 1.05rem;
+        line-height: 2;
+    }
+
+    .section-title {
+        margin-top: 16px !important;
+        margin-bottom: 8px !important;
+    }
+
+    .mb-24 {
+        margin-bottom: 16px !important;
     }
 
     .auth-card {
