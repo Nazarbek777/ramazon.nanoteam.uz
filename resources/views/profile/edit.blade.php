@@ -29,6 +29,15 @@
         <div class="card mb-24">
             <div class="form-group">
                 <label class="form-label" style="display:flex; align-items:center; gap:8px;">
+                    <i class="ri-user-line" style="color:var(--gold);"></i> Ism
+                </label>
+                <input type="text" name="name" class="form-input @error('name') is-invalid @enderror"
+                       value="{{ old('name', $user->name) }}" required>
+                @error('name') <div class="invalid-feedback">{{ $message }}</div> @enderror
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" style="display:flex; align-items:center; gap:8px;">
                     <i class="ri-mail-line" style="color:var(--gold);"></i> Email
                 </label>
                 <input type="email" name="email" class="form-input @error('email') is-invalid @enderror" 
@@ -74,27 +83,35 @@
             </div>
         </div>
 
-        {{-- Security --}}
-        <h3 class="section-title"><i class="ri-shield-keyhole-line"></i> Xavfsizlik</h3>
-        <div class="card mb-24">
-            <div class="form-group">
-                <label class="form-label">Hozirgi parol</label>
-                <input type="password" name="current_password" class="form-input @error('current_password') is-invalid @enderror" 
-                       placeholder="O'zgartirish uchun kiriting">
-                @error('current_password') <div class="invalid-feedback">{{ $message }}</div> @enderror
-            </div>
-            
-            <div class="form-group">
-                <label class="form-label">Yangi parol</label>
-                <input type="password" name="new_password" class="form-input @error('new_password') is-invalid @enderror" 
-                       placeholder="Yangi parol">
-                @error('new_password') <div class="invalid-feedback">{{ $message }}</div> @enderror
-            </div>
+        {{-- Security (collapsible) --}}
+        <button type="button" id="togglePasswordBtn" onclick="togglePasswordSection()"
+                style="width:100%; display:flex; align-items:center; justify-content:space-between; padding:14px 18px; border-radius:var(--radius); border:1px solid var(--border-color); background:var(--bg-card); color:var(--text-primary); cursor:pointer; margin-bottom:16px; font-size:0.95rem; font-weight:600;">
+            <span><i class="ri-shield-keyhole-line" style="color:var(--gold); margin-right:8px;"></i> Parolni o'zgartirish</span>
+            <i class="ri-arrow-down-s-line" id="passwordArrow" style="transition:transform 0.3s;"></i>
+        </button>
 
-            <div class="form-group" style="margin-bottom:0;">
-                <label class="form-label">Yangi parolni tasdiqlang</label>
-                <input type="password" name="new_password_confirmation" class="form-input" 
-                       placeholder="Parolni qayta kiriting">
+        <div id="passwordSection" style="display:none; overflow:hidden;">
+            <div class="card mb-24">
+                @error('current_password') <div class="invalid-feedback" style="margin-bottom:10px;">{{ $message }}</div> @enderror
+                @error('new_password') <div class="invalid-feedback" style="margin-bottom:10px;">{{ $message }}</div> @enderror
+
+                <div class="form-group">
+                    <label class="form-label">Hozirgi parol</label>
+                    <input type="password" name="current_password" class="form-input @error('current_password') is-invalid @enderror" 
+                           placeholder="Hozirgi parolingiz">
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Yangi parol</label>
+                    <input type="password" name="new_password" class="form-input @error('new_password') is-invalid @enderror" 
+                           placeholder="Yangi parol (kamida 6 belgi)">
+                </div>
+
+                <div class="form-group" style="margin-bottom:0;">
+                    <label class="form-label">Yangi parolni tasdiqlang</label>
+                    <input type="password" name="new_password_confirmation" class="form-input" 
+                           placeholder="Parolni qayta kiriting">
+                </div>
             </div>
         </div>
 
@@ -143,5 +160,19 @@
             }
         });
     });
+
+    // Toggle password section
+    function togglePasswordSection() {
+        const section = document.getElementById('passwordSection');
+        const arrow = document.getElementById('passwordArrow');
+        const isOpen = section.style.display !== 'none';
+        section.style.display = isOpen ? 'none' : 'block';
+        arrow.style.transform = isOpen ? '' : 'rotate(180deg)';
+    }
+
+    // Auto-open if there are password errors
+    @if($errors->has('current_password') || $errors->has('new_password'))
+        togglePasswordSection();
+    @endif
 </script>
 @endsection
