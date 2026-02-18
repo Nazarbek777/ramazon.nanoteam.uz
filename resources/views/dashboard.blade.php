@@ -111,11 +111,11 @@
             @elseif($treePercent < 60)
                 <p>🔥 Zo'r! Yarmidan ko'pi bajarildi. Davom eting!</p>
             @elseif($treePercent < 80)
-                <p>🌟 Mashaalloh! Juda yaxshi natija — ozgina qoldi!</p>
+                <p>🌟 Ajoyib natija — ozgina qoldi!</p>
             @elseif($treePercent < 100)
                 <p>🏆 Deyarli tamom! Jannat daraxtiga ozgina qoldi!</p>
             @else
-                <p>🌸 SubhanAlloh! Barcha amallar bajarildi! Alloh qabul qilsin!</p>
+                <p>🌸 Barakalla! Barcha amallar bajarildi!</p>
             @endif
         </div>
     </div>

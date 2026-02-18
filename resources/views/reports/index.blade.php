@@ -138,7 +138,7 @@
     <div class="mt-24 card stat-card-accent" style="padding:30px; border-style:dashed;">
         <div class="stat-icon" style="margin:0 auto 12px; font-size:2.5rem;"><i class="ri-sparkling-fill"></i></div>
         <h4 style="color:var(--gold); font-size:1.1rem; font-weight:700;">Ajoyib natija!</h4>
-        <p class="text-muted" style="font-size:0.85rem; margin-top:5px;">Siz birorta ham kunni o'tkazib yubormadingiz. Baraka Alloh!</p>
+        <p class="text-muted" style="font-size:0.85rem; margin-top:5px;">Siz birorta ham kunni o'tkazib yubormadingiz. Davom eting!</p>
     </div>
 @endif
 @endsection

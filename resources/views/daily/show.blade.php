@@ -139,21 +139,6 @@
         @endforeach
     </div>
 
-    {{-- Asmaul Husna --}}
-    <h3 class="section-title"><i class="ri-sparkling-line"></i> Asmaul Husna</h3>
-    <div style="margin-top:-18px;margin-bottom:12px;font-size:0.75rem;color:var(--text-muted);padding-left:4px;">
-        <i class="ri-information-line" style="color:var(--gold);"></i> Bugun tanishingiz kerak bo'lgan ismlar
-    </div>
-    <div class="card mb-24 husna-card">
-        <div class="husna-item-row">
-            @foreach($husnaNames as $name)
-                <div class="husna-box">
-                    <span class="husna-arabic-text">{{ $name['name'] }}</span>
-                    <span class="husna-meaning-text">{{ $name['meaning'] }}</span>
-                </div>
-            @endforeach
-        </div>
-    </div>
 
     {{-- Vazifalar Section Header --}}
     <div style="margin-top:16px;margin-bottom:8px;display:flex;align-items:center;gap:10px;">
@@ -357,9 +342,9 @@
             { min: 15, text: '💪 Zo\'r! Har bir amal muhim!' },
             { min: 30, text: '🌿 Ajoyib! Daraxtingiz o\'sib bormoqda!' },
             { min: 50, text: '🔥 Yarmi bajarildi! Siz zo\'rsiz!' },
-            { min: 70, text: '🌟 Mashaalloh! Deyarli tayyor!' },
+            { min: 70, text: '🌟 Ajoyib! Deyarli tayyor!' },
             { min: 85, text: '🏆 Ozgina qoldi! Hammasi bo\'ladi!' },
-            { min: 100, text: '🌸 SubhanAlloh! Alloh qabul qilsin!' }
+            { min: 100, text: '🌸 Barakalla! Barcha amallar bajarildi!' }
         ];
         let msg = messages[0].text;
         for (const m of messages) { if (percent >= m.min) msg = m.text; }
