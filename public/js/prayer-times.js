@@ -35,7 +35,7 @@ const PrayerTimes = {
             if (saved) {
                 try {
                     const loc = JSON.parse(saved);
-                    if (loc.lat && loc.lon && loc.city) {
+                    if (loc.lat && loc.lon && loc.displayCity) {
                         resolve(loc);
                         // Background update check could be here
                         return;
@@ -44,7 +44,7 @@ const PrayerTimes = {
             }
 
             if (!navigator.geolocation) {
-                const def = { lat: this.DEFAULT_LAT, lon: this.DEFAULT_LON, city: 'Toshkent shahri' };
+                const def = { lat: this.DEFAULT_LAT, lon: this.DEFAULT_LON, displayCity: 'Toshkent shahri', apiRegion: 'Toshkent' };
                 localStorage.setItem(this.LOCATION_KEY, JSON.stringify(def));
                 resolve(def);
                 return;
@@ -55,17 +55,19 @@ const PrayerTimes = {
                     const loc = {
                         lat: pos.coords.latitude,
                         lon: pos.coords.longitude,
-                        city: null
+                        displayCity: null,
+                        apiRegion: null
                     };
 
-                    this.getCityName(loc.lat, loc.lon).then(city => {
-                        loc.city = city || 'Toshkent shahri';
+                    this.getCityName(loc.lat, loc.lon).then(res => {
+                        loc.displayCity = res.displayCity;
+                        loc.apiRegion = res.apiRegion;
                         localStorage.setItem(this.LOCATION_KEY, JSON.stringify(loc));
                         resolve(loc);
                     });
                 },
                 () => {
-                    const def = { lat: this.DEFAULT_LAT, lon: this.DEFAULT_LON, city: 'Toshkent shahri' };
+                    const def = { lat: this.DEFAULT_LAT, lon: this.DEFAULT_LON, displayCity: 'Toshkent shahri', apiRegion: 'Toshkent' };
                     localStorage.setItem(this.LOCATION_KEY, JSON.stringify(def));
                     resolve(def);
                 },
@@ -74,30 +76,33 @@ const PrayerTimes = {
         });
     },
 
-    /** Shahar nomini olish (Reverse Geocoding) */
+    /** Shahar nomini olish (Reverse Geocoding) + API'ga mos regionni tozalash */
     async getCityName(lat, lon) {
         try {
             const geoResp = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json&zoom=12`);
             const geoData = await geoResp.json();
             const addr = geoData.address;
-            if (!addr) return 'Toshkent shahri';
+            if (!addr) return { displayCity: 'Toshkent shahri', apiRegion: 'Toshkent' };
 
-            // To'liqroq manzil (Tuman + Shahar/Viloyat)
+            // Display uchun: Tuman + Shahar
             const district = addr.suburb || addr.district || addr.borough || addr.subdistrict;
             const city = addr.city || addr.town || addr.village || addr.state || 'Toshkent';
 
-            if (district && district !== city) {
-                return `${district}, ${city}`;
-            }
-            return `${city} shahri`;
+            // API uchun: Faqat tozalangan shahar nomi (masalan: "Toshkent")
+            let apiRegion = city.replace(/shahri|viloyati|region|city|province/gi, '').trim();
+
+            let displayCity = (district && district !== city) ? `${district}, ${city}` : `${city} shahri`;
+
+            return { displayCity, apiRegion };
         } catch (e) {
-            return 'Toshkent shahri';
+            return { displayCity: 'Toshkent shahri', apiRegion: 'Toshkent' };
         }
     },
 
     /** Butun bir oy uchun vaqtlarni yuklash */
     async fetchMonthData(region, month, year) {
-        const cacheKey = `${this.CACHE_KEY}${region}_${month}_${year}`;
+        const sanitizedRegion = region || 'Toshkent';
+        const cacheKey = `${this.CACHE_KEY}${sanitizedRegion}_${month}_${year}`;
         const cached = localStorage.getItem(cacheKey);
 
         if (cached) {
@@ -105,7 +110,7 @@ const PrayerTimes = {
         }
 
         try {
-            const resp = await fetch(`https://islomapi.uz/api/monthly?region=${region}&month=${month}`);
+            const resp = await fetch(`https://islomapi.uz/api/monthly?region=${sanitizedRegion}&month=${month}`);
             const data = await resp.json();
             if (data && Array.isArray(data)) {
                 localStorage.setItem(cacheKey, JSON.stringify(data));
@@ -196,11 +201,11 @@ const PrayerTimes = {
         const loc = await this.getLocation();
 
         // Navbar sync
-        this.updateNavbarLocation(loc.city);
+        this.updateNavbarLocation(loc.displayCity);
 
         if (!container) return;
 
-        const times = await this.getTodayTimes(loc.city);
+        const times = await this.getTodayTimes(loc.apiRegion);
         if (!times) {
             container.innerHTML = `<div class="text-center p-3"><i class="ri-wifi-off-line"></i> Xatolik yuz berdi</div>`;
             return;
@@ -233,7 +238,7 @@ const PrayerTimes = {
         container.innerHTML = `
             <div style="display:flex;align-items:center;gap:6px;margin-bottom:12px;padding:0 4px;">
                 <i class="ri-map-pin-2-fill" style="color:var(--accent);font-size:0.9rem;"></i>
-                <span style="font-size:0.75rem;font-weight:600;color:var(--text-secondary);">${loc.city} shahri vaqti</span>
+                <span style="font-size:0.75rem;font-weight:600;color:var(--text-secondary);">${loc.displayCity} vaqti</span>
             </div>
             <div style="display:flex;flex-direction:column;gap:4px;">${prayerRows}</div>
         `;
