@@ -32,6 +32,7 @@ Route::middleware('auth')->group(function () {
 
     Route::get('/daily/{date?}', [DailyLogController::class, 'show'])->name('daily.show');
     Route::post('/daily', [DailyLogController::class, 'store'])->name('daily.store');
+    Route::post('/daily/toggle', [DailyLogController::class, 'toggle'])->name('daily.toggle');
     Route::post('/daily/custom-habit', [DailyLogController::class, 'addCustomHabit'])->name('daily.custom-habit');
 
     Route::get('/goals', [GoalController::class, 'index'])->name('goals.index');

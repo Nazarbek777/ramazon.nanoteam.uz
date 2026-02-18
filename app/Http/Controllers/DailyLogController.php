@@ -41,7 +41,6 @@ class DailyLogController extends Controller
         $isToday = $currentDate->isToday();
         $isFuture = $currentDate->isFuture();
 
-        // Ramazon ma'lumotlari
         $ramadan = [
             'is_ramadan' => RamadanHelper::isRamadan($currentDate),
             'day' => RamadanHelper::dayNumber($currentDate),
@@ -54,6 +53,61 @@ class DailyLogController extends Controller
         ));
     }
 
+    /**
+     * AJAX — bitta habitni belgilash/bekor qilish (reload yo'q)
+     */
+    public function toggle(Request $request)
+    {
+        $user = Auth::user();
+        $date = $request->input('date', Carbon::today()->format('Y-m-d'));
+        $habitId = $request->input('habit_id');
+        $isCompleted = $request->boolean('is_completed');
+        $value = $request->input('value');
+
+        $log = DailyLog::firstOrCreate(
+            ['user_id' => $user->id, 'date' => $date],
+            ['notes' => '']
+        );
+
+        $habit = Habit::findOrFail($habitId);
+
+        if ($habit->type === 'number') {
+            $isCompleted = ($value > 0);
+        }
+
+        DailyLogItem::updateOrCreate(
+            ['daily_log_id' => $log->id, 'habit_id' => $habitId],
+            ['is_completed' => $isCompleted, 'value' => $value]
+        );
+
+        // Statistikani qayta hisoblash
+        $log->refresh();
+        $items = $log->items;
+        $total = $items->count();
+        $completed = $items->where('is_completed', true)->count();
+        $percent = $total > 0 ? round(($completed / $total) * 100) : 0;
+
+        // Streak hisoblash
+        $streak = $this->calculateStreak($user->id);
+
+        // Cache tozalash
+        Cache::forget("stats_user_{$user->id}");
+
+        // Maqsadlarni yangilash
+        $this->updateGoals($user->id);
+
+        return response()->json([
+            'success' => true,
+            'completed' => $completed,
+            'total' => $total,
+            'percent' => $percent,
+            'streak' => $streak,
+        ]);
+    }
+
+    /**
+     * Oddiy form POST (fallback)
+     */
     public function store(Request $request)
     {
         $user = Auth::user();
@@ -84,10 +138,7 @@ class DailyLogController extends Controller
             );
         }
 
-        // Maqsadlarni yangilash
         $this->updateGoals($user->id);
-
-        // Cache tozalash
         Cache::forget("stats_user_{$user->id}");
 
         return redirect()->route('daily.show', ['date' => $date])
@@ -102,7 +153,6 @@ class DailyLogController extends Controller
         ]);
 
         $user = Auth::user();
-
         $maxSort = Habit::forUser($user->id)->max('sort_order') ?? 0;
 
         Habit::create([
@@ -118,6 +168,30 @@ class DailyLogController extends Controller
         Cache::forget("habits_user_{$user->id}");
 
         return redirect()->back()->with('success', 'Yangi amal qo\'shildi!');
+    }
+
+    private function calculateStreak(int $userId): int
+    {
+        $streak = 0;
+        $date = Carbon::today();
+
+        while (true) {
+            $log = DailyLog::where('user_id', $userId)
+                ->where('date', $date)
+                ->withCount(['items as completed_count' => function ($q) {
+                    $q->where('is_completed', true);
+                }])
+                ->first();
+
+            if (!$log || $log->completed_count === 0) {
+                break;
+            }
+
+            $streak++;
+            $date = $date->subDay();
+        }
+
+        return $streak;
     }
 
     private function updateGoals(int $userId): void
