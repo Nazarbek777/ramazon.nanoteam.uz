@@ -64,25 +64,26 @@
                 <div class="alert alert-error"><i class="ri-error-warning-fill"></i> {{ $errors->first() }}</div>
             @endif
 
-            <div class="inline-form">
-                <div class="form-group" style="flex:2;">
+            <div class="form-group">
                     <label class="form-label">Maqsad nomi</label>
                     <input type="text" name="title" class="form-input" placeholder="Masalan: 30 kun ro'za tutish" required>
                 </div>
-                <div class="form-group" style="min-width:100px;">
-                    <label class="form-label">Maqsad soni</label>
-                    <input type="number" name="target_value" class="form-input" placeholder="30" min="1" required>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+                    <div class="form-group">
+                        <label class="form-label">Maqsad soni</label>
+                        <input type="number" name="target_value" class="form-input" placeholder="30" min="1" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Birlik</label>
+                        <select name="unit" class="form-select">
+                            <option value="kun">kun</option>
+                            <option value="marta">marta</option>
+                            <option value="sahifa">sahifa</option>
+                            <option value="so'm">so'm</option>
+                        </select>
+                    </div>
                 </div>
-                <div class="form-group" style="min-width:100px;">
-                    <label class="form-label">Birlik</label>
-                    <select name="unit" class="form-select">
-                        <option value="kun">kun</option>
-                        <option value="marta">marta</option>
-                        <option value="sahifa">sahifa</option>
-                        <option value="so'm">so'm</option>
-                    </select>
-                </div>
-                <div class="form-group" style="min-width:140px;">
+                <div class="form-group">
                     <label class="form-label">Bog'liq amal</label>
                     <select name="habit_id" class="form-select">
                         <option value="">Umumiy (streak)</option>
@@ -91,10 +92,7 @@
                         @endforeach
                     </select>
                 </div>
-                <div class="form-group" style="flex:0;">
-                    <button type="submit" class="btn btn-gold btn-sm"><i class="ri-focus-3-line"></i> Qo'shish</button>
-                </div>
-            </div>
+                <button type="submit" class="btn btn-gold" style="width:100%;"><i class="ri-focus-3-line"></i> Qo'shish</button>
         </form>
     </div>
 </div>

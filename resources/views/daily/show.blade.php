@@ -92,24 +92,26 @@
     </form>
 
     {{-- Qo'shimcha amal --}}
-    <div class="mt-24" style="padding-bottom:20px;">
+    <div class="mt-24" style="padding-bottom:80px;">
         <h3 class="section-title"><i class="ri-add-circle-line"></i> Yangi amal qo'shish</h3>
         <div class="card add-form-card">
-            <form method="POST" action="{{ route('daily.custom-habit') }}" class="inline-form">
+            <form method="POST" action="{{ route('daily.custom-habit') }}">
                 @csrf
                 <div class="form-group">
                     <label class="form-label">Amal nomi</label>
                     <input type="text" name="name" class="form-input" placeholder="Masalan: Tahajjud" required>
                 </div>
-                <div class="form-group" style="min-width:120px;">
-                    <label class="form-label">Turi</label>
-                    <select name="type" class="form-select">
-                        <option value="checkbox">Belgilash</option>
-                        <option value="number">Raqam</option>
-                    </select>
-                </div>
-                <div class="form-group" style="flex:0;">
-                    <button type="submit" class="btn btn-primary btn-sm"><i class="ri-add-line"></i> Qo'shish</button>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+                    <div class="form-group">
+                        <label class="form-label">Turi</label>
+                        <select name="type" class="form-select">
+                            <option value="checkbox">Belgilash</option>
+                            <option value="number">Raqam</option>
+                        </select>
+                    </div>
+                    <div class="form-group" style="display:flex;align-items:flex-end;">
+                        <button type="submit" class="btn btn-primary" style="width:100%;"><i class="ri-add-line"></i> Qo'shish</button>
+                    </div>
                 </div>
             </form>
         </div>
