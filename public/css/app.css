@@ -58,6 +58,8 @@ body.theme-male {
     --topbar-bg: rgba(5, 8, 22, 0.93);
     --bottomnav-bg: rgba(5, 8, 22, 0.96);
     --white-5: rgba(255, 255, 255, 0.04);
+    --gold-bg: rgba(212, 168, 67, 0.1);
+    --gold-border: rgba(212, 168, 67, 0.25);
 }
 
 /* === FEMALE THEME — Premium Floral/Rose === */
@@ -2684,50 +2686,123 @@ body::before {
 
 /* === New Functionality Components === */
 
-/* Namoz Tracker */
-.namoz-tracker-grid {
+/* Unified Deeds Grid System */
+.deeds-grid {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
-    gap: 8px;
-    margin-bottom: 16px;
+    gap: 12px;
+    margin-bottom: 24px;
 }
 
-.namoz-tracker-item {
+.deed-card {
+    position: relative;
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 6px;
-    padding: 12px 8px;
-    border-radius: 12px;
+    justify-content: center;
+    gap: 8px;
+    padding: 16px 10px;
+    border-radius: 16px;
     background: var(--white-5);
     border: 1px solid var(--border-color);
     cursor: pointer;
-    transition: var(--transition-fast);
+    transition: var(--transition);
+    text-align: center;
+    height: 100%;
 }
 
-.namoz-tracker-item:hover {
+.deed-card:hover {
     border-color: var(--accent-light);
     background: var(--accent-bg);
 }
 
-.namoz-tracker-item.active {
+.deed-card.active {
     background: var(--accent-bg);
     border-color: var(--accent);
-    box-shadow: 0 0 15px var(--accent-glow);
+    box-shadow: 0 0 20px var(--accent-glow);
 }
 
-.namoz-tracker-item i {
-    font-size: 1.25rem;
+.deed-card.completed-alt {
+    background: rgba(52, 211, 153, 0.08);
+    border-color: var(--success);
+}
+
+.deed-card i.main-icon {
+    font-size: 1.4rem;
     color: var(--text-muted);
+    transition: var(--transition);
 }
 
-.namoz-tracker-item.active i {
+.deed-card.active i.main-icon {
     color: var(--accent);
 }
 
-.namoz-tracker-label {
-    font-size: 0.72rem;
-    font-weight: 600;
+.deed-card .check-icon {
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    font-size: 0.85rem;
+    color: var(--accent);
+    opacity: 0;
+    transform: scale(0.5);
+    transition: var(--transition);
+}
+
+.deed-card.active .check-icon {
+    opacity: 1;
+    transform: scale(1);
+}
+
+.deed-label {
+    font-size: 0.75rem;
+    font-weight: 700;
+    line-height: 1.2;
+    color: var(--text-secondary);
+}
+
+.deed-card.active .deed-label {
+    color: var(--text-primary);
+}
+
+/* Number Input Card specific */
+.deed-card.type-number {
+    cursor: default;
+}
+
+.deed-card .deed-num-input {
+    width: 100%;
+    margin-top: 4px;
+    background: var(--white-8);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 6px;
+    text-align: center;
+    color: var(--text-primary);
+    font-size: 0.85rem;
+    font-weight: 700;
+    font-family: var(--font-main);
+    transition: var(--transition);
+}
+
+.deed-card .deed-num-input:focus {
+    outline: none;
+    border-color: var(--accent);
+    background: var(--accent-bg);
+}
+
+@media (max-width: 420px) {
+    .deeds-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 8px;
+    }
+
+    .deed-card {
+        padding: 12px 6px;
+    }
+
+    .deed-label {
+        font-size: 0.68rem;
+    }
 }
 
 /* Rakat Selector (Taroweh) */
@@ -2837,6 +2912,22 @@ body::before {
 
 .quran-action-btn i {
     font-size: 1.1rem;
+}
+
+.quran-action-btn .check-icon {
+    position: absolute;
+    top: 2px;
+    right: 2px;
+    font-size: 0.7rem;
+    color: var(--accent);
+    opacity: 0;
+    transform: scale(0.5);
+    transition: var(--transition);
+}
+
+.quran-action-btn.active .check-icon {
+    opacity: 1;
+    transform: scale(1);
 }
 
 /* Priorities (Eng muhim) */
