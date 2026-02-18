@@ -12,12 +12,14 @@ class DailyLog extends Model
         'user_id',
         'date',
         'notes',
+        'data',
     ];
 
     protected function casts(): array
     {
         return [
             'date' => 'date',
+            'data' => 'array',
         ];
     }
 

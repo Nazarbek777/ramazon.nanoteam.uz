@@ -60,14 +60,44 @@ class DailyLogController extends Controller
     {
         $user = Auth::user();
         $date = $request->input('date', Carbon::today()->format('Y-m-d'));
-        $habitId = $request->input('habit_id');
-        $isCompleted = $request->boolean('is_completed');
-        $value = $request->input('value');
+        $type = $request->input('type', 'habit'); // 'habit', 'data_field', 'priority'
 
         $log = DailyLog::firstOrCreate(
             ['user_id' => $user->id, 'date' => $date],
-            ['notes' => '']
+            ['notes' => '', 'data' => []]
         );
+
+        if ($type === 'data_field') {
+            $key = $request->input('key');
+            $value = $request->input('value');
+            
+            $data = $log->data ?? [];
+            // Dot notation support (e.g., 'quran.sura')
+            data_set($data, $key, $value);
+            
+            $log->update(['data' => $data]);
+            
+            return response()->json(['success' => true]);
+        }
+
+        if ($type === 'priority') {
+            $index = $request->input('index');
+            $value = $request->input('value');
+            
+            $data = $log->data ?? [];
+            $priorities = $data['priorities'] ?? ['', '', ''];
+            $priorities[$index] = $value;
+            $data['priorities'] = $priorities;
+            
+            $log->update(['data' => $data]);
+            
+            return response()->json(['success' => true]);
+        }
+
+        // Default 'habit' toggle
+        $habitId = $request->input('habit_id');
+        $isCompleted = $request->boolean('is_completed');
+        $value = $request->input('value');
 
         $habit = Habit::findOrFail($habitId);
 
@@ -80,21 +110,15 @@ class DailyLogController extends Controller
             ['is_completed' => $isCompleted, 'value' => $value]
         );
 
-        // Statistikani qayta hisoblash — BARCHA habitlar soniga nisbatan
         $log->refresh();
         $allHabits = Habit::forUser($user->id)->count();
         $items = $log->items;
         $completed = $items->where('is_completed', true)->count();
-        $total = max($allHabits, $items->count()); // barcha habitlar soni
+        $total = max($allHabits, $items->count());
         $percent = $total > 0 ? round(($completed / $total) * 100) : 0;
 
-        // Streak hisoblash
         $streak = $this->calculateStreak($user->id);
-
-        // Cache tozalash
         Cache::forget("stats_user_{$user->id}");
-
-        // Maqsadlarni yangilash
         $this->updateGoals($user->id);
 
         return response()->json([

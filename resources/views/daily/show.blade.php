@@ -47,11 +47,124 @@
         </div>
     </div>
 
+    {{-- Namoz Tracker --}}
+    <h3 class="section-title"><i class="ri-heart-pulse-line"></i> Namozlarim</h3>
+    <div class="card mb-24">
+        <div class="namoz-tracker-grid">
+            @php
+                $prayers = [
+                    ['id' => 'fajr', 'label' => 'Bomdod', 'icon' => 'ri-sun-foggy-line'],
+                    ['id' => 'dhuhr', 'label' => 'Peshin', 'icon' => 'ri-sun-line'],
+                    ['id' => 'asr', 'label' => 'Asr', 'icon' => 'ri-sun-cloudy-line'],
+                    ['id' => 'maghrib', 'label' => 'Shom', 'icon' => 'ri-moon-line'],
+                    ['id' => 'isha', 'label' => 'Xufton', 'icon' => 'ri-moon-clear-line'],
+                    ['id' => 'qazo', 'label' => 'Qazo', 'icon' => 'ri-history-line'],
+                ];
+                $data = $log->data ?? [];
+                $namozData = $data['namoz'] ?? [];
+            @endphp
+            @foreach($prayers as $p)
+                <div class="namoz-tracker-item {{ ($namozData[$p['id']] ?? false) ? 'active' : '' }}" 
+                     onclick="toggleDataField('namoz.{{ $p['id'] }}', this)">
+                    <i class="{{ $p['icon'] }}"></i>
+                    <span class="namoz-tracker-label">{{ $p['label'] }}</span>
+                </div>
+            @endforeach
+        </div>
+
+        <div style="text-align:center;margin-top:10px;">
+            <span class="namoz-tracker-label" style="color:var(--text-muted);display:block;margin-bottom:8px;">Tarovih namozi</span>
+            <div class="rakat-selector">
+                @foreach([8, 10, 20] as $rakat)
+                    <div class="rakat-btn {{ ($data['taroweh_rakat'] ?? 0) == $rakat ? 'active' : '' }}" 
+                         onclick="setDataField('taroweh_rakat', {{ $rakat }}, this, 'rakat-btn')">
+                        {{ $rakat }}
+                    </div>
+                @endforeach
+            </div>
+        </div>
+    </div>
+
+    {{-- Quran Tracker --}}
+    <h3 class="section-title"><i class="ri-book-open-line"></i> Qur'on</h3>
+    <div class="card mb-24 quran-progress-card">
+        <table class="quran-table">
+            <thead>
+                <tr>
+                    <th>Sura</th>
+                    <th>Oyat</th>
+                    <th>Sahifa</th>
+                </tr>
+            </thead>
+            <tbody>
+                @php $quran = $data['quran'] ?? []; @endphp
+                <tr>
+                    <td><input type="text" class="quran-input" placeholder="..." value="{{ $quran['sura'] ?? '' }}" onchange="setDataField('quran.sura', this.value)"></td>
+                    <td><input type="text" class="quran-input" placeholder="..." value="{{ $quran['oyat'] ?? '' }}" onchange="setDataField('quran.oyat', this.value)"></td>
+                    <td><input type="text" class="quran-input" placeholder="..." value="{{ $quran['sahifa'] ?? '' }}" onchange="setDataField('quran.sahifa', this.value)"></td>
+                </tr>
+            </tbody>
+        </table>
+        <div class="quran-actions">
+            <div class="quran-action-btn {{ ($quran['yodladim'] ?? false) ? 'active' : '' }}" onclick="toggleDataField('quran.yodladim', this)">
+                <i class="ri-medal-line"></i>
+                <span>Yodladim</span>
+            </div>
+            <div class="quran-action-btn {{ ($quran['qiroat'] ?? false) ? 'active' : '' }}" onclick="toggleDataField('quran.qiroat', this)">
+                <i class="ri-mic-line"></i>
+                <span>Qiroat</span>
+            </div>
+            <div class="quran-action-btn {{ ($quran['takrorladim'] ?? false) ? 'active' : '' }}" onclick="toggleDataField('quran.takrorladim', this)">
+                <i class="ri-repeat-2-line"></i>
+                <span>Takrorladim</span>
+            </div>
+        </div>
+    </div>
+
+    {{-- Priorities --}}
+    <h3 class="section-title"><i class="ri-list-ordered"></i> Eng muhim</h3>
+    <div class="card mb-24 priority-card">
+        @php $priorities = $data['priorities'] ?? ['', '', '']; @endphp
+        @foreach([0, 1, 2] as $idx)
+            <div class="priority-row">
+                <div class="priority-bullet">{{ $idx + 1 }}</div>
+                <input type="text" class="priority-field" placeholder="Bugungi muhim reja..." 
+                       value="{{ $priorities[$idx] ?? '' }}"
+                       onchange="updatePriority({{ $idx }}, this.value)">
+            </div>
+        @endforeach
+    </div>
+
+    {{-- Asmaul Husna --}}
+    @php
+        $asmaulHusna = [
+            ['name' => 'Al-Malik', 'meaning' => 'Hamma narsaning egasi'],
+            ['name' => 'Al-Quddus', 'meaning' => 'Barcha aybu nuqsonlardan pok'],
+            ['name' => 'As-Salam', 'meaning' => 'Tinchlik-omonlik beruvchi'],
+            ['name' => 'Al-Mu’min', 'meaning' => 'Imon va omonlik beruvchi'],
+        ];
+        // Kunlik ismlarni tanlash (osonroq bo'lishi uchun ramazon kuniga qarab)
+        $dayIndex = ($ramadan['day'] ?? 1) % 25;
+        $currentNames = array_slice($asmaulHusna, 0, 4); // Misol tariqasida 4 tasi
+    @endphp
+    <h3 class="section-title"><i class="ri-sparkling-line"></i> Asmaul Husna</h3>
+    <div class="card mb-24 husna-card">
+        <div class="husna-item-row">
+            @foreach($currentNames as $name)
+                <div class="husna-box">
+                    <span class="husna-arabic-text">{{ $name['name'] }}</span>
+                    <span class="husna-meaning-text">{{ $name['meaning'] }}</span>
+                </div>
+            @endforeach
+        </div>
+    </div>
+
     {{-- Checklist --}}
+    <h3 class="section-title"><i class="ri-checkbox-multiple-line"></i> Vazifalar</h3>
     <div class="card mb-24">
         <ul class="checklist" id="habitList">
             @foreach($habits as $habit)
-                <li class="checklist-item" id="item-{{ $habit->id }}" data-habit-id="{{ $habit->id }}" data-type="{{ $habit->type }}">
+                <li class="checklist-item" id="item-{{ $habit->id }}" data-habit-id="{{ $habit->id }}" data-type="{{ $habit->type }}" style="{{ ($completedMap[$habit->id] ?? false) ? 'background:var(--accent-bg);border-color:var(--accent);' : '' }}">
                     <div class="habit-icon"><i class="{{ $habit->icon }}"></i></div>
                     <span class="habit-name">{{ $habit->name }}</span>
                     <span class="habit-input">
@@ -93,37 +206,37 @@
         @endforeach
         <div class="card mb-24">
             <div class="form-group" style="margin-bottom:0;">
-                <label class="form-label"><i class="ri-edit-line"></i> Izoh (ixtiyoriy)</label>
-                <textarea name="notes" class="form-input" rows="2" placeholder="Bugungi kun haqida..." style="resize:vertical;">{{ $log->notes ?? '' }}</textarea>
+                <label class="form-label"><i class="ri-edit-line"></i> Bugungi kun haqida izohingiz</label>
+                <textarea name="notes" class="form-input" rows="2" placeholder="Xotiralar, hislar..." style="resize:vertical;">{{ $log->notes ?? '' }}</textarea>
             </div>
         </div>
         <div class="sticky-save">
             <button type="submit" class="btn btn-gold" style="width:100%;">
-                <i class="ri-save-line"></i> Izohni saqlash
+                <i class="ri-save-line"></i> Kunlik hisobotni saqlash
             </button>
         </div>
     </form>
 
     {{-- Yangi amal --}}
     <div class="mt-24" style="padding-bottom:80px;">
-        <h3 class="section-title"><i class="ri-add-circle-line"></i> Yangi amal qo'shish</h3>
+        <h3 class="section-title"><i class="ri-add-circle-line"></i> Maxsus amal qo'shish</h3>
         <div class="card add-form-card">
             <form method="POST" action="{{ route('daily.custom-habit') }}">
                 @csrf
                 <div class="form-group">
                     <label class="form-label">Amal nomi</label>
-                    <input type="text" name="name" class="form-input" placeholder="Masalan: Tahajjud" required>
+                    <input type="text" name="name" class="form-input" placeholder="Masalan: Tahajjud namozi" required>
                 </div>
                 <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
                     <div class="form-group">
                         <label class="form-label">Turi</label>
                         <select name="type" class="form-select">
-                            <option value="checkbox">Belgilash</option>
-                            <option value="number">Raqam</option>
+                            <option value="checkbox">Belgilash (Checkbox)</option>
+                            <option value="number">Soni (Raqam)</option>
                         </select>
                     </div>
                     <div class="form-group" style="display:flex;align-items:flex-end;">
-                        <button type="submit" class="btn btn-primary" style="width:100%;"><i class="ri-add-line"></i> Qo'shish</button>
+                        <button type="submit" class="btn btn-primary" style="width:100%;"><i class="ri-add-line"></i> Ro'yxatga qo'shish</button>
                     </div>
                 </div>
             </form>
@@ -143,6 +256,9 @@
     const CSRF = document.querySelector('meta[name="csrf-token"]').content;
     const DATE = '{{ $currentDate->format("Y-m-d") }}';
 
+    // Data keys used in state
+    let logData = @json($log->data ?? []);
+
     // Boshlang'ich holatni hisoblash
     let totalHabits = {{ $habits->count() }};
     let completedCount = {{ isset($log) && $log ? $log->items->where('is_completed', true)->count() : 0 }};
@@ -158,7 +274,6 @@
             item.style.background = 'var(--accent-bg)';
             item.style.borderColor = 'var(--accent)';
             if (isCheckbox) completedCount++;
-            // Motivatsion xabar
             showMotivation(completedCount, totalHabits);
         } else {
             item.style.background = '';
@@ -166,25 +281,18 @@
             if (isCheckbox) completedCount--;
         }
 
-        if (isCheckbox) {
-            updateProgress(completedCount, totalHabits);
-        }
+        if (isCheckbox) updateProgress(completedCount, totalHabits);
 
-        // AJAX so'rov (background)
-        const body = {
-            habit_id: habitId,
-            date: DATE,
-            is_completed: completed
-        };
-        if (!isCheckbox) body.value = value;
+        saveHabitRaw(habitId, completed, value);
+    }
 
+    function saveHabitRaw(habitId, isCompleted, value) {
+        const body = { habit_id: habitId, date: DATE, is_completed: isCompleted };
+        if (value !== undefined) body.value = value;
+        
         fetch(TOGGLE_URL, {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': CSRF,
-                'Accept': 'application/json'
-            },
+            headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': CSRF, 'Accept': 'application/json' },
             body: JSON.stringify(body)
         })
         .then(r => r.json())
@@ -194,25 +302,58 @@
                 totalHabits = data.total > 0 ? data.total : totalHabits;
                 updateProgress(data.completed, data.total);
             }
-        })
-        .catch(err => {
-            console.error('Toggle xatosi:', err);
-            showToast('❌ Xatolik! Qaytadan urinib ko\'ring', true);
         });
+    }
+
+    // New Data Field Management
+    function toggleDataField(key, el) {
+        const isActive = el.classList.contains('active');
+        const newValue = !isActive;
+        
+        if (newValue) el.classList.add('active');
+        else el.classList.remove('active');
+
+        setDataField(key, newValue);
+    }
+
+    function setDataField(key, value, el, activeClass) {
+        if (el && activeClass) {
+            const parent = el.parentElement;
+            parent.querySelectorAll('.' + activeClass).forEach(b => b.classList.remove('active'));
+            el.classList.add('active');
+        }
+
+        fetch(TOGGLE_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': CSRF, 'Accept': 'application/json' },
+            body: JSON.stringify({ key, value, date: DATE, type: 'data_field' })
+        })
+        .then(r => r.json())
+        .then(data => { if (data.success) showToast('Saqlandi'); });
+    }
+
+    function updatePriority(index, value) {
+        fetch(TOGGLE_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': CSRF, 'Accept': 'application/json' },
+            body: JSON.stringify({ key: 'priorities', index, value, date: DATE, type: 'priority' })
+        })
+        .then(r => r.json())
+        .then(data => { if (data.success) showToast('Reja saqlandi'); });
     }
 
     function updateProgress(completed, total) {
         const percent = total > 0 ? Math.round((completed / total) * 100) : 0;
         const bar = document.getElementById('progressBar');
-        bar.style.width = percent + '%';
-        document.getElementById('progressText').textContent = completed + '/' + total;
-        document.getElementById('progressPercent').textContent = percent + '%';
+        if (bar) bar.style.width = percent + '%';
+        const txt = document.getElementById('progressText');
+        if (txt) txt.textContent = completed + '/' + total;
+        const pct = document.getElementById('progressPercent');
+        if (pct) pct.textContent = percent + '%';
 
-        // Progress bar rangini o'zgartirish
-        if (percent >= 90) {
-            bar.style.background = 'linear-gradient(90deg, var(--gold), #f7c948)';
-        } else if (percent >= 50) {
-            bar.style.background = 'linear-gradient(90deg, var(--accent), var(--gold))';
+        if (bar) {
+            if (percent >= 90) bar.style.background = 'linear-gradient(90deg, var(--gold), #f7c948)';
+            else if (percent >= 50) bar.style.background = 'linear-gradient(90deg, var(--accent), var(--gold))';
         }
     }
 
@@ -227,18 +368,15 @@
             { min: 85, text: '🏆 Ozgina qoldi! Hammasi bo\'ladi!' },
             { min: 100, text: '🌸 SubhanAlloh! Alloh qabul qilsin!' }
         ];
-
         let msg = messages[0].text;
-        for (const m of messages) {
-            if (percent >= m.min) msg = m.text;
-        }
-
+        for (const m of messages) { if (percent >= m.min) msg = m.text; }
         showToast(msg);
     }
 
     function showToast(text, isError) {
         const toast = document.getElementById('toast');
         const toastText = document.getElementById('toastText');
+        if (!toast) return;
         toastText.textContent = text;
         toast.style.background = isError ? 'var(--danger)' : 'linear-gradient(135deg, var(--accent), #2d8a4f)';
         if (!isError) {
@@ -253,4 +391,5 @@
         }, 2000);
     }
 </script>
+@endsection
 @endsection
