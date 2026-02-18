@@ -1658,6 +1658,593 @@ body::before {
     }
 }
 
+/* === Ramadan Badge === */
+.ramadan-badge {
+    background: linear-gradient(135deg, rgba(212, 168, 67, 0.15), rgba(212, 168, 67, 0.05));
+    border: 1px solid rgba(212, 168, 67, 0.25);
+    padding: 6px 16px;
+    border-radius: 50px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--gold);
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+}
+
+/* === Tree Card === */
+.tree-card {
+    background: var(--card-bg);
+    backdrop-filter: blur(20px);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    padding: 16px;
+    margin-bottom: 20px;
+    overflow: hidden;
+}
+
+.tree-scene {
+    position: relative;
+    height: 160px;
+    border-radius: 12px;
+    background: linear-gradient(180deg, #0a1628 0%, #132040 40%, #1a2a4f 70%, #1e3355 100%);
+    overflow: hidden;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+}
+
+.theme-female .tree-scene {
+    background: linear-gradient(180deg, #1a0f20 0%, #2a1830 40%, #351e3d 70%, #3d2245 100%);
+}
+
+/* Stars */
+.tree-stars span {
+    position: absolute;
+    width: 3px;
+    height: 3px;
+    background: #fff;
+    border-radius: 50%;
+    animation: twinkle 2s ease-in-out infinite alternate;
+}
+
+@keyframes twinkle {
+    0% {
+        opacity: 0.2;
+        transform: scale(0.5);
+    }
+
+    100% {
+        opacity: 1;
+        transform: scale(1.2);
+    }
+}
+
+/* Ground */
+.tree-ground {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 22px;
+    background: linear-gradient(180deg, #2d4a1a, #1e3312);
+    border-radius: 50% 50% 0 0;
+}
+
+.tree-ground::before {
+    content: '';
+    position: absolute;
+    top: -4px;
+    left: 0;
+    right: 0;
+    height: 8px;
+    background: linear-gradient(180deg, rgba(74, 124, 89, 0.4), transparent);
+    border-radius: 50%;
+}
+
+/* Tree Wrapper */
+.tree-wrapper {
+    position: relative;
+    z-index: 2;
+    margin-bottom: 14px;
+}
+
+/* Stage 0: Seed */
+.tree-seed {
+    position: relative;
+    width: 22px;
+    height: 18px;
+    margin: 0 auto;
+}
+
+.seed-body {
+    width: 22px;
+    height: 18px;
+    background: radial-gradient(ellipse, #c9a03c, #8b6914);
+    border-radius: 50% 50% 50% 50% / 40% 40% 60% 60%;
+    box-shadow: 0 0 12px rgba(201, 160, 60, 0.3);
+    animation: seedPulse 2s ease-in-out infinite;
+}
+
+.seed-shine {
+    position: absolute;
+    top: 3px;
+    left: 5px;
+    width: 6px;
+    height: 4px;
+    background: rgba(255, 255, 255, 0.3);
+    border-radius: 50%;
+}
+
+@keyframes seedPulse {
+
+    0%,
+    100% {
+        transform: scale(1);
+    }
+
+    50% {
+        transform: scale(1.08);
+        box-shadow: 0 0 18px rgba(201, 160, 60, 0.5);
+    }
+}
+
+/* Stage 1: Sprout */
+.tree-sprout {
+    position: relative;
+    width: 40px;
+    height: 50px;
+    margin: 0 auto;
+}
+
+.sprout-stem {
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 3px;
+    height: 28px;
+    background: linear-gradient(180deg, #5cb868, #3d7a4a);
+    border-radius: 2px;
+    animation: sproutGrow 3s ease-in-out infinite alternate;
+}
+
+.sprout-leaf {
+    position: absolute;
+    width: 16px;
+    height: 10px;
+    background: #4a9c5a;
+    border-radius: 0 50% 50% 0;
+    top: 8px;
+}
+
+.sprout-leaf-l {
+    left: 2px;
+    transform: rotate(-35deg);
+    background: linear-gradient(135deg, #5cb868, #4a9c5a);
+}
+
+.sprout-leaf-r {
+    right: 2px;
+    border-radius: 50% 0 0 50%;
+    transform: rotate(35deg);
+    background: linear-gradient(225deg, #5cb868, #4a9c5a);
+}
+
+@keyframes sproutGrow {
+    0% {
+        transform: translateX(-50%) scaleY(0.95);
+    }
+
+    100% {
+        transform: translateX(-50%) scaleY(1.05);
+    }
+}
+
+/* Stage 2: Young sapling */
+.tree-young {
+    position: relative;
+    width: 60px;
+    height: 80px;
+    margin: 0 auto;
+}
+
+.young-trunk {
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 6px;
+    height: 35px;
+    background: linear-gradient(180deg, #6B4226, #5a3a1a);
+    border-radius: 3px;
+}
+
+.young-crown {
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 45px;
+    height: 45px;
+    background: radial-gradient(ellipse, #4a9c5a, #3d7a4a);
+    border-radius: 50%;
+    box-shadow: 0 4px 20px rgba(74, 156, 90, 0.3);
+}
+
+.young-crown-light {
+    position: absolute;
+    top: 5px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 28px;
+    height: 28px;
+    background: radial-gradient(ellipse, rgba(92, 184, 104, 0.5), transparent);
+    border-radius: 50%;
+}
+
+/* Stage 3: Medium tree */
+.tree-medium {
+    position: relative;
+    width: 80px;
+    height: 110px;
+    margin: 0 auto;
+}
+
+.med-trunk {
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 8px;
+    height: 45px;
+    background: linear-gradient(180deg, #6B4226, #4a2e16);
+    border-radius: 4px;
+}
+
+.med-branch {
+    position: absolute;
+    width: 18px;
+    height: 4px;
+    background: #5a3a1a;
+    border-radius: 2px;
+}
+
+.med-branch-l {
+    bottom: 35px;
+    left: 12px;
+    transform: rotate(-30deg);
+}
+
+.med-branch-r {
+    bottom: 28px;
+    right: 12px;
+    transform: rotate(30deg);
+}
+
+.med-crown {
+    position: absolute;
+    top: 5px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 60px;
+    height: 55px;
+    background: radial-gradient(ellipse, #3d8a4f, #2d6e3f);
+    border-radius: 50%;
+    box-shadow: 0 6px 24px rgba(61, 138, 79, 0.3);
+}
+
+.med-crown-light {
+    position: absolute;
+    top: 12px;
+    left: 22px;
+    width: 22px;
+    height: 22px;
+    background: radial-gradient(ellipse, rgba(74, 170, 90, 0.5), transparent);
+    border-radius: 50%;
+}
+
+.med-crown-top {
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 35px;
+    height: 30px;
+    background: radial-gradient(ellipse, rgba(85, 168, 101, 0.6), transparent);
+    border-radius: 50%;
+}
+
+/* Stage 4: Big tree */
+.tree-big {
+    position: relative;
+    width: 100px;
+    height: 130px;
+    margin: 0 auto;
+}
+
+.big-trunk {
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 10px;
+    height: 52px;
+    background: linear-gradient(180deg, #5a3a1a, #3d2410);
+    border-radius: 5px;
+}
+
+.big-branch {
+    position: absolute;
+    width: 22px;
+    height: 5px;
+    background: #4a2e16;
+    border-radius: 3px;
+}
+
+.big-branch-l {
+    bottom: 44px;
+    left: 16px;
+    transform: rotate(-25deg);
+}
+
+.big-branch-r {
+    bottom: 36px;
+    right: 16px;
+    transform: rotate(25deg);
+}
+
+.big-crown {
+    position: absolute;
+    top: 5px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 78px;
+    height: 70px;
+    background: radial-gradient(ellipse, #2d6e3f, #1e5530);
+    border-radius: 50%;
+    box-shadow: 0 8px 30px rgba(45, 110, 63, 0.4);
+}
+
+.big-crown-2 {
+    position: absolute;
+    top: 8px;
+    left: 8px;
+    width: 40px;
+    height: 38px;
+    background: radial-gradient(ellipse, rgba(61, 138, 79, 0.7), transparent);
+    border-radius: 50%;
+}
+
+.big-crown-3 {
+    position: absolute;
+    top: 12px;
+    right: 8px;
+    width: 35px;
+    height: 32px;
+    background: radial-gradient(ellipse, rgba(74, 156, 90, 0.5), transparent);
+    border-radius: 50%;
+}
+
+.big-crown-top {
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 45px;
+    height: 35px;
+    background: radial-gradient(ellipse, rgba(92, 184, 104, 0.4), transparent);
+    border-radius: 50%;
+}
+
+/* Stage 5: Paradise tree */
+.tree-paradise {
+    position: relative;
+    width: 110px;
+    height: 140px;
+    margin: 0 auto;
+}
+
+.para-trunk {
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 12px;
+    height: 55px;
+    background: linear-gradient(180deg, #6B4226, #3d2410);
+    border-radius: 6px;
+}
+
+.para-branch {
+    position: absolute;
+    width: 24px;
+    height: 5px;
+    background: #5a3a1a;
+    border-radius: 3px;
+}
+
+.para-branch-l {
+    bottom: 46px;
+    left: 14px;
+    transform: rotate(-25deg);
+}
+
+.para-branch-r {
+    bottom: 38px;
+    right: 14px;
+    transform: rotate(25deg);
+}
+
+.para-crown {
+    position: absolute;
+    top: 5px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 88px;
+    height: 78px;
+    background: radial-gradient(ellipse, #2d8a4f, #1a6035);
+    border-radius: 50%;
+    box-shadow: 0 0 35px rgba(212, 168, 67, 0.2), 0 8px 30px rgba(45, 138, 79, 0.4);
+}
+
+.para-crown-2 {
+    position: absolute;
+    top: 10px;
+    left: 6px;
+    width: 45px;
+    height: 42px;
+    background: radial-gradient(ellipse, rgba(74, 170, 90, 0.6), transparent);
+    border-radius: 50%;
+}
+
+.para-crown-3 {
+    position: absolute;
+    top: 14px;
+    right: 6px;
+    width: 40px;
+    height: 36px;
+    background: radial-gradient(ellipse, rgba(92, 184, 104, 0.5), transparent);
+    border-radius: 50%;
+}
+
+.para-crown-top {
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 50px;
+    height: 38px;
+    background: radial-gradient(ellipse, rgba(110, 200, 120, 0.5), transparent);
+    border-radius: 50%;
+}
+
+.para-glow {
+    position: absolute;
+    top: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 100px;
+    height: 80px;
+    background: radial-gradient(ellipse, rgba(212, 168, 67, 0.15), transparent 70%);
+    border-radius: 50%;
+    animation: paraGlow 3s ease-in-out infinite alternate;
+}
+
+@keyframes paraGlow {
+    0% {
+        opacity: 0.5;
+        transform: translateX(-50%) scale(0.95);
+    }
+
+    100% {
+        opacity: 1;
+        transform: translateX(-50%) scale(1.1);
+    }
+}
+
+.para-flower {
+    position: absolute;
+    width: 8px;
+    height: 8px;
+    background: radial-gradient(circle, #f7c948, #e6a817);
+    border-radius: 50%;
+    box-shadow: 0 0 8px rgba(247, 201, 72, 0.6);
+    animation: flowerPulse 2s ease-in-out infinite alternate;
+    z-index: 3;
+}
+
+.para-flower:nth-child(odd) {
+    background: radial-gradient(circle, #ff8fab, #e05780);
+    box-shadow: 0 0 8px rgba(255, 143, 171, 0.5);
+}
+
+@keyframes flowerPulse {
+    0% {
+        transform: scale(0.8);
+        opacity: 0.6;
+    }
+
+    100% {
+        transform: scale(1.2);
+        opacity: 1;
+    }
+}
+
+.para-particle {
+    position: absolute;
+    width: 4px;
+    height: 4px;
+    background: var(--gold);
+    border-radius: 50%;
+    z-index: 4;
+    animation: particleRise 3s ease-in-out infinite;
+}
+
+@keyframes particleRise {
+    0% {
+        opacity: 0;
+        transform: translateY(0) scale(0);
+    }
+
+    30% {
+        opacity: 1;
+        transform: translateY(-10px) scale(1);
+    }
+
+    100% {
+        opacity: 0;
+        transform: translateY(-35px) scale(0.3);
+    }
+}
+
+/* Tree Info */
+.tree-info {
+    margin-top: 12px;
+    text-align: center;
+}
+
+.tree-stage-name {
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: 8px;
+}
+
+.tree-progress-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.tree-progress-bar {
+    flex: 1;
+    height: 6px;
+    background: var(--white-5);
+    border-radius: 3px;
+    overflow: hidden;
+}
+
+.tree-progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #4a9c5a, var(--gold));
+    border-radius: 3px;
+    transition: width 0.8s ease;
+}
+
+.tree-percent {
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: var(--gold);
+    min-width: 32px;
+}
+
+.tree-detail {
+    font-size: 0.72rem;
+    color: var(--text-muted);
+    margin-top: 4px;
+}
+
 /* === Responsive === */
 
 @media (min-width: 769px) {

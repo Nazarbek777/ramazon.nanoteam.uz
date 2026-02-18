@@ -3,125 +3,131 @@
 
 @section('content')
 @php
-    // Daraxt bosqichi: bugungi bajarilish foiziga qarab
     $treePercent = 0;
+    $completedToday = 0;
+    $totalToday = 0;
     if ($todayLog && $todayLog->items->count() > 0) {
-        $treePercent = round($todayLog->items->where('is_completed', true)->count() / $todayLog->items->count() * 100);
+        $completedToday = $todayLog->items->where('is_completed', true)->count();
+        $totalToday = $todayLog->items->count();
+        $treePercent = round(($completedToday / $totalToday) * 100);
     }
-    // 0-19: urug', 20-39: niholcha, 40-59: kichik daraxt, 60-79: katta daraxt, 80-100: gullagan daraxt
-    $treeStage = 0;
-    if ($treePercent >= 80) $treeStage = 4;
-    elseif ($treePercent >= 60) $treeStage = 3;
-    elseif ($treePercent >= 40) $treeStage = 2;
-    elseif ($treePercent >= 20) $treeStage = 1;
+    // 6 bosqich
+    $stage = 0;
+    if ($treePercent >= 90) $stage = 5;
+    elseif ($treePercent >= 70) $stage = 4;
+    elseif ($treePercent >= 50) $stage = 3;
+    elseif ($treePercent >= 30) $stage = 2;
+    elseif ($treePercent >= 10) $stage = 1;
+
+    $stageNames = ['Urug\'', 'Niholcha', 'Ko\'chat', 'Yosh daraxt', 'Katta daraxt', 'Jannat daraxti'];
+    $stageEmojis = ['🌰', '🌱', '🌿', '🌳', '🌲', '🌸'];
 @endphp
 
 {{-- Ramazon banner --}}
 @if($ramadan['is_ramadan'])
-    <div class="card" style="text-align:center;padding:14px 20px;margin-bottom:20px;border-color:rgba(212,168,67,0.3);background:linear-gradient(135deg,rgba(212,168,67,0.08),rgba(212,168,67,0.02));">
-        <div style="font-size:1.3rem;color:var(--gold);margin-bottom:2px;">
-            <i class="ri-moon-clear-fill"></i>
-        </div>
-        <div style="font-size:1rem;font-weight:700;color:var(--gold);">Ramazon {{ $ramadan['day'] }}-kuni</div>
-        <div style="font-size:0.75rem;color:var(--text-muted);margin-top:2px;">Qoldi: {{ $ramadan['remaining'] }} kun</div>
+    <div style="text-align:center;margin-bottom:16px;">
+        <span class="ramadan-badge">
+            <i class="ri-moon-clear-fill"></i> Ramazon {{ $ramadan['day'] }}-kuni · Qoldi {{ $ramadan['remaining'] }} kun
+        </span>
     </div>
 @elseif($ramadan['days_until'])
-    <div class="card" style="text-align:center;padding:14px;margin-bottom:20px;border-color:rgba(212,168,67,0.3);">
-        <i class="ri-moon-clear-line" style="color:var(--gold);font-size:1.2rem;"></i>
-        <div style="font-size:0.85rem;color:var(--gold);font-weight:600;margin-top:4px;">Ramazongacha {{ $ramadan['days_until'] }} kun qoldi</div>
+    <div style="text-align:center;margin-bottom:16px;">
+        <span class="ramadan-badge">
+            <i class="ri-moon-clear-line"></i> Ramazongacha {{ $ramadan['days_until'] }} kun
+        </span>
     </div>
 @endif
 
-{{-- DARAXT — asosiy gamifikatsiya --}}
-<div class="card" style="text-align:center;padding:20px 16px;margin-bottom:20px;overflow:hidden;position:relative;">
-    <div style="position:relative;height:200px;display:flex;align-items:flex-end;justify-content:center;">
-        {{-- Tuproq --}}
-        <div style="position:absolute;bottom:0;left:0;right:0;height:30px;background:linear-gradient(180deg,rgba(101,67,33,0.3),rgba(101,67,33,0.15));border-radius:50%;"></div>
+{{-- 🌳 DARAXT KARTASI --}}
+<div class="tree-card">
+    <div class="tree-scene">
+        {{-- Yulduzlar --}}
+        <div class="tree-stars">
+            <span style="top:8%;left:12%;animation-delay:0s;"></span>
+            <span style="top:15%;right:18%;animation-delay:0.7s;"></span>
+            <span style="top:5%;left:45%;animation-delay:1.4s;"></span>
+            <span style="top:22%;left:75%;animation-delay:2.1s;"></span>
+            <span style="top:10%;right:8%;animation-delay:0.3s;"></span>
+        </div>
 
-        {{-- Daraxt SVG --}}
-        <div id="treeContainer" style="position:relative;z-index:2;transition:all 1s ease;">
-            @if($treeStage === 0)
-                {{-- Urug' --}}
-                <svg width="60" height="50" viewBox="0 0 60 50">
-                    <ellipse cx="30" cy="40" rx="8" ry="5" fill="#8B6914" opacity="0.6"/>
-                    <circle cx="30" cy="35" r="6" fill="#D4A843" opacity="0.8"/>
-                    <path d="M28 35 Q30 30 32 35" stroke="#4a7c59" stroke-width="1.5" fill="none"/>
-                </svg>
-                <div style="font-size:0.7rem;color:var(--text-muted);margin-top:4px;">Urug' ekildi...</div>
-            @elseif($treeStage === 1)
-                {{-- Niholcha --}}
-                <svg width="80" height="90" viewBox="0 0 80 90">
-                    <line x1="40" y1="85" x2="40" y2="45" stroke="#6B4226" stroke-width="3"/>
-                    <ellipse cx="40" cy="42" rx="16" ry="20" fill="#4a7c59" opacity="0.85"/>
-                    <ellipse cx="40" cy="38" rx="12" ry="14" fill="#5a9c69" opacity="0.7"/>
-                </svg>
-                <div style="font-size:0.7rem;color:var(--accent-light);margin-top:2px;">Niholcha o'smoqda 🌱</div>
-            @elseif($treeStage === 2)
-                {{-- Kichik daraxt --}}
-                <svg width="120" height="140" viewBox="0 0 120 140">
-                    <rect x="55" y="90" width="10" height="45" rx="3" fill="#6B4226"/>
-                    <line x1="60" y1="100" x2="40" y2="85" stroke="#6B4226" stroke-width="3" stroke-linecap="round"/>
-                    <line x1="60" y1="105" x2="80" y2="90" stroke="#6B4226" stroke-width="3" stroke-linecap="round"/>
-                    <ellipse cx="60" cy="65" rx="35" ry="35" fill="#3d7a4a" opacity="0.9"/>
-                    <ellipse cx="45" cy="58" rx="22" ry="22" fill="#4a9c5a" opacity="0.6"/>
-                    <ellipse cx="75" cy="62" rx="18" ry="18" fill="#55a865" opacity="0.5"/>
-                    <ellipse cx="60" cy="50" rx="20" ry="18" fill="#5cb868" opacity="0.4"/>
-                </svg>
-                <div style="font-size:0.75rem;color:var(--success);margin-top:2px;">Daraxt o'sib bormoqda 🌿</div>
-            @elseif($treeStage === 3)
-                {{-- Katta daraxt --}}
-                <svg width="160" height="170" viewBox="0 0 160 170">
-                    <rect x="73" y="108" width="14" height="55" rx="4" fill="#5a3a1a"/>
-                    <line x1="80" y1="125" x2="50" y2="105" stroke="#5a3a1a" stroke-width="4" stroke-linecap="round"/>
-                    <line x1="80" y1="120" x2="110" y2="100" stroke="#5a3a1a" stroke-width="4" stroke-linecap="round"/>
-                    <line x1="80" y1="130" x2="45" y2="120" stroke="#5a3a1a" stroke-width="3" stroke-linecap="round"/>
-                    <ellipse cx="80" cy="70" rx="50" ry="50" fill="#2d6e3f" opacity="0.95"/>
-                    <ellipse cx="55" cy="60" rx="30" ry="30" fill="#3d8a4f" opacity="0.6"/>
-                    <ellipse cx="105" cy="65" rx="25" ry="25" fill="#4a9c5a" opacity="0.5"/>
-                    <ellipse cx="80" cy="45" rx="30" ry="25" fill="#4aaa5a" opacity="0.4"/>
-                    <ellipse cx="65" cy="80" rx="20" ry="18" fill="#55b565" opacity="0.3"/>
-                </svg>
-                <div style="font-size:0.8rem;color:var(--success);margin-top:2px;">Ulkan daraxt! 🌳</div>
+        {{-- Daraxt --}}
+        <div class="tree-wrapper">
+            @if($stage === 0)
+                <div class="tree-seed">
+                    <div class="seed-body"></div>
+                    <div class="seed-shine"></div>
+                </div>
+            @elseif($stage === 1)
+                <div class="tree-sprout">
+                    <div class="sprout-stem"></div>
+                    <div class="sprout-leaf sprout-leaf-l"></div>
+                    <div class="sprout-leaf sprout-leaf-r"></div>
+                </div>
+            @elseif($stage === 2)
+                <div class="tree-young">
+                    <div class="young-trunk"></div>
+                    <div class="young-crown"></div>
+                    <div class="young-crown-light"></div>
+                </div>
+            @elseif($stage === 3)
+                <div class="tree-medium">
+                    <div class="med-trunk"></div>
+                    <div class="med-branch med-branch-l"></div>
+                    <div class="med-branch med-branch-r"></div>
+                    <div class="med-crown"></div>
+                    <div class="med-crown-light"></div>
+                    <div class="med-crown-top"></div>
+                </div>
+            @elseif($stage === 4)
+                <div class="tree-big">
+                    <div class="big-trunk"></div>
+                    <div class="big-branch big-branch-l"></div>
+                    <div class="big-branch big-branch-r"></div>
+                    <div class="big-crown"></div>
+                    <div class="big-crown-2"></div>
+                    <div class="big-crown-3"></div>
+                    <div class="big-crown-top"></div>
+                </div>
             @else
-                {{-- Gullagan daraxt (80-100%) --}}
-                <svg width="180" height="180" viewBox="0 0 180 180">
-                    <rect x="83" y="115" width="14" height="55" rx="4" fill="#5a3a1a"/>
-                    <line x1="90" y1="130" x2="55" y2="110" stroke="#5a3a1a" stroke-width="4" stroke-linecap="round"/>
-                    <line x1="90" y1="125" x2="125" y2="105" stroke="#5a3a1a" stroke-width="4" stroke-linecap="round"/>
-                    <line x1="90" y1="135" x2="50" y2="125" stroke="#5a3a1a" stroke-width="3" stroke-linecap="round"/>
-                    <line x1="90" y1="140" x2="130" y2="130" stroke="#5a3a1a" stroke-width="3" stroke-linecap="round"/>
-                    <ellipse cx="90" cy="72" rx="55" ry="55" fill="#2d6e3f"/>
-                    <ellipse cx="60" cy="60" rx="32" ry="30" fill="#3d8a4f" opacity="0.6"/>
-                    <ellipse cx="120" cy="65" rx="28" ry="26" fill="#4a9c5a" opacity="0.5"/>
-                    <ellipse cx="90" cy="42" rx="32" ry="25" fill="#4aaa5a" opacity="0.4"/>
+                <div class="tree-paradise">
+                    <div class="para-trunk"></div>
+                    <div class="para-branch para-branch-l"></div>
+                    <div class="para-branch para-branch-r"></div>
+                    <div class="para-crown"></div>
+                    <div class="para-crown-2"></div>
+                    <div class="para-crown-3"></div>
+                    <div class="para-crown-top"></div>
+                    <div class="para-glow"></div>
                     {{-- Gullar --}}
-                    <circle cx="55" cy="48" r="5" fill="#f7c948" opacity="0.9"/>
-                    <circle cx="75" cy="35" r="4" fill="#ff8fab" opacity="0.85"/>
-                    <circle cx="110" cy="42" r="5" fill="#f7c948" opacity="0.9"/>
-                    <circle cx="125" cy="60" r="4" fill="#ff8fab" opacity="0.85"/>
-                    <circle cx="65" cy="70" r="3.5" fill="#f7c948" opacity="0.8"/>
-                    <circle cx="100" cy="30" r="4" fill="#ff8fab" opacity="0.85"/>
-                    <circle cx="90" cy="55" r="4" fill="#f7c948" opacity="0.9"/>
-                    <circle cx="45" cy="65" r="3" fill="#ff8fab" opacity="0.7"/>
-                    <circle cx="135" cy="72" r="3.5" fill="#f7c948" opacity="0.8"/>
-                    {{-- Yulduzchalar --}}
-                    <circle cx="30" cy="25" r="2" fill="var(--gold)" opacity="0.6" class="sparkle"/>
-                    <circle cx="150" cy="30" r="2" fill="var(--gold)" opacity="0.6" class="sparkle"/>
-                    <circle cx="90" cy="15" r="2.5" fill="var(--gold)" opacity="0.7" class="sparkle"/>
-                </svg>
-                <div style="font-size:0.85rem;color:var(--gold);font-weight:600;margin-top:2px;">Daraxt gulladi! 🌸✨</div>
+                    <span class="para-flower" style="top:18%;left:22%;"></span>
+                    <span class="para-flower" style="top:10%;left:48%;animation-delay:0.5s;"></span>
+                    <span class="para-flower" style="top:22%;right:20%;animation-delay:1s;"></span>
+                    <span class="para-flower" style="top:35%;left:30%;animation-delay:1.5s;"></span>
+                    <span class="para-flower" style="top:28%;right:30%;animation-delay:0.8s;"></span>
+                    <span class="para-particle" style="top:5%;left:20%;animation-delay:0s;"></span>
+                    <span class="para-particle" style="top:0%;left:55%;animation-delay:1s;"></span>
+                    <span class="para-particle" style="top:10%;right:15%;animation-delay:2s;"></span>
+                </div>
             @endif
         </div>
+
+        {{-- Tuproq --}}
+        <div class="tree-ground"></div>
     </div>
 
-    <div style="margin-top:12px;">
-        <div style="font-size:0.8rem;color:var(--text-muted);">Bugun: {{ $treePercent }}% bajarildi</div>
-        <div class="progress-bar-container" style="margin-top:6px;">
-            <div class="progress-bar" style="width: {{ $treePercent }}%"></div>
+    {{-- Info --}}
+    <div class="tree-info">
+        <div class="tree-stage-name">{{ $stageEmojis[$stage] }} {{ $stageNames[$stage] }}</div>
+        <div class="tree-progress-row">
+            <div class="tree-progress-bar">
+                <div class="tree-progress-fill" style="width:{{ $treePercent }}%"></div>
+            </div>
+            <span class="tree-percent">{{ $treePercent }}%</span>
         </div>
+        <div class="tree-detail">{{ $completedToday }}/{{ $totalToday ?: count($habits) }} amal bajarildi</div>
     </div>
 
-    <a href="{{ route('daily.show') }}" class="btn btn-gold" style="width:100%;margin-top:12px;">
+    <a href="{{ route('daily.show') }}" class="btn btn-gold" style="width:100%;margin-top:10px;">
         <i class="ri-edit-line"></i> Amallarni belgilash
     </a>
 </div>
@@ -163,14 +169,14 @@
     </div>
 </div>
 
-{{-- Haftalik progress --}}
+{{-- Haftalik --}}
 <h3 class="section-title mt-24"><i class="ri-bar-chart-2-line"></i> Haftalik progress</h3>
 <div class="card mb-24">
     <div class="chart-bar-group">
         @foreach($weeklyProgress as $day)
             <div class="chart-bar-wrapper">
                 <div class="chart-bar-track">
-                    <div class="chart-bar-fill" style="height: {{ max(3, $day['percent']) }}%" data-percent="{{ $day['percent'] }}"></div>
+                    <div class="chart-bar-fill" style="height: {{ max(3, $day['percent']) }}%"></div>
                 </div>
                 <div class="chart-bar-label">{{ $day['day'] }}</div>
             </div>
@@ -217,11 +223,4 @@
 
 @section('scripts')
 <script src="{{ asset('js/prayer-times.js') }}"></script>
-<style>
-    .sparkle { animation: sparkleAnim 2s ease-in-out infinite alternate; }
-    @keyframes sparkleAnim {
-        0% { opacity: 0.3; r: 1.5; }
-        100% { opacity: 1; r: 3; }
-    }
-</style>
 @endsection
