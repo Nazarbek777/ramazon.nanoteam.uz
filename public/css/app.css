@@ -62,54 +62,131 @@ body.theme-male {
     --gold-border: rgba(212, 168, 67, 0.25);
 }
 
-/* === FEMALE THEME — Premium Floral/Rose === */
+/* === FEMALE THEME — Premium Dark Violet/Rose === */
 body.theme-female {
-    --bg-primary: #fff5f7;
-    --bg-dark: #fff5f7;
-    --bg-secondary: #ffeef2;
-    --card-bg: rgba(255, 255, 255, 0.95);
-    --bg-card: rgba(255, 255, 255, 0.9);
-    --bg-card-hover: #ffffff;
-    --border-color: rgba(255, 182, 193, 0.4);
-    --text-primary: #5d3a3a;
-    --text-secondary: #8c5e5e;
-    --text-muted: #af8d8d;
-    --gold: #d4a017;
-    --accent: #ff8fa3;
-    --accent-bg: rgba(255, 143, 163, 0.12);
-    --accent-light: #ffb7c5;
-    --accent-glow: rgba(255, 182, 193, 0.3);
-    --white-5: rgba(255, 182, 193, 0.12);
-    --gradient-start: #fff5f7;
-    --gradient-mid: #ffeef2;
-    --gradient-end: #fff0f3;
+    --bg-primary: #0d0818;
+    --bg-dark: #0d0818;
+    --bg-secondary: #130d24;
+    --card-bg: rgba(30, 15, 50, 0.75);
+    --bg-card: rgba(30, 15, 50, 0.75);
+    --bg-card-hover: rgba(40, 20, 65, 0.9);
+    --bg-glass: rgba(20, 10, 40, 0.5);
+    --border-color: rgba(200, 130, 200, 0.18);
+    --border-hover: rgba(220, 150, 220, 0.35);
+    --text-primary: #f5eeff;
+    --text-secondary: rgba(245, 238, 255, 0.7);
+    --text-muted: rgba(245, 238, 255, 0.4);
+    --gold: #e8a0bf;
+    --gold-light: #f5c6da;
+    --gold-dark: #c97aaa;
+    --accent: #c084fc;
+    --accent-light: #d8b4fe;
+    --accent-bg: rgba(192, 132, 252, 0.12);
+    --accent-glow: rgba(192, 132, 252, 0.28);
+    --gradient-start: #0d0818;
+    --gradient-mid: #1a0d30;
+    --gradient-end: #220d3a;
+    --sidebar-bg: rgba(10, 5, 20, 0.98);
+    --topbar-bg: rgba(10, 5, 20, 0.93);
+    --bottomnav-bg: rgba(10, 5, 20, 0.96);
+    --input-bg: rgba(192, 132, 252, 0.06);
+    --input-border: rgba(192, 132, 252, 0.22);
+    --nav-active: rgba(192, 132, 252, 0.15);
+    --white-5: rgba(192, 132, 252, 0.06);
+    --gold-bg: rgba(232, 160, 191, 0.1);
+    --gold-border: rgba(232, 160, 191, 0.25);
 }
 
 body.theme-female {
-    background: linear-gradient(135deg, #fff5f7 0%, #ffeef2 100%) !important;
+    background: linear-gradient(135deg, #0d0818 0%, #1a0d30 50%, #0d0818 100%) !important;
     background-attachment: fixed !important;
     color: var(--text-primary) !important;
 }
 
+body.theme-female::before {
+    background-image:
+        radial-gradient(1.5px 1.5px at 10% 20%, rgba(192, 132, 252, 0.4), transparent),
+        radial-gradient(1px 1px at 25% 45%, rgba(232, 160, 191, 0.25), transparent),
+        radial-gradient(1.5px 1.5px at 50% 15%, rgba(192, 132, 252, 0.3), transparent),
+        radial-gradient(1px 1px at 65% 60%, rgba(255, 255, 255, 0.15), transparent),
+        radial-gradient(2px 2px at 80% 30%, rgba(232, 160, 191, 0.35), transparent),
+        radial-gradient(1px 1px at 90% 70%, rgba(192, 132, 252, 0.2), transparent),
+        radial-gradient(1px 1px at 15% 75%, rgba(255, 255, 255, 0.18), transparent),
+        radial-gradient(1.5px 1.5px at 40% 85%, rgba(232, 160, 191, 0.22), transparent),
+        radial-gradient(1px 1px at 70% 90%, rgba(192, 132, 252, 0.15), transparent),
+        radial-gradient(2px 2px at 95% 50%, rgba(232, 160, 191, 0.25), transparent);
+}
+
 body.theme-female .card {
     border-color: var(--border-color);
-    box-shadow: 0 8px 30px rgba(255, 182, 193, 0.15);
+    box-shadow: 0 8px 30px rgba(100, 30, 150, 0.2);
     background: var(--bg-card);
 }
 
 body.theme-female .section-title {
-    color: var(--accent);
+    color: var(--accent-light);
 }
 
 body.theme-female .sidebar {
-    background: #fff0f3;
+    background: var(--sidebar-bg);
     border-right-color: var(--border-color);
 }
 
 body.theme-female .si-card {
-    background: linear-gradient(135deg, rgba(255, 182, 193, 0.1), rgba(255, 182, 193, 0.05));
+    background: linear-gradient(135deg, rgba(192, 132, 252, 0.1), rgba(192, 132, 252, 0.05));
     border-color: var(--border-color);
 }
+
+body.theme-female .btn-gold {
+    background: linear-gradient(135deg, #c084fc, #e8a0bf);
+    color: #fff;
+    box-shadow: 0 4px 20px rgba(192, 132, 252, 0.35);
+}
+
+body.theme-female .btn-gold:hover {
+    background: linear-gradient(135deg, #a855f7, #d97aaa);
+    box-shadow: 0 6px 28px rgba(192, 132, 252, 0.5);
+}
+
+body.theme-female .sidebar-avatar {
+    background: linear-gradient(135deg, #c084fc, #e8a0bf);
+    border-color: rgba(192, 132, 252, 0.4);
+}
+
+body.theme-female .bottom-nav {
+    background: var(--bottomnav-bg);
+    border-top-color: var(--border-color);
+}
+
+body.theme-female .bottom-nav-item.active {
+    color: var(--accent-light);
+}
+
+body.theme-female .mobile-topbar {
+    background: var(--topbar-bg);
+    border-bottom-color: var(--border-color);
+}
+
+body.theme-female .habit-card.completed {
+    border-color: rgba(192, 132, 252, 0.4);
+    background: rgba(192, 132, 252, 0.08);
+}
+
+body.theme-female .progress-fill {
+    background: linear-gradient(90deg, #c084fc, #e8a0bf);
+}
+
+body.theme-female .quick-nav-btn {
+    background: rgba(192, 132, 252, 0.08);
+    border-color: rgba(192, 132, 252, 0.2);
+    color: var(--accent-light);
+}
+
+body.theme-female .quick-nav-btn:hover {
+    background: rgba(192, 132, 252, 0.15);
+    border-color: rgba(192, 132, 252, 0.4);
+}
+
 
 /* === GUEST THEME === */
 body.theme-guest {
@@ -810,6 +887,18 @@ body::before {
     font-weight: 500;
     font-size: 0.92rem;
     color: var(--text-primary);
+    transition: var(--transition);
+}
+
+.checklist-item.completed .habit-name {
+    color: var(--text-muted);
+    text-decoration: line-through;
+    opacity: 0.7;
+}
+
+.checklist-item.completed .habit-icon {
+    opacity: 0.5;
+    filter: grayscale(1);
 }
 
 .checklist-item .habit-input {
