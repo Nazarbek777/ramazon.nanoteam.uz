@@ -44,4 +44,13 @@ Route::middleware('auth')->group(function () {
     Route::post('/profile', [ProfileController::class, 'update'])->name('profile.update');
 
     Route::get('/reports', [ReportController::class, 'index'])->name('reports');
+
+    // TEMP DEBUG — delete after use
+    Route::get('/debug-db', function() {
+        return response()->json([
+            'users_columns' => \Illuminate\Support\Facades\Schema::getColumnListing('users'),
+            'sessions_columns' => \Illuminate\Support\Facades\Schema::getColumnListing('sessions'),
+            'daily_logs_columns' => \Illuminate\Support\Facades\Schema::getColumnListing('daily_logs'),
+        ]);
+    });
 });
