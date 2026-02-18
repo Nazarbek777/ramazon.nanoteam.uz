@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Helpers\RamadanHelper;
 use App\Models\DailyLog;
 use App\Models\DailyLogItem;
 use App\Models\Goal;
@@ -26,7 +27,6 @@ class DailyLogController extends Controller
             ->where('date', $currentDate)
             ->first();
 
-        // Prepare items map for view
         $completedMap = [];
         $valuesMap = [];
         if ($log) {
@@ -41,9 +41,16 @@ class DailyLogController extends Controller
         $isToday = $currentDate->isToday();
         $isFuture = $currentDate->isFuture();
 
+        // Ramazon ma'lumotlari
+        $ramadan = [
+            'is_ramadan' => RamadanHelper::isRamadan($currentDate),
+            'day' => RamadanHelper::dayNumber($currentDate),
+            'remaining' => RamadanHelper::remainingDays($currentDate),
+        ];
+
         return view('daily.show', compact(
             'habits', 'log', 'completedMap', 'valuesMap',
-            'currentDate', 'prevDate', 'nextDate', 'isToday', 'isFuture'
+            'currentDate', 'prevDate', 'nextDate', 'isToday', 'isFuture', 'ramadan'
         ));
     }
 
@@ -84,7 +91,7 @@ class DailyLogController extends Controller
         Cache::forget("stats_user_{$user->id}");
 
         return redirect()->route('daily.show', ['date' => $date])
-            ->with('success', 'Bugungi amallar saqlandi! ✅');
+            ->with('success', 'Saqlandi!');
     }
 
     public function addCustomHabit(Request $request)
@@ -103,15 +110,14 @@ class DailyLogController extends Controller
             'name' => $request->name,
             'slug' => Str::slug($request->name),
             'type' => $request->type,
-            'icon' => '⭐',
+            'icon' => 'ri-star-line',
             'is_default' => false,
             'sort_order' => $maxSort + 1,
         ]);
 
-        // Cache tozalash
         Cache::forget("habits_user_{$user->id}");
 
-        return redirect()->back()->with('success', 'Yangi amal qo\'shildi! ⭐');
+        return redirect()->back()->with('success', 'Yangi amal qo\'shildi!');
     }
 
     private function updateGoals(int $userId): void
@@ -120,14 +126,12 @@ class DailyLogController extends Controller
 
         foreach ($goals as $goal) {
             if ($goal->habit_id) {
-                // Habit-ga bog'liq maqsad
                 $completed = DailyLogItem::whereHas('dailyLog', fn($q) => $q->where('user_id', $userId))
                     ->where('habit_id', $goal->habit_id)
                     ->where('is_completed', true)
                     ->count();
                 $goal->update(['current_value' => $completed]);
             } else {
-                // Streak turdagi maqsad — kunlar soni
                 $totalDays = DailyLog::where('user_id', $userId)
                     ->whereHas('items', fn($q) => $q->where('is_completed', true))
                     ->count();

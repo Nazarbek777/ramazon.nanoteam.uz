@@ -249,6 +249,16 @@ body::before {
     }
 }
 
+@keyframes spin {
+    from {
+        transform: rotate(0deg);
+    }
+
+    to {
+        transform: rotate(360deg);
+    }
+}
+
 /* === Layout ===  */
 .app-layout {
     display: flex;
@@ -1625,6 +1635,27 @@ body::before {
     margin-bottom: 0;
     flex: 1;
     min-width: 140px;
+}
+
+/* === Sticky Save Button === */
+.sticky-save {
+    position: sticky;
+    bottom: 16px;
+    z-index: 30;
+    padding: 0;
+}
+
+@media (max-width: 768px) {
+    .sticky-save {
+        position: fixed;
+        bottom: 68px;
+        left: 0;
+        right: 0;
+        z-index: 90;
+        padding: 8px 14px;
+        background: linear-gradient(180deg, transparent, var(--bg-primary) 30%);
+        padding-top: 24px;
+    }
 }
 
 /* === Responsive === */

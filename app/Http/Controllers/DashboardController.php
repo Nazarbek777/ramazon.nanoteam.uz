@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Helpers\RamadanHelper;
 use App\Models\DailyLog;
 use App\Models\Goal;
 use App\Models\Habit;
@@ -17,21 +18,29 @@ class DashboardController extends Controller
         $user = Auth::user();
         $today = Carbon::today();
 
+        // Ramazon ma'lumotlari
+        $ramadan = [
+            'is_ramadan' => RamadanHelper::isRamadan(),
+            'day' => RamadanHelper::dayNumber(),
+            'remaining' => RamadanHelper::remainingDays(),
+            'days_until' => RamadanHelper::daysUntilRamadan(),
+        ];
+
         // Bugungi log
         $todayLog = DailyLog::with('items.habit')
             ->where('user_id', $user->id)
             ->where('date', $today)
             ->first();
 
-        // Barcha habitlar (default + user custom)
+        // Barcha habitlar
         $habits = Cache::remember("habits_user_{$user->id}", 3600, function () use ($user) {
             return Habit::forUser($user->id)->orderBy('sort_order')->get();
         });
 
-        // Streak hisoblash
+        // Streak
         $streak = $this->calculateStreak($user->id);
 
-        // Umumiy statistikalar
+        // Statistika
         $stats = Cache::remember("stats_user_{$user->id}", 300, function () use ($user) {
             $totalLogs = DailyLog::where('user_id', $user->id)->count();
             $totalCompleted = DailyLog::where('user_id', $user->id)
@@ -56,10 +65,12 @@ class DashboardController extends Controller
         // Maqsadlar
         $goals = Goal::where('user_id', $user->id)->with('habit')->get();
 
-        // So'ngi 7 kunlik progress
+        // Haftalik progress
         $weeklyProgress = $this->getWeeklyProgress($user->id);
 
-        return view('dashboard', compact('todayLog', 'habits', 'streak', 'stats', 'goals', 'weeklyProgress', 'today'));
+        return view('dashboard', compact(
+            'todayLog', 'habits', 'streak', 'stats', 'goals', 'weeklyProgress', 'today', 'ramadan'
+        ));
     }
 
     private function calculateStreak(int $userId): int
@@ -99,9 +110,12 @@ class DashboardController extends Controller
                 ])
                 ->first();
 
+            $ramadanDay = RamadanHelper::dayNumber($date);
+
             $data[] = [
                 'date' => $date->format('d.m'),
                 'day' => $this->getUzbekDay($date->dayOfWeek),
+                'ramadan_day' => $ramadanDay,
                 'completed' => $log->completed_count ?? 0,
                 'total' => $log->total_count ?? 0,
                 'percent' => ($log && $log->total_count > 0)

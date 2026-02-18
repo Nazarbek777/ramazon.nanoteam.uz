@@ -2,12 +2,20 @@
 @section('title', 'Kunlik Amallar')
 
 @section('content')
-<div class="page-header">
+{{-- Ramazon kuni --}}
+@if($ramadan['is_ramadan'])
+    <div style="text-align:center;margin-bottom:16px;">
+        <span style="background:linear-gradient(135deg,rgba(212,168,67,0.15),rgba(212,168,67,0.05));border:1px solid rgba(212,168,67,0.25);padding:6px 18px;border-radius:50px;font-size:0.85rem;font-weight:600;color:var(--gold);display:inline-flex;align-items:center;gap:6px;">
+            <i class="ri-moon-clear-fill"></i> Ramazon {{ $ramadan['day'] }}-kuni
+        </span>
+    </div>
+@endif
+
+<div class="page-header" style="margin-bottom:16px;">
     <h2><i class="ri-checkbox-circle-line"></i> Kunlik Amallar</h2>
-    <p>Bugungi ibodatlaringizni belgilab boring</p>
 </div>
 
-{{-- Date navigation --}}
+{{-- Sana navigatsiyasi --}}
 <div class="date-nav">
     <a href="{{ route('daily.show', ['date' => $prevDate]) }}"><i class="ri-arrow-left-s-line"></i></a>
     <div class="current-date">
@@ -25,14 +33,14 @@
 
 @if($isFuture)
     <div class="card text-center" style="padding:40px;">
-        <div class="stat-icon" style="margin:0 auto 12px;"><i class="ri-time-line"></i></div>
-        <p class="text-muted">Bu sana hali kelmagan.</p>
-        <a href="{{ route('daily.show') }}" class="btn btn-primary btn-sm" style="margin-top:12px;">
+        <i class="ri-time-line" style="font-size:2.5rem;color:var(--text-muted);"></i>
+        <p class="text-muted" style="margin-top:12px;">Bu sana hali kelmagan</p>
+        <a href="{{ route('daily.show') }}" class="btn btn-primary" style="margin-top:12px;">
             <i class="ri-arrow-left-line"></i> Bugunga qaytish
         </a>
     </div>
 @else
-    <form method="POST" action="{{ route('daily.store') }}">
+    <form method="POST" action="{{ route('daily.store') }}" id="dailyForm">
         @csrf
         <input type="hidden" name="date" value="{{ $currentDate->format('Y-m-d') }}">
 
@@ -48,7 +56,8 @@
                                     <input type="checkbox"
                                            name="habit_{{ $habit->id }}"
                                            id="habit_{{ $habit->id }}"
-                                           {{ ($completedMap[$habit->id] ?? false) ? 'checked' : '' }}>
+                                           {{ ($completedMap[$habit->id] ?? false) ? 'checked' : '' }}
+                                           onchange="autoSave()">
                                     <span class="checkmark"></span>
                                 </div>
                             @else
@@ -56,9 +65,9 @@
                                        name="value_{{ $habit->id }}"
                                        class="number-input"
                                        value="{{ $valuesMap[$habit->id] ?? '' }}"
-                                       min="0"
-                                       max="999"
-                                       placeholder="0">
+                                       min="0" max="999"
+                                       placeholder="0"
+                                       onchange="autoSave()">
                             @endif
                         </span>
                     </li>
@@ -66,26 +75,25 @@
             </ul>
         </div>
 
-        {{-- Notes --}}
+        {{-- Izoh --}}
         <div class="card mb-24">
             <div class="form-group" style="margin-bottom:0;">
                 <label class="form-label"><i class="ri-edit-line"></i> Izoh (ixtiyoriy)</label>
-                <textarea name="notes"
-                          class="form-input"
-                          rows="2"
-                          placeholder="Bugungi kun haqida izoh..."
-                          style="resize:vertical;">{{ $log->notes ?? '' }}</textarea>
+                <textarea name="notes" class="form-input" rows="2" placeholder="Bugungi kun haqida..." style="resize:vertical;">{{ $log->notes ?? '' }}</textarea>
             </div>
         </div>
 
-        <button type="submit" class="btn btn-gold" style="width:100%;">
-            <i class="ri-save-line"></i> Saqlash
-        </button>
+        {{-- Saqlash tugmasi — doim ko'rinib turadi --}}
+        <div class="sticky-save">
+            <button type="submit" class="btn btn-gold" id="saveBtn" style="width:100%;">
+                <i class="ri-save-line"></i> <span id="saveBtnText">Saqlash</span>
+            </button>
+        </div>
     </form>
 
-    {{-- Custom habit --}}
-    <div class="mt-24">
-        <h3 class="section-title"><i class="ri-add-circle-line"></i> Qo'shimcha amal qo'shish</h3>
+    {{-- Qo'shimcha amal --}}
+    <div class="mt-24" style="padding-bottom:20px;">
+        <h3 class="section-title"><i class="ri-add-circle-line"></i> Yangi amal qo'shish</h3>
         <div class="card add-form-card">
             <form method="POST" action="{{ route('daily.custom-habit') }}" class="inline-form">
                 @csrf
@@ -96,7 +104,7 @@
                 <div class="form-group" style="min-width:120px;">
                     <label class="form-label">Turi</label>
                     <select name="type" class="form-select">
-                        <option value="checkbox">Belgilash ✓</option>
+                        <option value="checkbox">Belgilash</option>
                         <option value="number">Raqam</option>
                     </select>
                 </div>
@@ -107,4 +115,23 @@
         </div>
     </div>
 @endif
+@endsection
+
+@section('scripts')
+<script>
+    let saveTimeout;
+
+    function autoSave() {
+        clearTimeout(saveTimeout);
+        // Tugma animatsiyasi
+        const btn = document.getElementById('saveBtn');
+        const txt = document.getElementById('saveBtnText');
+        txt.textContent = 'Saqlanmoqda...';
+        btn.style.opacity = '0.7';
+
+        saveTimeout = setTimeout(() => {
+            document.getElementById('dailyForm').submit();
+        }, 800);
+    }
+</script>
 @endsection
