@@ -98,13 +98,14 @@ const PrayerTimes = {
         }
     },
 
-    /** Namoz vaqtlarini olish */
-    async fetchTimes(lat, lon) {
+    /** Namoz vaqtlari va Ro'za vaqtlari — IslomAPI.uz */
+    async fetchTimes(city) {
         const today = new Date();
         const dateStr = `${today.getDate()}-${today.getMonth() + 1}-${today.getFullYear()}`;
+        const region = city || 'Toshkent';
 
         // Cache tekshirish
-        const cacheKey = `${this.CACHE_KEY}_${dateStr}`;
+        const cacheKey = `${this.CACHE_KEY}_${region}_${dateStr}`;
         const cached = localStorage.getItem(cacheKey);
         if (cached) {
             try {
@@ -113,19 +114,26 @@ const PrayerTimes = {
         }
 
         try {
-            // method=15 = Diyanet (Turkiya va O'zbekiston uchun yaqin)
-            const resp = await fetch(
-                `https://api.aladhan.com/v1/timings/${dateStr}?latitude=${lat}&longitude=${lon}&method=15&school=0`
-            );
+            const resp = await fetch(`https://islomapi.uz/api/present/day?region=${region}`);
             const data = await resp.json();
 
-            if (data.code === 200 && data.data) {
-                const times = data.data.timings;
+            if (data && data.times) {
+                // IslomAPI formatini bizning formatga o'tkazish
+                const times = {
+                    Fajr: data.times.tong_saharlik,
+                    Sunrise: data.times.quyosh,
+                    Dhuhr: data.times.peshin,
+                    Asr: data.times.asr,
+                    Maghrib: data.times.shom_iftor,
+                    Isha: data.times.hufton
+                };
                 localStorage.setItem(cacheKey, JSON.stringify(times));
                 return times;
             }
         } catch (e) {
-            console.error('Namoz vaqtlarini olishda xatolik:', e);
+            console.error('IslomAPI xatosi:', e);
+            // Agar shahar topilmasa Toshkentga harakat
+            if (region !== 'Toshkent') return this.fetchTimes('Toshkent');
         }
 
         return null;
@@ -188,7 +196,7 @@ const PrayerTimes = {
         `;
 
         const loc = await this.getLocation();
-        const times = await this.fetchTimes(loc.lat, loc.lon);
+        const times = await this.fetchTimes(loc.city);
 
         if (!times) {
             container.innerHTML = `

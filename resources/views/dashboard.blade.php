@@ -220,72 +220,9 @@
     </div>
 </div>
 
-{{-- 📊 STATISTIKA --}}
-<div class="stats-grid">
-    <div class="card stat-card">
-        <div class="stat-icon"><i class="ri-fire-fill"></i></div>
-        <div class="stat-value">{{ $streak }}</div>
-        <div class="stat-label">Streak</div>
-    </div>
-    <div class="card stat-card">
-        <div class="stat-icon"><i class="ri-checkbox-circle-fill"></i></div>
-        <div class="stat-value">{{ $stats['total_completed'] }}</div>
-        <div class="stat-label">Bajarilgan</div>
-    </div>
-    <div class="card stat-card">
-        <div class="stat-icon"><i class="ri-calendar-check-fill"></i></div>
-        <div class="stat-value">{{ $stats['total_days'] }}</div>
-        <div class="stat-label">Faol kunlar</div>
-    </div>
-    <div class="card stat-card">
-        <div class="stat-icon"><i class="ri-pie-chart-fill"></i></div>
-        <div class="stat-value">{{ $stats['completion_rate'] }}%</div>
-        <div class="stat-label">Bajarilish</div>
-    </div>
+<div style="text-align:center;padding:16px 10px;margin-top:20px;border-top:1px solid var(--white-5);">
+    <p style="font-size:0.7rem;color:var(--text-muted);margin:0;">Namoz vaqtlari islom.uz saytidan olindi</p>
 </div>
-
-{{-- Haftalik --}}
-<h3 class="section-title mt-24"><i class="ri-bar-chart-2-line"></i> Haftalik progress</h3>
-<div class="card mb-24">
-    <div class="chart-bar-group">
-        @foreach($weeklyProgress as $day)
-            <div class="chart-bar-wrapper">
-                <div class="chart-bar-track">
-                    <div class="chart-bar-fill" style="height: {{ max(3, $day['percent']) }}%"></div>
-                </div>
-                <div class="chart-bar-label">{{ $day['day'] }}</div>
-            </div>
-        @endforeach
-    </div>
-</div>
-
-{{-- Maqsadlar --}}
-<h3 class="section-title"><i class="ri-focus-3-line"></i> Maqsadlar</h3>
-@if($goals->count() > 0)
-    @foreach($goals->take(3) as $goal)
-        <div class="card goal-card">
-            <div class="goal-header">
-                <div>
-                    <div class="goal-title"><i class="ri-flag-line"></i> {{ $goal->title }}</div>
-                    <div class="goal-meta">{{ $goal->current_value }}/{{ $goal->target_value }} {{ $goal->unit }}</div>
-                </div>
-                <span class="text-gold" style="font-weight:700;">{{ $goal->progress_percent }}%</span>
-            </div>
-            <div class="progress-bar-container">
-                <div class="progress-bar" style="width: {{ $goal->progress_percent }}%"></div>
-            </div>
-        </div>
-    @endforeach
-@else
-    <div class="card text-center" style="padding:16px;">
-        <p class="text-muted">Hali maqsad yo'q</p>
-        <a href="{{ route('goals.index') }}" class="btn btn-outline btn-sm" style="margin-top:8px;">
-            <i class="ri-add-line"></i> Maqsad qo'shish
-        </a>
-    </div>
-@endif
-
-<div style="height:24px;"></div>
 @endsection
 
 @section('scripts')
