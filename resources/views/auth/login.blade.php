@@ -53,5 +53,18 @@
             </div>
         </div>
     </div>
+
+<script>
+    // If user types only digits in identity field, treat as phone and prepend +998
+    const identityInput = document.querySelector('input[name="identity"]');
+    if (identityInput) {
+        identityInput.form.addEventListener('submit', function() {
+            const val = identityInput.value.trim();
+            if (/^\d+$/.test(val)) {
+                identityInput.value = '+998' + val;
+            }
+        });
+    }
+</script>
 </body>
 </html>

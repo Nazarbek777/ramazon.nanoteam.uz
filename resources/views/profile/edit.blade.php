@@ -49,8 +49,13 @@
                 <label class="form-label" style="display:flex; align-items:center; gap:8px;">
                     <i class="ri-phone-line" style="color:var(--gold);"></i> Telefon raqam
                 </label>
-                <input type="text" name="phone" class="form-input @error('phone') is-invalid @enderror" 
-                       value="{{ old('phone', $user->phone) }}" placeholder="+998...">
+                <div style="display:flex; align-items:center; gap:0;">
+                    <span style="padding:0 12px; height:48px; display:flex; align-items:center; background:var(--input-bg,rgba(255,255,255,0.05)); border:1px solid var(--input-border,rgba(212,168,67,0.2)); border-right:none; border-radius:var(--radius-sm) 0 0 var(--radius-sm); color:var(--text-secondary); font-size:0.95rem; white-space:nowrap;">+998</span>
+                    <input type="tel" name="phone" id="profilePhoneInput" class="form-input @error('phone') is-invalid @enderror" 
+                           value="{{ old('phone', $user->phone) ? preg_replace('/^\+998/', '', old('phone', $user->phone)) : '' }}"
+                           placeholder="90 123 45 67" maxlength="9"
+                           style="border-radius:0 var(--radius-sm) var(--radius-sm) 0; border-left:none;">
+                </div>
                 @error('phone') <div class="invalid-feedback">{{ $message }}</div> @enderror
                 <small style="font-size:0.75rem; color:var(--text-muted); margin-top:4px; display:block;">Email yoki telefon — kamida bittasi bo'lishi shart.</small>
             </div>
@@ -174,5 +179,18 @@
     @if($errors->has('current_password') || $errors->has('new_password'))
         togglePasswordSection();
     @endif
+
+    // Phone input — only digits, prepend +998 on submit
+    const profilePhoneInput = document.getElementById('profilePhoneInput');
+    if (profilePhoneInput) {
+        profilePhoneInput.addEventListener('input', function() {
+            this.value = this.value.replace(/\D/g, '').slice(0, 9);
+        });
+        profilePhoneInput.form.addEventListener('submit', function() {
+            if (profilePhoneInput.value.length > 0) {
+                profilePhoneInput.value = '+998' + profilePhoneInput.value;
+            }
+        });
+    }
 </script>
 @endsection

@@ -35,7 +35,13 @@
 
                 <div class="form-group">
                     <label class="form-label"><i class="ri-phone-line"></i> Telefon raqam</label>
-                    <input type="text" name="phone" class="form-input" value="{{ old('phone') }}" placeholder="+998901234567">
+                    <div style="display:flex; align-items:center; gap:0;">
+                        <span style="padding:0 12px; height:48px; display:flex; align-items:center; background:var(--input-bg,rgba(255,255,255,0.05)); border:1px solid var(--input-border,rgba(212,168,67,0.2)); border-right:none; border-radius:var(--radius-sm) 0 0 var(--radius-sm); color:var(--text-secondary); font-size:0.95rem; white-space:nowrap;">+998</span>
+                        <input type="tel" name="phone" id="phoneInput" class="form-input" 
+                               value="{{ old('phone') ? preg_replace('/^\+998/', '', old('phone')) : '' }}"
+                               placeholder="90 123 45 67" maxlength="12"
+                               style="border-radius:0 var(--radius-sm) var(--radius-sm) 0; border-left:none;">
+                    </div>
                     @error('phone') <div class="form-error"><i class="ri-error-warning-line"></i> {{ $message }}</div> @enderror
                     <small style="font-size:0.7rem; color:var(--text-muted); margin-top:4px; display:block;">Email yoki telefon — birini kiritsangiz kifoya.</small>
                 </div>
@@ -82,5 +88,22 @@
             </div>
         </div>
     </div>
+
+<script>
+    const phoneInput = document.getElementById('phoneInput');
+    if (phoneInput) {
+        phoneInput.addEventListener('input', function() {
+            // Only allow digits
+            this.value = this.value.replace(/\D/g, '');
+            // Max 9 digits
+            if (this.value.length > 9) this.value = this.value.slice(0, 9);
+        });
+        phoneInput.form.addEventListener('submit', function() {
+            if (phoneInput.value.length > 0) {
+                phoneInput.value = '+998' + phoneInput.value;
+            }
+        });
+    }
+</script>
 </body>
 </html>
