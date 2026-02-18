@@ -119,7 +119,7 @@
 {{-- Missed days --}}
 @if(count($missedDates) > 0)
     <div class="mt-24">
-        <h3 class="section-title"><i class="ri-calendar-close-line"></i> O'tkazib yuborilgan kunlar</h3>
+        <h3 class="section-title"><i class="ri-calendar-close-line"></i> Siz to'ldirmagan kunlar</h3>
         <div class="card" style="padding:10px;">
             <div style="display:grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap:8px;">
                 @foreach($missedDates as $missed)
