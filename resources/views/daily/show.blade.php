@@ -158,7 +158,8 @@
             item.style.background = 'var(--accent-bg)';
             item.style.borderColor = 'var(--accent)';
             if (isCheckbox) completedCount++;
-            showToast('✓ Bajarildi!');
+            // Motivatsion xabar
+            showMotivation(completedCount, totalHabits);
         } else {
             item.style.background = '';
             item.style.borderColor = '';
@@ -196,28 +197,60 @@
         })
         .catch(err => {
             console.error('Toggle xatosi:', err);
-            showToast('Xatolik! Qaytadan urinib ko\'ring', true);
+            showToast('❌ Xatolik! Qaytadan urinib ko\'ring', true);
         });
     }
 
     function updateProgress(completed, total) {
         const percent = total > 0 ? Math.round((completed / total) * 100) : 0;
-        document.getElementById('progressBar').style.width = percent + '%';
+        const bar = document.getElementById('progressBar');
+        bar.style.width = percent + '%';
         document.getElementById('progressText').textContent = completed + '/' + total;
         document.getElementById('progressPercent').textContent = percent + '%';
+
+        // Progress bar rangini o'zgartirish
+        if (percent >= 90) {
+            bar.style.background = 'linear-gradient(90deg, var(--gold), #f7c948)';
+        } else if (percent >= 50) {
+            bar.style.background = 'linear-gradient(90deg, var(--accent), var(--gold))';
+        }
+    }
+
+    function showMotivation(completed, total) {
+        const percent = total > 0 ? Math.round((completed / total) * 100) : 0;
+        const messages = [
+            { min: 0,  text: '🌱 Yaxshi boshlang\'ich! Davom eting!' },
+            { min: 15, text: '💪 Zo\'r! Har bir amal muhim!' },
+            { min: 30, text: '🌿 Ajoyib! Daraxtingiz o\'sib bormoqda!' },
+            { min: 50, text: '🔥 Yarmi bajarildi! Siz zo\'rsiz!' },
+            { min: 70, text: '🌟 Mashaalloh! Deyarli tayyor!' },
+            { min: 85, text: '🏆 Ozgina qoldi! Hammasi bo\'ladi!' },
+            { min: 100, text: '🌸 SubhanAlloh! Alloh qabul qilsin!' }
+        ];
+
+        let msg = messages[0].text;
+        for (const m of messages) {
+            if (percent >= m.min) msg = m.text;
+        }
+
+        showToast(msg);
     }
 
     function showToast(text, isError) {
         const toast = document.getElementById('toast');
         const toastText = document.getElementById('toastText');
         toastText.textContent = text;
-        toast.style.background = isError ? 'var(--danger)' : 'var(--success)';
+        toast.style.background = isError ? 'var(--danger)' : 'linear-gradient(135deg, var(--accent), #2d8a4f)';
+        if (!isError) {
+            const percent = totalHabits > 0 ? Math.round((completedCount / totalHabits) * 100) : 0;
+            if (percent >= 90) toast.style.background = 'linear-gradient(135deg, var(--gold), #e6a817)';
+        }
         toast.style.opacity = '1';
         toast.style.transform = 'translateX(-50%) translateY(0)';
         setTimeout(() => {
             toast.style.opacity = '0';
             toast.style.transform = 'translateX(-50%) translateY(20px)';
-        }, 1500);
+        }, 2000);
     }
 </script>
 @endsection

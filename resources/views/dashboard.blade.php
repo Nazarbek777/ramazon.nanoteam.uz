@@ -114,7 +114,7 @@
         <div class="tree-ground"></div>
     </div>
 
-    {{-- Info --}}
+    {{-- Info + Motivatsiya --}}
     <div class="tree-info">
         <div class="tree-stage-name">{{ $stageEmojis[$stage] }} {{ $stageNames[$stage] }}</div>
         <div class="tree-progress-row">
@@ -123,11 +123,36 @@
             </div>
             <span class="tree-percent">{{ $treePercent }}%</span>
         </div>
-        <div class="tree-detail">{{ $completedToday }}/{{ $totalToday ?: count($habits) }} amal bajarildi</div>
+        <div class="tree-detail">{{ $completedToday }}/{{ $totalToday }} amal bajarildi</div>
+
+        {{-- Motivatsiya xabarlari --}}
+        <div class="tree-motivation">
+            @if($treePercent === 0)
+                <p>✨ Bugungi amallarni belgilang va daraxtingiz o'sishini kuzating!</p>
+            @elseif($treePercent < 20)
+                <p>🌱 Yaxshi boshlang'ich! Davom eting — har bir amal muhim!</p>
+            @elseif($treePercent < 40)
+                <p>💪 Ajoyib! Yarim yo'lga yetmadingiz, lekin yaqinsiz!</p>
+            @elseif($treePercent < 60)
+                <p>🔥 Zo'r! Yarmidan ko'pi bajarildi. Davom eting!</p>
+            @elseif($treePercent < 80)
+                <p>🌟 Maşaalloh! Juda yaxshi natija — ozgina qoldi!</p>
+            @elseif($treePercent < 100)
+                <p>🏆 Deyarli tamom! Jannat daraxtiga ozgina qoldi!</p>
+            @else
+                <p>🌸 SubhanAlloh! Barcha amallar bajarildi! Alloh qabul qilsin!</p>
+            @endif
+        </div>
     </div>
 
     <a href="{{ route('daily.show') }}" class="btn btn-gold" style="width:100%;margin-top:10px;">
-        <i class="ri-edit-line"></i> Amallarni belgilash
+        @if($treePercent === 0)
+            <i class="ri-play-fill"></i> Boshlash — bugungi amallar
+        @elseif($treePercent < 100)
+            <i class="ri-edit-line"></i> Davom etish ({{ $totalToday - $completedToday }} ta qoldi)
+        @else
+            <i class="ri-check-double-line"></i> Bugungi amallar ✓
+        @endif
     </a>
 </div>
 
