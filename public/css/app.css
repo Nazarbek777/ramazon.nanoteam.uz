@@ -1413,12 +1413,106 @@ body::before {
     box-shadow: 0 2px 8px var(--accent-glow);
 }
 
-/* === Report Stats === */
 .report-grid {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: repeat(2, 1fr);
     gap: 16px;
     margin-bottom: 24px;
+}
+
+.stat-card {
+    text-align: center;
+    padding: 20px 14px;
+    position: relative;
+    overflow: hidden;
+    transition: var(--transition);
+}
+
+.stat-card:hover {
+    transform: translateY(-4px);
+    border-color: var(--accent);
+}
+
+.stat-card-accent {
+    background: linear-gradient(135deg, var(--accent-bg), rgba(212, 168, 67, 0.05));
+    border-color: var(--gold-border);
+}
+
+.stat-icon {
+    font-size: 1.8rem;
+    color: var(--accent);
+    margin-bottom: 8px;
+    opacity: 0.8;
+}
+
+.stat-value {
+    font-size: 1.6rem;
+    font-weight: 800;
+    color: var(--text-primary);
+    line-height: 1.2;
+}
+
+.stat-value-unit {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    font-weight: 600;
+    margin-left: 2px;
+}
+
+.stat-label {
+    font-size: 0.72rem;
+    color: var(--text-muted);
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-top: 4px;
+}
+
+/* Category Progress */
+.report-categories {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 24px;
+}
+
+.category-card {
+    padding: 16px;
+    background: var(--white-5);
+    border-radius: 16px;
+    border: 1px solid var(--border-color);
+}
+
+.category-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.category-title {
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--text-secondary);
+}
+
+.category-percent {
+    font-size: 0.85rem;
+    font-weight: 800;
+    color: var(--accent);
+}
+
+.category-progress {
+    height: 6px;
+    background: var(--white-8);
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.category-progress-fill {
+    height: 100%;
+    background: var(--accent);
+    border-radius: 10px;
 }
 
 .missed-list {
@@ -1482,6 +1576,14 @@ body::before {
     font-weight: 700;
     color: var(--gold);
     font-size: 0.88rem;
+    text-align: right;
+}
+
+.top-habit-frequency {
+    font-size: 0.65rem;
+    color: var(--text-muted);
+    display: block;
+    margin-top: 2px;
 }
 
 /* === Welcome Page === */
