@@ -36,6 +36,12 @@
     </div>
 @endif
 
+<div style="text-align:center;margin-bottom:18px;">
+    <div style="font-size:0.9rem;font-weight:700;color:var(--text-primary);padding:4px 12px;background:var(--white-5);display:inline-block;border-radius:20px;">
+        <i class="ri-calendar-line" style="color:var(--gold);margin-right:4px;"></i> {{ now()->translatedFormat('j-F, l') }}
+    </div>
+</div>
+
 {{-- ⚡ TEZKOR NAVIGATSIYA --}}
 <div class="quick-nav">
     <a href="#saharlik-iftorlik" class="quick-nav-btn">

@@ -197,17 +197,17 @@ const PrayerTimes = {
         return null;
     },
 
-    /** Bugungi namoz vaqtlarini olish (Keshdan yoki API'dan) */
-    async getTodayTimes(region) {
-        const today = new Date();
-        const d = today.getDate();
-        const m = today.getMonth() + 1;
-        const y = today.getFullYear();
+    currentDay: new Date(),
+
+    /** Bugungi namoz vaqtlarini olish (muayyan sana uchun) */
+    async getTimesForDate(region, date) {
+        const d = date.getDate();
+        const m = date.getMonth() + 1;
+        const y = date.getFullYear();
 
         const monthData = await this.fetchMonthData(region, m, y);
         if (monthData && monthData.length > 0) {
             const dayData = monthData.find(item => item.day === d);
-            // Backup search if format varies
             const target = dayData || monthData[d - 1];
 
             if (target && target.times) {
@@ -217,76 +217,18 @@ const PrayerTimes = {
                     Dhuhr: target.times.peshin,
                     Asr: target.times.asr,
                     Maghrib: target.times.shom_iftor,
-                    Isha: target.times.hufton
+                    Isha: target.times.hufton,
+                    dateText: target.date.split(',')[0] + ' ' + target.weekday
                 };
             }
         }
         return null;
     },
 
-    /** Keyingi namozni aniqlash */
-    getNextPrayer(times) {
-        if (!times) return null;
-        const now = new Date();
-        const currentMinutes = now.getHours() * 60 + now.getMinutes();
-        const prayerOrder = ['Fajr', 'Sunrise', 'Dhuhr', 'Asr', 'Maghrib', 'Isha'];
-
-        for (const name of prayerOrder) {
-            const t = times[name];
-            if (!t) continue;
-            const [h, m] = t.split(':').map(Number);
-            const prayerMinutes = h * 60 + m;
-            if (prayerMinutes > currentMinutes) {
-                return {
-                    name: name,
-                    uzName: this.names[name],
-                    time: t,
-                    icon: this.icons[name],
-                    minutesLeft: prayerMinutes - currentMinutes
-                };
-            }
-        }
-        return {
-            name: 'Fajr',
-            uzName: this.names['Fajr'],
-            time: times['Fajr'],
-            icon: this.icons['Fajr'],
-            minutesLeft: null
-        };
-    },
-
-    formatRemaining(minutes) {
-        if (!minutes) return '';
-        const h = Math.floor(minutes / 60);
-        const m = minutes % 60;
-        return h > 0 ? `${h}s ${m}d` : `${m}d`;
-    },
-
-    /** Navbar lokatsiyasini yangilash */
-    updateNavbarLocation(city) {
-        const fullDisplay = city.includes('shahri') ? city : `${city}`;
-        document.querySelectorAll('#navLocationMobile .loc-text, #navLocationDesktop .loc-text').forEach(el => {
-            el.textContent = fullDisplay;
-        });
-    },
-
-    /** Joylashuvni yangilash (Cache'ni tozalash) */
-    async refreshLocation() {
-        const btns = document.querySelectorAll('.refresh-loc-btn');
-        btns.forEach(btn => btn.style.animation = 'spin 1s linear infinite');
-
-        // Faqat lokatsiya va shu oyning namoz vaqtlarini tozalash
-        localStorage.removeItem(this.LOCATION_KEY);
-        // Barcha oylik namoz keshlarini tozalash (ixtiyoriy)
-        const keysToRemove = [];
-        for (let i = 0; i < localStorage.length; i++) {
-            const key = localStorage.key(i);
-            if (key.startsWith(this.CACHE_KEY)) keysToRemove.push(key);
-        }
-        keysToRemove.forEach(k => localStorage.removeItem(k));
-
+    /** Custom sana uchun render qilish */
+    async changeDate(offset) {
+        this.currentDay.setDate(this.currentDay.getDate() + offset);
         await this.render();
-        btns.forEach(btn => btn.style.animation = 'none');
     },
 
     /** UI'ni yangilash */
@@ -299,19 +241,23 @@ const PrayerTimes = {
 
         if (!container) return;
 
-        const times = await this.getTodayTimes(loc.apiRegion);
+        const isToday = this.currentDay.toDateString() === new Date().toDateString();
+        const times = await this.getTimesForDate(loc.apiRegion, this.currentDay);
+
         if (!times) {
-            container.innerHTML = `<div class="text-center p-3"><i class="ri-wifi-off-line"></i> Xatolik yuz berdi</div>`;
+            container.innerHTML = `<div class="text-center p-3"><i class="ri-wifi-off-line"></i> Ma'lumot topilmadi</div>`;
             return;
         }
 
-        const nextPrayer = this.getNextPrayer(times);
+        const nextPrayer = isToday ? this.getNextPrayer(times) : null;
 
-        // Dashboard suhoor/iftar slots
-        const suhoorEl = document.getElementById('suhoorTime');
-        const iftarEl = document.getElementById('iftarTime');
-        if (suhoorEl) suhoorEl.textContent = times.Fajr;
-        if (iftarEl) iftarEl.textContent = times.Maghrib;
+        // Dashboard suhoor/iftar slots (faqat bugun uchun)
+        if (isToday) {
+            const suhoorEl = document.getElementById('suhoorTime');
+            const iftarEl = document.getElementById('iftarTime');
+            if (suhoorEl) suhoorEl.textContent = times.Fajr;
+            if (iftarEl) iftarEl.textContent = times.Maghrib;
+        }
 
         const prayerList = ['Fajr', 'Sunrise', 'Dhuhr', 'Asr', 'Maghrib', 'Isha'];
         let prayerRows = '';
@@ -329,12 +275,19 @@ const PrayerTimes = {
             `;
         });
 
+        const dateString = this.currentDay.toLocaleDateString('uz-UZ', { day: 'numeric', month: 'long', weekday: 'long' });
+
         container.innerHTML = `
-            <div style="display:flex;align-items:center;gap:6px;margin-bottom:12px;padding:0 4px;">
-                <i class="ri-map-pin-2-fill" style="color:var(--accent);font-size:0.9rem;"></i>
-                <span style="font-size:0.75rem;font-weight:600;color:var(--text-secondary);">${loc.displayCity} vaqti</span>
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;padding:0 4px;">
+                <button onclick="PrayerTimes.changeDate(-1)" style="background:none;border:none;color:var(--gold);cursor:pointer;padding:5px;"><i class="ri-arrow-left-s-line"></i></button>
+                <div style="text-align:center;">
+                    <div style="font-size:0.85rem;font-weight:700;color:var(--text-primary);">${dateString}</div>
+                    <div style="font-size:0.7rem;color:var(--text-secondary);"><i class="ri-map-pin-2-line"></i> ${loc.displayCity}</div>
+                </div>
+                <button onclick="PrayerTimes.changeDate(1)" style="background:none;border:none;color:var(--gold);cursor:pointer;padding:5px;"><i class="ri-arrow-right-s-line"></i></button>
             </div>
             <div style="display:flex;flex-direction:column;gap:4px;">${prayerRows}</div>
+            ${!isToday ? `<button onclick="this.disabled=true;PrayerTimes.currentDay=new Date();PrayerTimes.render()" style="width:100%;margin-top:12px;background:var(--gold-bg);border:1px solid var(--gold);color:var(--gold);border-radius:8px;padding:8px;font-size:0.75rem;cursor:pointer;">Bugunga qaytish</button>` : ''}
         `;
     }
 };
