@@ -23,6 +23,10 @@
                 <span class="brand-icon"><i class="ri-moon-clear-fill"></i></span>
                 <h1>Ramazon Tracker</h1>
                 <div class="arabic">رمضان مبارك</div>
+                <div id="navLocationDesktop" style="font-size:0.7rem;color:var(--text-muted);display:flex;align-items:center;gap:6px;margin-top:8px;opacity:0.8;">
+                    <i class="ri-map-pin-2-fill" style="color:var(--accent);font-size:0.8rem;"></i>
+                    <span class="loc-text">Yuklanmoqda...</span>
+                </div>
             </div>
 
             <ul class="sidebar-nav">

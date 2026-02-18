@@ -44,7 +44,7 @@ const PrayerTimes = {
             }
 
             if (!navigator.geolocation) {
-                const def = { lat: this.DEFAULT_LAT, lon: this.DEFAULT_LON, city: 'Toshkent' };
+                const def = { lat: this.DEFAULT_LAT, lon: this.DEFAULT_LON, city: 'Toshkent shahri' };
                 localStorage.setItem(this.LOCATION_KEY, JSON.stringify(def));
                 resolve(def);
                 return;
@@ -59,13 +59,13 @@ const PrayerTimes = {
                     };
 
                     this.getCityName(loc.lat, loc.lon).then(city => {
-                        loc.city = city || 'Toshkent';
+                        loc.city = city || 'Toshkent shahri';
                         localStorage.setItem(this.LOCATION_KEY, JSON.stringify(loc));
                         resolve(loc);
                     });
                 },
                 () => {
-                    const def = { lat: this.DEFAULT_LAT, lon: this.DEFAULT_LON, city: 'Toshkent' };
+                    const def = { lat: this.DEFAULT_LAT, lon: this.DEFAULT_LON, city: 'Toshkent shahri' };
                     localStorage.setItem(this.LOCATION_KEY, JSON.stringify(def));
                     resolve(def);
                 },
@@ -77,11 +77,21 @@ const PrayerTimes = {
     /** Shahar nomini olish (Reverse Geocoding) */
     async getCityName(lat, lon) {
         try {
-            const geoResp = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json&zoom=10`);
+            const geoResp = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json&zoom=12`);
             const geoData = await geoResp.json();
-            return geoData.address?.city || geoData.address?.town || geoData.address?.state || 'Toshkent';
+            const addr = geoData.address;
+            if (!addr) return 'Toshkent shahri';
+
+            // To'liqroq manzil (Tuman + Shahar/Viloyat)
+            const district = addr.suburb || addr.district || addr.borough || addr.subdistrict;
+            const city = addr.city || addr.town || addr.village || addr.state || 'Toshkent';
+
+            if (district && district !== city) {
+                return `${district}, ${city}`;
+            }
+            return `${city} shahri`;
         } catch (e) {
-            return 'Toshkent';
+            return 'Toshkent shahri';
         }
     },
 
@@ -174,8 +184,10 @@ const PrayerTimes = {
 
     /** Navbar lokatsiyasini yangilash */
     updateNavbarLocation(city) {
-        const elMobile = document.querySelector('#navLocationMobile .loc-text');
-        if (elMobile) elMobile.textContent = city;
+        const fullDisplay = city.includes('shahri') ? city : `${city}`;
+        document.querySelectorAll('#navLocationMobile .loc-text, #navLocationDesktop .loc-text').forEach(el => {
+            el.textContent = fullDisplay;
+        });
     },
 
     /** UI'ni yangilash */
