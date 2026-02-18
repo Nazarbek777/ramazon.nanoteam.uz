@@ -19,6 +19,9 @@ const PrayerTimes = {
         Isha: 'Xufton'
     },
 
+    uzMonths: ['Yanvar', 'Fevral', 'Mart', 'Aprel', 'May', 'Iyun', 'Iyul', 'Avgust', 'Sentyabr', 'Oktyabr', 'Noyabr', 'Dekabr'],
+    uzDays: ['Yakshanba', 'Dushanba', 'Seshanba', 'Chorshanba', 'Payshanba', 'Juma', 'Shanba'],
+
     icons: {
         Fajr: 'ri-sun-line',
         Sunrise: 'ri-sun-foggy-line',
@@ -305,7 +308,11 @@ const PrayerTimes = {
         this.updateNavbarLocation(loc.displayCity);
 
         // Date Display Sync (Top section)
-        const dateString = this.currentDay.toLocaleDateString('uz-UZ', { day: 'numeric', month: 'long', weekday: 'long' });
+        const d_day = this.currentDay.getDate();
+        const d_month = this.uzMonths[this.currentDay.getMonth()];
+        const d_weekday = this.uzDays[this.currentDay.getDay()];
+        const dateString = `${d_day}-${d_month}, ${d_weekday}`;
+
         const topDateEl = document.getElementById('topDateDisplay');
         if (topDateEl) topDateEl.textContent = dateString;
 
@@ -343,7 +350,8 @@ const PrayerTimes = {
             `;
         });
 
-        dateString = this.currentDay.toLocaleDateString('uz-UZ', { day: 'numeric', month: 'long', weekday: 'long' });
+        // Namoz vaqtlari vidjeti ichidagi sana
+        // dateString allaqachon tepada hisoblangan
 
         container.innerHTML = `
             <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;padding:0 4px;">
