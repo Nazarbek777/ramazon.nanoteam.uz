@@ -34,6 +34,7 @@
             <i class="ri-moon-clear-line"></i> Ramazongacha {{ $ramadan['days_until'] }} kun
         </span>
     </div>
+@endif
 
 {{-- ⚡ TEZKOR NAVIGATSIYA --}}
 <div class="quick-nav">
