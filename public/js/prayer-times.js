@@ -35,9 +35,13 @@ const PrayerTimes = {
             if (saved) {
                 try {
                     const loc = JSON.parse(saved);
+                    // Force fix Tashkent in saved location
+                    if (loc.apiRegion && loc.apiRegion.toLowerCase() === 'tashkent') {
+                        loc.apiRegion = 'Toshkent';
+                        localStorage.setItem(this.LOCATION_KEY, JSON.stringify(loc));
+                    }
                     if (loc.lat && loc.lon && loc.displayCity) {
                         resolve(loc);
-                        // Background update check could be here
                         return;
                     }
                 } catch (e) { /* ignore */ }
@@ -78,52 +82,40 @@ const PrayerTimes = {
 
     /** Shahar nomini olish (Reverse Geocoding) + API'ga mos regionni tozalash */
     async getCityName(lat, lon) {
-        // IslomAPI tomonidan qo'llab-quvvatlanadigan asosiy hududlar va ularning variantlari
+        // IslomAPI tomonidan qo'llab-quvvatlanadigan asosiy hududlar va viloyat markazlari
         const regionMapping = {
-            'toshkent': 'Toshkent',
-            'tashkent': 'Toshkent',
-            'andijon': 'Andijon',
-            'andizhan': 'Andijon',
-            'farg\'ona': 'Farg\'ona',
-            'fergana': 'Farg\'ona',
-            'namangan': 'Namangan',
-            'guliston': 'Guliston',
-            'sirdaryo': 'Guliston',
-            'jizzax': 'Jizzax',
-            'jizakh': 'Jizzax',
-            'samarqand': 'Samarqand',
-            'samarkand': 'Samarqand',
-            'qarshi': 'Qarshi',
-            'karshi': 'Qarshi',
-            'qashqadaryo': 'Qarshi',
-            'termiz': 'Termiz',
-            'termez': 'Termiz',
-            'surxondaryo': 'Termiz',
-            'navoiy': 'Navoiy',
-            'navoi': 'Navoiy',
-            'buxoro': 'Buxoro',
-            'bukhara': 'Buxoro',
-            'urganch': 'Urganch',
-            'urgench': 'Urganch',
-            'xorazm': 'Urganch',
-            'nukus': 'Nukus',
-            'qoraqalpog\'iston': 'Nukus'
+            // Toshkent
+            'toshkent': 'Toshkent', 'tashkent': 'Toshkent', 'chirchiq': 'Toshkent', 'angren': 'Toshkent', 'olmaliq': 'Toshkent', 'bekobod': 'Toshkent',
+            // Farg'ona vodiysi
+            'farg\'ona': 'Farg\'ona', 'fergana': 'Farg\'ona', 'marg\'ilon': 'Farg\'ona', 'qo\'qon': 'Qo\'qon', 'kokand': 'Qo\'qon', 'quva': 'Farg\'ona',
+            'andijon': 'Andijon', 'andizhan': 'Andijon', 'asaka': 'Andijon', 'xo\'jaobod': 'Andijon', 'shahrixon': 'Andijon',
+            'namangan': 'Namangan', 'chust': 'Namangan', 'uchqo\'rg\'on': 'Namangan', 'kosonsoy': 'Namangan',
+            // Markaziy viloyatlar
+            'samarqand': 'Samarqand', 'samarkand': 'Samarqand', 'kattaqo\'rg\'on': 'Samarqand', 'urgut': 'Samarqand',
+            'buxoro': 'Buxoro', 'bukhara': 'Buxoro', 'gijduvon': 'Buxoro', 'kogon': 'Buxoro',
+            'navoiy': 'Navoiy', 'navoi': 'Navoiy', 'zarafshon': 'Zarafshon', 'uchquduq': 'Navoiy',
+            'jizzax': 'Jizzax', 'jizakh': 'Jizzax', 'paxtakor': 'Jizzax',
+            'guliston': 'Guliston', 'sirdaryo': 'Guliston', 'yangiyer': 'Guliston', 'shirin': 'Guliston',
+            // Janubiy viloyatlar
+            'qarshi': 'Qarshi', 'karshi': 'Qarshi', 'qashqadaryo': 'Qarshi', 'shaxrisabz': 'Qarshi', 'muborak': 'Qarshi',
+            'termiz': 'Termiz', 'termez': 'Termiz', 'surxondaryo': 'Termiz', 'denov': 'Termiz', 'sherobod': 'Termiz',
+            // G'arbiy viloyatlar
+            'urganch': 'Urganch', 'urgench': 'Urganch', 'xorazm': 'Urganch', 'xiva': 'Xiva', 'khiva': 'Xiva',
+            'nukus': 'Nukus', 'qoraqalpog\'iston': 'Nukus', 'karakalpakstan': 'Nukus', 'mo\'ynoq': 'Nukus', 'qo\'ng\'irot': 'Nukus'
         };
 
         try {
-            const geoResp = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json&zoom=12`);
+            const geoResp = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json&accept-language=uz,en&zoom=10`);
             const geoData = await geoResp.json();
             const addr = geoData.address;
             if (!addr) return { displayCity: 'Toshkent shahri', apiRegion: 'Toshkent' };
 
-            const district = addr.suburb || addr.district || addr.borough || addr.subdistrict || addr.county;
-            const city = addr.city || addr.town || addr.village;
-            const state = addr.state || '';
+            const city = addr.city || addr.town || addr.village || addr.suburb || addr.hamlet || '';
+            const province = addr.state || addr.region || addr.county || '';
+            const locationString = `${city} ${province} ${addr.display_name || ''}`.toLowerCase();
 
             // API uchun regionni aniqlash
             let apiRegion = 'Toshkent';
-            const locationString = (city + ' ' + (addr.state || '') + ' ' + (addr.region || '')).toLowerCase();
-
             for (const [key, val] of Object.entries(regionMapping)) {
                 if (locationString.includes(key)) {
                     apiRegion = val;
@@ -131,36 +123,64 @@ const PrayerTimes = {
                 }
             }
 
-            // Agar mappingdan topilmasa, shahar nomini tozalab ishlatish
-            if (apiRegion === 'Toshkent' && city) {
-                apiRegion = city.replace(/shahri|viloyati|region|city|province/gi, '').trim();
-            }
-
-            let displayCity = (district && city && district !== city) ? `${district}, ${city}` : (city ? `${city} shahri` : state);
-            if (!displayCity) displayCity = 'Toshkent shahri';
+            // Tashrif buyurilgan shahar nomini chiroyli chiqarish
+            let displayCity = city || province || 'Toshkent shahri';
+            if (displayCity.toLowerCase().includes('district')) displayCity = province || city;
 
             return { displayCity, apiRegion };
         } catch (e) {
+            console.error('Location Error:', e);
             return { displayCity: 'Toshkent shahri', apiRegion: 'Toshkent' };
         }
     },
 
-    /** Butun bir oy uchun vaqtlarni yuklash */
     async fetchMonthData(region, month, year) {
-        const sanitizedRegion = region || 'Toshkent';
+        let sanitizedRegion = (region || 'Toshkent').toString().trim();
+
+        // IslomAPI kutadigan aniq nomlar
+        const normalizeMap = {
+            'tashkent': 'Toshkent', 'toshkent': 'Toshkent',
+            'andijan': 'Andijon', 'andizhan': 'Andijon', 'andijon': 'Andijon',
+            'bukhara': 'Buxoro', 'buxoro': 'Buxoro',
+            'fergana': 'Farg\'ona', 'fergane': 'Farg\'ona', 'farg\'ona': 'Farg\'ona',
+            'namangan': 'Namangan',
+            'gulistan': 'Guliston', 'guliston': 'Guliston',
+            'jizakh': 'Jizzax', 'jizzax': 'Jizzax',
+            'samarkand': 'Samarqand', 'samarqand': 'Samarqand',
+            'karshi': 'Qarshi', 'qarshi': 'Qarshi',
+            'termez': 'Termiz', 'termiz': 'Termiz',
+            'navoi': 'Navoiy', 'navoiy': 'Navoiy',
+            'urgench': 'Urganch', 'urganch': 'Urganch',
+            'nukus': 'Nukus',
+            'khiva': 'Xiva', 'xiva': 'Xiva',
+            'kokand': 'Qo\'qon', 'qo\'qon': 'Qo\'qon',
+            'zarafshon': 'Zarafshon'
+        };
+
+        const lowerReg = sanitizedRegion.toLowerCase();
+        if (normalizeMap[lowerReg]) {
+            sanitizedRegion = normalizeMap[lowerReg];
+        }
+
         const cacheKey = `${this.CACHE_KEY}${sanitizedRegion}_${month}_${year}`;
         const cached = localStorage.getItem(cacheKey);
 
         if (cached) {
-            try { return JSON.parse(cached); } catch (e) { /* ignore */ }
+            try {
+                const data = JSON.parse(cached);
+                if (data && data.length > 0) return data;
+            } catch (e) { localStorage.removeItem(cacheKey); }
         }
 
         try {
-            const resp = await fetch(`https://islomapi.uz/api/monthly?region=${sanitizedRegion}&month=${month}&year=${year}`);
+            const url = `https://islomapi.uz/api/monthly?region=${encodeURIComponent(sanitizedRegion)}&month=${month}`;
+            const resp = await fetch(url);
             const data = await resp.json();
-            if (data && Array.isArray(data)) {
+            if (data && Array.isArray(data) && data.length > 0) {
                 localStorage.setItem(cacheKey, JSON.stringify(data));
                 return data;
+            } else {
+                console.warn('API bo\'sh natija qaytardi:', sanitizedRegion);
             }
         } catch (e) {
             console.error('IslomAPI Error:', e);
