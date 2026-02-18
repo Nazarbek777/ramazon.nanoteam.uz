@@ -195,6 +195,25 @@ const PrayerTimes = {
         });
     },
 
+    /** Joylashuvni yangilash (Cache'ni tozalash) */
+    async refreshLocation() {
+        const btns = document.querySelectorAll('.refresh-loc-btn');
+        btns.forEach(btn => btn.style.animation = 'spin 1s linear infinite');
+
+        // Faqat lokatsiya va shu oyning namoz vaqtlarini tozalash
+        localStorage.removeItem(this.LOCATION_KEY);
+        // Barcha oylik namoz keshlarini tozalash (ixtiyoriy)
+        const keysToRemove = [];
+        for (let i = 0; i < localStorage.length; i++) {
+            const key = localStorage.key(i);
+            if (key.startsWith(this.CACHE_KEY)) keysToRemove.push(key);
+        }
+        keysToRemove.forEach(k => localStorage.removeItem(k));
+
+        await this.render();
+        btns.forEach(btn => btn.style.animation = 'none');
+    },
+
     /** UI'ni yangilash */
     async render() {
         const container = document.getElementById('prayerTimesWidget');

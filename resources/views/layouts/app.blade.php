@@ -26,6 +26,7 @@
                 <div id="navLocationDesktop" style="font-size:0.7rem;color:var(--text-muted);display:flex;align-items:center;gap:6px;margin-top:8px;opacity:0.8;">
                     <i class="ri-map-pin-2-fill" style="color:var(--accent);font-size:0.8rem;"></i>
                     <span class="loc-text">Yuklanmoqda...</span>
+                    <i class="ri-refresh-line refresh-loc-btn" style="cursor:pointer;font-size:0.75rem;margin-left:2px;" onclick="PrayerTimes.refreshLocation()"></i>
                 </div>
             </div>
 
@@ -85,6 +86,7 @@
                     <div id="navLocationMobile" style="font-size:0.62rem;color:var(--accent-light);display:flex;align-items:center;gap:3px;opacity:0.8;">
                         <i class="ri-map-pin-2-fill" style="font-size:0.7rem;"></i>
                         <span class="loc-text">Yuklanmoqda...</span>
+                        <i class="ri-refresh-line refresh-loc-btn" style="cursor:pointer;font-size:0.7rem;margin-left:1px;" onclick="PrayerTimes.refreshLocation()"></i>
                     </div>
                 </div>
                 <div class="mobile-topbar-user">
@@ -155,5 +157,6 @@
     </div>
 
     @yield('scripts')
+    <script src="{{ asset('js/prayer-times.js') }}?v={{ time() }}"></script>
 </body>
 </html>
