@@ -29,8 +29,15 @@
 
                 <div class="form-group">
                     <label class="form-label"><i class="ri-mail-line"></i> Email</label>
-                    <input type="email" name="email" class="form-input" value="{{ old('email') }}" placeholder="email@example.com" required>
+                    <input type="email" name="email" class="form-input" value="{{ old('email') }}" placeholder="email@example.com">
                     @error('email') <div class="form-error"><i class="ri-error-warning-line"></i> {{ $message }}</div> @enderror
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label"><i class="ri-phone-line"></i> Telefon raqam</label>
+                    <input type="text" name="phone" class="form-input" value="{{ old('phone') }}" placeholder="+998901234567">
+                    @error('phone') <div class="form-error"><i class="ri-error-warning-line"></i> {{ $message }}</div> @enderror
+                    <small style="font-size:0.7rem; color:var(--text-muted); margin-top:4px; display:block;">Email yoki telefon — birini kiritsangiz kifoya.</small>
                 </div>
 
                 <div class="form-group">
@@ -50,14 +57,14 @@
                         <div class="gender-option">
                             <input type="radio" name="gender" value="male" id="gender_male" {{ old('gender', 'male') === 'male' ? 'checked' : '' }}>
                             <label for="gender_male">
-                                <div class="gender-icon"><i class="ri-men-line"></i></div>
+                                <div class="gender-icon"><i class="ri-user-6-line"></i></div>
                                 <span class="gender-text">Erkak</span>
                             </label>
                         </div>
                         <div class="gender-option">
                             <input type="radio" name="gender" value="female" id="gender_female" {{ old('gender') === 'female' ? 'checked' : '' }}>
                             <label for="gender_female">
-                                <div class="gender-icon"><i class="ri-women-line"></i></div>
+                                <div class="gender-icon"><i class="ri-user-5-line"></i></div>
                                 <span class="gender-text">Ayol</span>
                             </label>
                         </div>

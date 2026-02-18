@@ -29,11 +29,21 @@
         <div class="card mb-24">
             <div class="form-group">
                 <label class="form-label" style="display:flex; align-items:center; gap:8px;">
-                    <i class="ri-user-line" style="color:var(--gold);"></i> Ismingiz
+                    <i class="ri-mail-line" style="color:var(--gold);"></i> Email
                 </label>
-                <input type="text" name="name" class="form-input @error('name') is-invalid @enderror" 
-                       value="{{ old('name', $user->name) }}" required>
-                @error('name') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                <input type="email" name="email" class="form-input @error('email') is-invalid @enderror" 
+                       value="{{ old('email', $user->email) }}">
+                @error('email') <div class="invalid-feedback">{{ $message }}</div> @enderror
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" style="display:flex; align-items:center; gap:8px;">
+                    <i class="ri-phone-line" style="color:var(--gold);"></i> Telefon raqam
+                </label>
+                <input type="text" name="phone" class="form-input @error('phone') is-invalid @enderror" 
+                       value="{{ old('phone', $user->phone) }}" placeholder="+998...">
+                @error('phone') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                <small style="font-size:0.75rem; color:var(--text-muted); margin-top:4px; display:block;">Email yoki telefon — kamida bittasi bo'lishi shart.</small>
             </div>
 
             <div class="form-group" style="margin-bottom:0;">
@@ -46,7 +56,7 @@
                                {{ old('gender', $user->gender) === 'male' ? 'checked' : '' }} style="display:none;">
                         <div class="gender-card {{ old('gender', $user->gender) === 'male' ? 'active' : '' }}" 
                              style="padding:15px; border-radius:12px; border:1px solid var(--border-color); text-align:center; transition:var(--transition-fast);">
-                            <i class="ri-men-line" style="font-size:1.5rem; display:block; margin-bottom:5px;"></i>
+                            <i class="ri-user-6-line" style="font-size:1.5rem; display:block; margin-bottom:5px;"></i>
                             <span style="font-size:0.85rem; font-weight:600;">Erkak</span>
                         </div>
                     </label>
@@ -55,7 +65,7 @@
                                {{ old('gender', $user->gender) === 'female' ? 'checked' : '' }} style="display:none;">
                         <div class="gender-card {{ old('gender', $user->gender) === 'female' ? 'active' : '' }}" 
                              style="padding:15px; border-radius:12px; border:1px solid var(--border-color); text-align:center; transition:var(--transition-fast);">
-                            <i class="ri-women-line" style="font-size:1.5rem; display:block; margin-bottom:5px;"></i>
+                            <i class="ri-user-5-line" style="font-size:1.5rem; display:block; margin-bottom:5px;"></i>
                             <span style="font-size:0.85rem; font-weight:600;">Ayol</span>
                         </div>
                     </label>

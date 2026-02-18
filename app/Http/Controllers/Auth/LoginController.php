@@ -16,18 +16,21 @@ class LoginController extends Controller
     public function login(Request $request)
     {
         $request->validate([
-            'email' => 'required|email',
+            'identity' => 'required|string',
             'password' => 'required',
         ]);
 
-        if (Auth::attempt($request->only('email', 'password'), $request->boolean('remember'))) {
+        $identity = $request->identity;
+        $field = filter_var($identity, FILTER_VALIDATE_EMAIL) ? 'email' : 'phone';
+
+        if (Auth::attempt([$field => $identity, 'password' => $request->password], $request->boolean('remember'))) {
             $request->session()->regenerate();
             return redirect()->intended(route('dashboard'));
         }
 
         return back()->withErrors([
-            'email' => 'Email yoki parol noto\'g\'ri.',
-        ])->onlyInput('email');
+            'identity' => 'Ma\'lumotlar noto\'g\'ri.',
+        ])->onlyInput('identity');
     }
 
     public function logout(Request $request)

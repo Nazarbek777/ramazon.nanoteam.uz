@@ -21,12 +21,16 @@ class ProfileController extends Controller
 
         $request->validate([
             'name' => ['required', 'string', 'max:255'],
+            'email' => ['nullable', 'email', 'max:255', 'unique:users,email,'.$user->id, 'required_without:phone'],
+            'phone' => ['nullable', 'string', 'max:20', 'unique:users,phone,'.$user->id, 'required_without:email'],
             'gender' => ['required', 'in:male,female'],
             'current_password' => ['nullable', 'required_with:new_password', 'current_password'],
             'new_password' => ['nullable', 'confirmed', Password::defaults()],
         ]);
 
         $user->name = $request->name;
+        $user->email = $request->email;
+        $user->phone = $request->phone;
         $user->gender = $request->gender;
 
         if ($request->filled('new_password')) {

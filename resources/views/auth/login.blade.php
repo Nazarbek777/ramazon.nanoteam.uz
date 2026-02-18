@@ -26,8 +26,8 @@
                 @csrf
 
                 <div class="form-group">
-                    <label class="form-label"><i class="ri-mail-line"></i> Email</label>
-                    <input type="email" name="email" class="form-input" value="{{ old('email') }}" placeholder="email@example.com" required>
+                    <label class="form-label"><i class="ri-user-line"></i> Email yoki telefon</label>
+                    <input type="text" name="identity" class="form-input" value="{{ old('identity') }}" placeholder="email@example.com yoki +998..." required>
                 </div>
 
                 <div class="form-group">
