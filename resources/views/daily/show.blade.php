@@ -133,6 +133,9 @@
 
     {{-- Asmaul Husna --}}
     <h3 class="section-title"><i class="ri-sparkling-line"></i> Asmaul Husna</h3>
+    <div style="margin-top:-18px;margin-bottom:12px;font-size:0.75rem;color:var(--text-muted);padding-left:4px;">
+        <i class="ri-information-line" style="color:var(--gold);"></i> Bugun tanishingiz kerak bo'lgan ismlar
+    </div>
     <div class="card mb-24 husna-card">
         <div class="husna-item-row">
             @foreach($husnaNames as $name)

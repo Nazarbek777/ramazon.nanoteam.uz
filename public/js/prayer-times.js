@@ -78,21 +78,36 @@ const PrayerTimes = {
 
     /** Shahar nomini olish (Reverse Geocoding) + API'ga mos regionni tozalash */
     async getCityName(lat, lon) {
-        // IslomAPI tomonidan qo'llab-quvvatlanadigan asosiy hududlar
+        // IslomAPI tomonidan qo'llab-quvvatlanadigan asosiy hududlar va ularning variantlari
         const regionMapping = {
-            'Toshkent': 'Toshkent',
-            'Andijon': 'Andijon',
-            'Farg\'ona': 'Farg\'ona',
-            'Namangan': 'Namangan',
-            'Sirdaryo': 'Guliston',
-            'Jizzax': 'Jizzax',
-            'Samarqand': 'Samarqand',
-            'Qashqadaryo': 'Qarshi',
-            'Surxondaryo': 'Termiz',
-            'Navoiy': 'Navoiy',
-            'Buxoro': 'Buxoro',
-            'Xorazm': 'Urganch',
-            'Qoraqalpog\'iston': 'Nukus'
+            'toshkent': 'Toshkent',
+            'tashkent': 'Toshkent',
+            'andijon': 'Andijon',
+            'andizhan': 'Andijon',
+            'farg\'ona': 'Farg\'ona',
+            'fergana': 'Farg\'ona',
+            'namangan': 'Namangan',
+            'guliston': 'Guliston',
+            'sirdaryo': 'Guliston',
+            'jizzax': 'Jizzax',
+            'jizakh': 'Jizzax',
+            'samarqand': 'Samarqand',
+            'samarkand': 'Samarqand',
+            'qarshi': 'Qarshi',
+            'karshi': 'Qarshi',
+            'qashqadaryo': 'Qarshi',
+            'termiz': 'Termiz',
+            'termez': 'Termiz',
+            'surxondaryo': 'Termiz',
+            'navoiy': 'Navoiy',
+            'navoi': 'Navoiy',
+            'buxoro': 'Buxoro',
+            'bukhara': 'Buxoro',
+            'urganch': 'Urganch',
+            'urgench': 'Urganch',
+            'xorazm': 'Urganch',
+            'nukus': 'Nukus',
+            'qoraqalpog\'iston': 'Nukus'
         };
 
         try {
@@ -107,10 +122,10 @@ const PrayerTimes = {
 
             // API uchun regionni aniqlash
             let apiRegion = 'Toshkent';
-            const locationString = (city + ' ' + state).toLowerCase();
+            const locationString = (city + ' ' + (addr.state || '') + ' ' + (addr.region || '')).toLowerCase();
 
             for (const [key, val] of Object.entries(regionMapping)) {
-                if (locationString.includes(key.toLowerCase())) {
+                if (locationString.includes(key)) {
                     apiRegion = val;
                     break;
                 }
@@ -141,7 +156,7 @@ const PrayerTimes = {
         }
 
         try {
-            const resp = await fetch(`https://islomapi.uz/api/monthly?region=${sanitizedRegion}&month=${month}`);
+            const resp = await fetch(`https://islomapi.uz/api/monthly?region=${sanitizedRegion}&month=${month}&year=${year}`);
             const data = await resp.json();
             if (data && Array.isArray(data)) {
                 localStorage.setItem(cacheKey, JSON.stringify(data));
@@ -161,8 +176,8 @@ const PrayerTimes = {
         const y = today.getFullYear();
 
         const monthData = await this.fetchMonthData(region, m, y);
-        if (monthData) {
-            const dayData = monthData.find(item => item.date.split(',')[0].trim().includes(d.toString().padStart(2, '0')) || parseInt(item.date.split(',')[0]) === d);
+        if (monthData && monthData.length > 0) {
+            const dayData = monthData.find(item => item.day === d);
             // Backup search if format varies
             const target = dayData || monthData[d - 1];
 
