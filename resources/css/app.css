@@ -58,6 +58,8 @@ body.theme-male {
     --topbar-bg: rgba(5, 8, 22, 0.93);
     --bottomnav-bg: rgba(5, 8, 22, 0.96);
     --white-5: rgba(255, 255, 255, 0.04);
+    --gold-bg: rgba(212, 168, 67, 0.1);
+    --gold-border: rgba(212, 168, 67, 0.25);
 }
 
 /* === FEMALE THEME — Premium Floral/Rose === */
@@ -808,6 +810,18 @@ body::before {
     font-weight: 500;
     font-size: 0.92rem;
     color: var(--text-primary);
+    transition: var(--transition);
+}
+
+.checklist-item.completed .habit-name {
+    color: var(--text-muted);
+    text-decoration: line-through;
+    opacity: 0.7;
+}
+
+.checklist-item.completed .habit-icon {
+    opacity: 0.5;
+    filter: grayscale(1);
 }
 
 .checklist-item .habit-input {
@@ -2730,6 +2744,22 @@ body::before {
     font-weight: 600;
 }
 
+.namoz-tracker-item .check-icon {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    font-size: 0.8rem;
+    color: var(--accent);
+    opacity: 0;
+    transform: scale(0.5);
+    transition: var(--transition);
+}
+
+.namoz-tracker-item.active .check-icon {
+    opacity: 1;
+    transform: scale(1);
+}
+
 /* Rakat Selector (Taroweh) */
 .rakat-selector {
     display: flex;
@@ -2837,6 +2867,22 @@ body::before {
 
 .quran-action-btn i {
     font-size: 1.1rem;
+}
+
+.quran-action-btn .check-icon {
+    position: absolute;
+    top: 2px;
+    right: 2px;
+    font-size: 0.7rem;
+    color: var(--accent);
+    opacity: 0;
+    transform: scale(0.5);
+    transition: var(--transition);
+}
+
+.quran-action-btn.active .check-icon {
+    opacity: 1;
+    transform: scale(1);
 }
 
 /* Priorities (Eng muhim) */

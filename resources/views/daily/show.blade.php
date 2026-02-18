@@ -43,7 +43,12 @@
         </div>
     </div>
 
-    {{-- Namoz Tracker --}}
+    {{-- Ibodatlar (Namoz & Quran) --}}
+    <div style="margin-top:20px;margin-bottom:12px;display:flex;align-items:center;gap:10px;">
+        <span style="background:var(--gold-bg);color:var(--gold);padding:4px 12px;border-radius:50px;font-size:0.7rem;font-weight:800;text-transform:uppercase;letter-spacing:1px;border:1px solid var(--gold-border);">Asosiy Ibodatlar</span>
+        <div style="flex:1;height:1px;background:linear-gradient(90deg, var(--gold-border), transparent);"></div>
+    </div>
+    
     <h3 class="section-title"><i class="ri-heart-pulse-line"></i> Namozlarim</h3>
     <div class="card mb-24">
         <div class="namoz-tracker-grid">
@@ -61,7 +66,9 @@
             @endphp
             @foreach($prayers as $p)
                 <div class="namoz-tracker-item {{ ($namozData[$p['id']] ?? false) ? 'active' : '' }}" 
-                     onclick="toggleDataField('namoz.{{ $p['id'] }}', this)">
+                     onclick="toggleDataField('namoz.{{ $p['id'] }}', this)"
+                     style="position:relative;">
+                    <i class="ri-checkbox-circle-fill check-icon"></i>
                     <i class="{{ $p['icon'] }}"></i>
                     <span class="namoz-tracker-label">{{ $p['label'] }}</span>
                 </div>
@@ -102,15 +109,18 @@
             </tbody>
         </table>
         <div class="quran-actions">
-            <div class="quran-action-btn {{ ($quran['yodladim'] ?? false) ? 'active' : '' }}" onclick="toggleDataField('quran.yodladim', this)">
+            <div class="quran-action-btn {{ ($quran['yodladim'] ?? false) ? 'active' : '' }}" onclick="toggleDataField('quran.yodladim', this)" style="position:relative;">
+                <i class="ri-checkbox-circle-fill check-icon"></i>
                 <i class="ri-medal-line"></i>
                 <span>Yodladim</span>
             </div>
-            <div class="quran-action-btn {{ ($quran['qiroat'] ?? false) ? 'active' : '' }}" onclick="toggleDataField('quran.qiroat', this)">
+            <div class="quran-action-btn {{ ($quran['qiroat'] ?? false) ? 'active' : '' }}" onclick="toggleDataField('quran.qiroat', this)" style="position:relative;">
+                <i class="ri-checkbox-circle-fill check-icon"></i>
                 <i class="ri-mic-line"></i>
                 <span>Qiroat</span>
             </div>
-            <div class="quran-action-btn {{ ($quran['takrorladim'] ?? false) ? 'active' : '' }}" onclick="toggleDataField('quran.takrorladim', this)">
+            <div class="quran-action-btn {{ ($quran['takrorladim'] ?? false) ? 'active' : '' }}" onclick="toggleDataField('quran.takrorladim', this)" style="position:relative;">
+                <i class="ri-checkbox-circle-fill check-icon"></i>
                 <i class="ri-repeat-2-line"></i>
                 <span>Takrorladim</span>
             </div>
@@ -147,12 +157,18 @@
         </div>
     </div>
 
-    {{-- Checklist --}}
+    {{-- Vazifalar Section Header --}}
+    <div style="margin-top:20px;margin-bottom:12px;display:flex;align-items:center;gap:10px;">
+        <span style="background:var(--accent-bg);color:var(--accent);padding:4px 12px;border-radius:50px;font-size:0.7rem;font-weight:800;text-transform:uppercase;letter-spacing:1px;border:1px solid var(--accent-glow);">Kunlik Vazifalar</span>
+        <div style="flex:1;height:1px;background:linear-gradient(90deg, var(--accent-glow), transparent);"></div>
+    </div>
+
     <h3 class="section-title"><i class="ri-checkbox-multiple-line"></i> Vazifalar</h3>
     <div class="card mb-24">
         <ul class="checklist" id="habitList">
             @foreach($habits as $habit)
-                <li class="checklist-item" id="item-{{ $habit->id }}" data-habit-id="{{ $habit->id }}" data-type="{{ $habit->type }}" style="{{ ($completedMap[$habit->id] ?? false) ? 'background:var(--accent-bg);border-color:var(--accent);' : '' }}">
+                @php $isDone = $completedMap[$habit->id] ?? false; @endphp
+                <li class="checklist-item {{ $isDone ? 'completed' : '' }}" id="item-{{ $habit->id }}" data-habit-id="{{ $habit->id }}" data-type="{{ $habit->type }}" style="{{ $isDone ? 'background:var(--accent-bg);border-color:var(--accent);' : '' }}">
                     <div class="habit-icon"><i class="{{ $habit->icon }}"></i></div>
                     <span class="habit-name">{{ $habit->name }}</span>
                     <span class="habit-input">
@@ -161,7 +177,7 @@
                                 <input type="checkbox"
                                        id="habit_{{ $habit->id }}"
                                        data-habit-id="{{ $habit->id }}"
-                                       {{ ($completedMap[$habit->id] ?? false) ? 'checked' : '' }}
+                                       {{ $isDone ? 'checked' : '' }}
                                        onchange="toggleHabit({{ $habit->id }}, this.checked)">
                                 <span class="checkmark"></span>
                             </div>
@@ -261,11 +277,13 @@
         if (completed) {
             item.style.background = 'var(--accent-bg)';
             item.style.borderColor = 'var(--accent)';
+            item.classList.add('completed');
             if (isCheckbox) completedCount++;
             showMotivation(completedCount, totalHabits);
         } else {
             item.style.background = '';
             item.style.borderColor = '';
+            item.classList.remove('completed');
             if (isCheckbox) completedCount--;
         }
 
