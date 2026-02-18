@@ -316,13 +316,11 @@ const PrayerTimes = {
 
         const nextPrayer = isToday ? this.getNextPrayer(times) : null;
 
-        // Dashboard suhoor/iftar slots (faqat bugun uchun)
-        if (isToday) {
-            const suhoorEl = document.getElementById('suhoorTime');
-            const iftarEl = document.getElementById('iftarTime');
-            if (suhoorEl) suhoorEl.textContent = times.Fajr;
-            if (iftarEl) iftarEl.textContent = times.Maghrib;
-        }
+        // Dashboard suhoor/iftar slots
+        const suhoorEl = document.getElementById('suhoorTime');
+        const iftarEl = document.getElementById('iftarTime');
+        if (suhoorEl) suhoorEl.textContent = times.Fajr;
+        if (iftarEl) iftarEl.textContent = times.Maghrib;
 
         const prayerList = ['Fajr', 'Sunrise', 'Dhuhr', 'Asr', 'Maghrib', 'Isha'];
         let prayerRows = '';
