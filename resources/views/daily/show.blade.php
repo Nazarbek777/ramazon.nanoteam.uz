@@ -132,21 +132,10 @@
     </div>
 
     {{-- Asmaul Husna --}}
-    @php
-        $asmaulHusna = [
-            ['name' => 'Al-Malik', 'meaning' => 'Hamma narsaning egasi'],
-            ['name' => 'Al-Quddus', 'meaning' => 'Barcha aybu nuqsonlardan pok'],
-            ['name' => 'As-Salam', 'meaning' => 'Tinchlik-omonlik beruvchi'],
-            ['name' => 'Al-Mu’min', 'meaning' => 'Imon va omonlik beruvchi'],
-        ];
-        // Kunlik ismlarni tanlash (osonroq bo'lishi uchun ramazon kuniga qarab)
-        $dayIndex = ($ramadan['day'] ?? 1) % 25;
-        $currentNames = array_slice($asmaulHusna, 0, 4); // Misol tariqasida 4 tasi
-    @endphp
     <h3 class="section-title"><i class="ri-sparkling-line"></i> Asmaul Husna</h3>
     <div class="card mb-24 husna-card">
         <div class="husna-item-row">
-            @foreach($currentNames as $name)
+            @foreach($husnaNames as $name)
                 <div class="husna-box">
                     <span class="husna-arabic-text">{{ $name['name'] }}</span>
                     <span class="husna-meaning-text">{{ $name['meaning'] }}</span>

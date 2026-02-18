@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Helpers\HusnaHelper;
 use App\Helpers\RamadanHelper;
 use App\Models\DailyLog;
 use App\Models\DailyLogItem;
@@ -47,9 +48,29 @@ class DailyLogController extends Controller
             'remaining' => RamadanHelper::remainingDays($currentDate),
         ];
 
+        // 99 ism, 30 kun -> kuniga ~3 tadan (oxirgi kunlari 4 ta)
+        $husnaNames = [];
+        if ($ramadan['is_ramadan']) {
+            $day = $ramadan['day'];
+            $allNames = HusnaHelper::getNames();
+            $perDay = 3;
+            $startIndex = ($day - 1) * $perDay;
+            
+            // Oxirgi kunlarda qolganlarini ham chiqarish uchun
+            if ($day == 30) {
+                $husnaNames = array_slice($allNames, $startIndex);
+            } else {
+                $husnaNames = array_slice($allNames, $startIndex, $perDay);
+            }
+        } else {
+            // Ramazon bo'lmasa, tasodifiy 3 tasi
+            $allNames = HusnaHelper::getNames();
+            $husnaNames = array_slice($allNames, 0, 3);
+        }
+
         return view('daily.show', compact(
             'habits', 'log', 'completedMap', 'valuesMap',
-            'currentDate', 'prevDate', 'nextDate', 'isToday', 'isFuture', 'ramadan'
+            'currentDate', 'prevDate', 'nextDate', 'isToday', 'isFuture', 'ramadan', 'husnaNames'
         ));
     }
 
