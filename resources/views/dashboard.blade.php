@@ -5,12 +5,11 @@
 @php
     $treePercent = 0;
     $completedToday = 0;
-    $totalToday = 0;
+    $totalToday = count($habits); // BARCHA habitlar soni
     if ($todayLog && $todayLog->items->count() > 0) {
         $completedToday = $todayLog->items->where('is_completed', true)->count();
-        $totalToday = $todayLog->items->count();
-        $treePercent = round(($completedToday / $totalToday) * 100);
     }
+    $treePercent = $totalToday > 0 ? round(($completedToday / $totalToday) * 100) : 0;
     // 6 bosqich
     $stage = 0;
     if ($treePercent >= 90) $stage = 5;

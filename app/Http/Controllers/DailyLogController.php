@@ -80,11 +80,12 @@ class DailyLogController extends Controller
             ['is_completed' => $isCompleted, 'value' => $value]
         );
 
-        // Statistikani qayta hisoblash
+        // Statistikani qayta hisoblash — BARCHA habitlar soniga nisbatan
         $log->refresh();
+        $allHabits = Habit::forUser($user->id)->count();
         $items = $log->items;
-        $total = $items->count();
         $completed = $items->where('is_completed', true)->count();
+        $total = max($allHabits, $items->count()); // barcha habitlar soni
         $percent = $total > 0 ? round(($completed / $total) * 100) : 0;
 
         // Streak hisoblash
