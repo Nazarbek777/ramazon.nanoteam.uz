@@ -10,10 +10,6 @@
     </div>
 @endif
 
-<div class="page-header" style="margin-bottom:12px;">
-    <h2><i class="ri-checkbox-circle-line"></i> Kunlik Amallar</h2>
-</div>
-
 <div class="date-nav">
     <a href="{{ route('daily.show', ['date' => $prevDate]) }}"><i class="ri-arrow-left-s-line"></i></a>
     <div class="current-date">
