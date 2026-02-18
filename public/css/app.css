@@ -1598,7 +1598,8 @@ body::before {
 .section-title {
     font-size: 1.05rem;
     font-weight: 700;
-    margin-bottom: 14px;
+    margin-top: 12px;
+    margin-bottom: 10px;
     display: flex;
     align-items: center;
     gap: 8px;
@@ -2691,7 +2692,7 @@ body::before {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     gap: 12px;
-    margin-bottom: 24px;
+    margin-bottom: 16px;
 }
 
 .deed-card {
@@ -2701,14 +2702,13 @@ body::before {
     align-items: center;
     justify-content: center;
     gap: 8px;
-    padding: 16px 10px;
+    padding: 12px 10px;
     border-radius: 16px;
     background: var(--white-5);
     border: 1px solid var(--border-color);
     cursor: pointer;
     transition: var(--transition);
     text-align: center;
-    height: 100%;
 }
 
 .deed-card:hover {

@@ -44,8 +44,8 @@
     </div>
 
     {{-- Ibodatlar (Namoz & Quran) --}}
-    <div style="margin-top:20px;margin-bottom:12px;display:flex;align-items:center;gap:10px;">
-        <span style="background:var(--gold-bg);color:var(--gold);padding:4px 12px;border-radius:50px;font-size:0.7rem;font-weight:800;text-transform:uppercase;letter-spacing:1px;border:1px solid var(--gold-border);">Asosiy Ibodatlar</span>
+    <div style="margin-top:8px;margin-bottom:8px;display:flex;align-items:center;gap:10px;">
+        <span style="background:var(--gold-bg);color:var(--gold);padding:3px 10px;border-radius:50px;font-size:0.65rem;font-weight:800;text-transform:uppercase;letter-spacing:1px;border:1px solid var(--gold-border);">Asosiy Ibodatlar</span>
         <div style="flex:1;height:1px;background:linear-gradient(90deg, var(--gold-border), transparent);"></div>
     </div>
     
@@ -74,8 +74,8 @@
         @endforeach
     </div>
 
-        <div style="text-align:center;margin-top:10px;">
-            <span class="deed-label" style="color:var(--text-muted);display:block;margin-bottom:8px;font-size:0.8rem;">Tarovih namozi</span>
+        <div style="text-align:center;margin-top:4px;margin-bottom:20px;">
+            <span class="deed-label" style="color:var(--text-muted);display:block;margin-bottom:6px;font-size:0.75rem;">Tarovih namozi</span>
             <div class="rakat-selector">
                 @foreach([8, 10, 20] as $rakat)
                     <div class="rakat-btn {{ ($data['taroweh_rakat'] ?? 0) == $rakat ? 'active' : '' }}" 
@@ -85,7 +85,6 @@
                 @endforeach
             </div>
         </div>
-    </div>
 
     {{-- Quran Tracker --}}
     <h3 class="section-title"><i class="ri-book-open-line"></i> Qur'on</h3>
@@ -157,8 +156,8 @@
     </div>
 
     {{-- Vazifalar Section Header --}}
-    <div style="margin-top:20px;margin-bottom:12px;display:flex;align-items:center;gap:10px;">
-        <span style="background:var(--accent-bg);color:var(--accent);padding:4px 12px;border-radius:50px;font-size:0.7rem;font-weight:800;text-transform:uppercase;letter-spacing:1px;border:1px solid var(--accent-glow);">Kunlik Vazifalar</span>
+    <div style="margin-top:16px;margin-bottom:8px;display:flex;align-items:center;gap:10px;">
+        <span style="background:var(--accent-bg);color:var(--accent);padding:3px 10px;border-radius:50px;font-size:0.65rem;font-weight:800;text-transform:uppercase;letter-spacing:1px;border:1px solid var(--accent-glow);">Kunlik Vazifalar</span>
         <div style="flex:1;height:1px;background:linear-gradient(90deg, var(--accent-glow), transparent);"></div>
     </div>
 
