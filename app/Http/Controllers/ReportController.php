@@ -51,7 +51,12 @@ class ReportController extends Controller
             $current->addDay();
         }
         $loggedDates = $logs->pluck('date')->map(fn($d) => $d->format('Y-m-d'))->toArray();
-        $missedDates = array_diff($allDates, $loggedDates);
+        
+        $userCreatedAt = $user->created_at->startOfDay();
+        $missedDates = collect($allDates)
+            ->filter(fn($date) => Carbon::parse($date)->gte($userCreatedAt))
+            ->diff($loggedDates)
+            ->toArray();
 
         // Kunlik bajarilish diagrammasi
         $dailyChart = [];

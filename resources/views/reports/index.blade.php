@@ -123,9 +123,13 @@
         <div class="card" style="padding:10px;">
             <div style="display:grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap:8px;">
                 @foreach($missedDates as $missed)
-                    <div style="background:var(--white-5); padding:8px; border-radius:10px; text-align:center; font-size:0.75rem; border:1px solid var(--border-color); color:var(--text-muted);">
+                    <a href="{{ route('daily.show', ['date' => $missed]) }}" 
+                       style="background:var(--white-5); padding:8px; border-radius:10px; text-align:center; font-size:0.75rem; border:1px solid var(--border-color); color:var(--text-muted); text-decoration:none; transition: var(--transition-fast);"
+                       onmouseover="this.style.borderColor='var(--gold)'; this.style.color='var(--gold)';"
+                       onmouseout="this.style.borderColor='var(--border-color)'; this.style.color='var(--text-muted)';"
+                    >
                         {{ \Carbon\Carbon::parse($missed)->format('d.m.Y') }}
-                    </div>
+                    </a>
                 @endforeach
             </div>
         </div>
