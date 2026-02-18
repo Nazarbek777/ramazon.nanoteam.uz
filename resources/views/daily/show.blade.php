@@ -3,13 +3,13 @@
 
 @section('content')
 <div class="page-header">
-    <h2>✅ Kunlik Amallar</h2>
+    <h2><i class="ri-checkbox-circle-line"></i> Kunlik Amallar</h2>
     <p>Bugungi ibodatlaringizni belgilab boring</p>
 </div>
 
-{{-- Sana navigatsiyasi --}}
+{{-- Date navigation --}}
 <div class="date-nav">
-    <a href="{{ route('daily.show', ['date' => $prevDate]) }}">←</a>
+    <a href="{{ route('daily.show', ['date' => $prevDate]) }}"><i class="ri-arrow-left-s-line"></i></a>
     <div class="current-date">
         {{ $currentDate->format('d.m.Y') }}
         @if($isToday)
@@ -17,17 +17,19 @@
         @endif
     </div>
     @if(!$isToday)
-        <a href="{{ route('daily.show', ['date' => $nextDate]) }}">→</a>
+        <a href="{{ route('daily.show', ['date' => $nextDate]) }}"><i class="ri-arrow-right-s-line"></i></a>
     @else
-        <span style="width:40px;"></span>
+        <span style="width:36px;"></span>
     @endif
 </div>
 
 @if($isFuture)
     <div class="card text-center" style="padding:40px;">
-        <span style="font-size:3rem;display:block;margin-bottom:12px;">⏳</span>
+        <div class="stat-icon" style="margin:0 auto 12px;"><i class="ri-time-line"></i></div>
         <p class="text-muted">Bu sana hali kelmagan.</p>
-        <a href="{{ route('daily.show') }}" class="btn btn-primary btn-sm" style="margin-top:12px;">Bugunga qaytish</a>
+        <a href="{{ route('daily.show') }}" class="btn btn-primary btn-sm" style="margin-top:12px;">
+            <i class="ri-arrow-left-line"></i> Bugunga qaytish
+        </a>
     </div>
 @else
     <form method="POST" action="{{ route('daily.store') }}">
@@ -38,7 +40,7 @@
             <ul class="checklist">
                 @foreach($habits as $habit)
                     <li class="checklist-item">
-                        <span class="habit-icon">{{ $habit->icon }}</span>
+                        <div class="habit-icon"><i class="{{ $habit->icon }}"></i></div>
                         <span class="habit-name">{{ $habit->name }}</span>
                         <span class="habit-input">
                             @if($habit->type === 'checkbox')
@@ -64,10 +66,10 @@
             </ul>
         </div>
 
-        {{-- Izoh --}}
+        {{-- Notes --}}
         <div class="card mb-24">
             <div class="form-group" style="margin-bottom:0;">
-                <label class="form-label">📝 Izoh (ixtiyoriy)</label>
+                <label class="form-label"><i class="ri-edit-line"></i> Izoh (ixtiyoriy)</label>
                 <textarea name="notes"
                           class="form-input"
                           rows="2"
@@ -77,13 +79,13 @@
         </div>
 
         <button type="submit" class="btn btn-gold" style="width:100%;">
-            💾 Saqlash
+            <i class="ri-save-line"></i> Saqlash
         </button>
     </form>
 
-    {{-- Qo'shimcha amal qo'shish --}}
+    {{-- Custom habit --}}
     <div class="mt-24">
-        <h3 class="section-title">⭐ Qo'shimcha amal qo'shish</h3>
+        <h3 class="section-title"><i class="ri-add-circle-line"></i> Qo'shimcha amal qo'shish</h3>
         <div class="card add-form-card">
             <form method="POST" action="{{ route('daily.custom-habit') }}" class="inline-form">
                 @csrf
@@ -95,11 +97,11 @@
                     <label class="form-label">Turi</label>
                     <select name="type" class="form-select">
                         <option value="checkbox">Belgilash ✓</option>
-                        <option value="number">Raqam 🔢</option>
+                        <option value="number">Raqam</option>
                     </select>
                 </div>
                 <div class="form-group" style="flex:0;">
-                    <button type="submit" class="btn btn-primary btn-sm">+ Qo'shish</button>
+                    <button type="submit" class="btn btn-primary btn-sm"><i class="ri-add-line"></i> Qo'shish</button>
                 </div>
             </form>
         </div>
