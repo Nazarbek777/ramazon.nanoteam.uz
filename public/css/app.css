@@ -1680,9 +1680,7 @@ body::before {
     overflow-x: auto;
     scrollbar-width: none;
     -ms-overflow-style: none;
-    padding: 0 16px 4px 16px;
-    margin-left: -16px;
-    margin-right: -16px;
+    padding: 0 4px 4px 4px;
 }
 
 .quick-nav::-webkit-scrollbar {
@@ -1843,6 +1841,9 @@ body::before {
     margin-bottom: 10px;
     padding-bottom: 10px;
     border-bottom: 1px solid var(--white-5);
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    white-space: normal;
 }
 
 .dua-translit {
@@ -2467,6 +2468,18 @@ body::before {
 
     .mobile-topbar {
         display: flex;
+    }
+
+    .main-content {
+        padding: 70px 16px 100px 16px;
+        overflow-x: hidden;
+    }
+
+    .quick-nav {
+        margin-left: -16px;
+        margin-right: -16px;
+        padding-left: 16px;
+        padding-right: 16px;
     }
 
     .bottom-nav {
