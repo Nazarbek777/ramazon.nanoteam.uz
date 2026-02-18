@@ -99,9 +99,12 @@ const PrayerTimes = {
     },
 
     /** Namoz vaqtlari va Ro'za vaqtlari — IslomAPI.uz */
+    /** Namoz vaqtlari va Ro'za vaqtlari — IslomAPI.uz */
     async fetchTimes(city) {
         const today = new Date();
-        const dateStr = `${today.getDate()}-${today.getMonth() + 1}-${today.getFullYear()}`;
+        const d = today.getDate();
+        const m = today.getMonth() + 1;
+        const dateStr = `${d}-${m}-${today.getFullYear()}`;
         const region = city || 'Toshkent';
 
         // Cache tekshirish
@@ -114,7 +117,8 @@ const PrayerTimes = {
         }
 
         try {
-            const resp = await fetch(`https://islomapi.uz/api/present/day?region=${region}`);
+            // /api/present/day 404 berayotgani uchun /api/daily ishlatamiz
+            const resp = await fetch(`https://islomapi.uz/api/daily?region=${region}&month=${m}&day=${d}`);
             const data = await resp.json();
 
             if (data && data.times) {
