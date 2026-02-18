@@ -28,8 +28,8 @@
             <ul class="sidebar-nav">
                 <li>
                     <a href="{{ route('dashboard') }}" class="{{ request()->routeIs('dashboard') ? 'active' : '' }}">
-                        <i class="ri-dashboard-3-line"></i>
-                        Dashboard
+                        <i class="ri-home-4-line"></i>
+                        Bosh sahifa
                     </a>
                 </li>
                 <li>
@@ -76,7 +76,13 @@
                 <div class="mobile-topbar-brand">
                     <i class="ri-moon-clear-fill"></i>
                 </div>
-                <span class="mobile-topbar-title">@yield('title', 'Ramazon Tracker')</span>
+                <div style="flex:1;display:flex;flex-direction:column;align-items:center;">
+                    <span class="mobile-topbar-title" style="margin-bottom:2px;">@yield('title', 'Ramazon Tracker')</span>
+                    <div id="navLocationMobile" style="font-size:0.62rem;color:var(--accent-light);display:flex;align-items:center;gap:3px;opacity:0.8;">
+                        <i class="ri-map-pin-2-fill" style="font-size:0.7rem;"></i>
+                        <span class="loc-text">Yuklanmoqda...</span>
+                    </div>
+                </div>
                 <div class="mobile-topbar-user">
                     <div class="sidebar-avatar" style="width:30px;height:30px;font-size:0.78rem;border-width:1.5px;">
                         {{ strtoupper(substr(auth()->user()->name, 0, 1)) }}
@@ -99,7 +105,7 @@
     {{-- Mobile Bottom Navbar --}}
     <nav class="bottom-nav">
         <a href="{{ route('dashboard') }}" class="bottom-nav-item {{ request()->routeIs('dashboard') ? 'active' : '' }}">
-            <i class="ri-dashboard-3-{{ request()->routeIs('dashboard') ? 'fill' : 'line' }}"></i>
+            <i class="ri-home-4-{{ request()->routeIs('dashboard') ? 'fill' : 'line' }}"></i>
             <span class="bottom-nav-label">Bosh sahifa</span>
         </a>
         <a href="{{ route('daily.show') }}" class="bottom-nav-item {{ request()->routeIs('daily.*') ? 'active' : '' }}">

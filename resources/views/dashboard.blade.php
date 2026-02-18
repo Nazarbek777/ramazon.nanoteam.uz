@@ -226,7 +226,7 @@
 @endsection
 
 @section('scripts')
-<script src="{{ asset('js/prayer-times.js') }}"></script>
+<script src="{{ asset('js/prayer-times.js') }}?v={{ time() }}" defer></script>
 <script>
     // Smooth scroll
     document.querySelectorAll('.quick-nav-btn[href^="#"]').forEach(btn => {
