@@ -58,15 +58,16 @@
             </ul>
 
             <div class="sidebar-user">
-                <div class="sidebar-user-info">
+                <a href="{{ route('profile.edit') }}" class="sidebar-user-info" style="text-decoration:none; display:flex; align-items:center; width:100%;">
                     <div class="sidebar-avatar">
                         {{ strtoupper(substr(auth()->user()->name, 0, 1)) }}
                     </div>
-                    <div>
+                    <div style="flex:1;">
                         <div class="sidebar-user-name">{{ auth()->user()->name }}</div>
                         <div class="sidebar-user-email">{{ auth()->user()->email }}</div>
                     </div>
-                </div>
+                    <i class="ri-arrow-right-s-line" style="color:var(--text-muted); font-size:1.2rem;"></i>
+                </a>
                 <form method="POST" action="{{ route('logout') }}">
                     @csrf
                     <button type="submit" class="btn-logout"><i class="ri-logout-box-r-line"></i> Chiqish</button>
@@ -126,12 +127,12 @@
             <i class="ri-bar-chart-box-{{ request()->routeIs('reports') ? 'fill' : 'line' }}"></i>
             <span class="bottom-nav-label">Hisobot</span>
         </a>
-        <button class="bottom-nav-item" onclick="document.getElementById('logoutMenu').classList.toggle('show')">
+        <a href="{{ route('profile.edit') }}" class="bottom-nav-item {{ request()->routeIs('profile.*') ? 'active' : '' }}">
             <span class="sidebar-avatar" style="width:24px;height:24px;font-size:0.6rem;border-width:1.5px;">
                 {{ strtoupper(substr(auth()->user()->name, 0, 1)) }}
             </span>
             <span class="bottom-nav-label">Profil</span>
-        </button>
+        </a>
     </nav>
 
     {{-- Mobile Profile Popup --}}

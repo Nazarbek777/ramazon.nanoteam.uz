@@ -3,6 +3,7 @@
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DailyLogController;
 use App\Http\Controllers\GoalController;
+use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\RegisterController;
@@ -38,6 +39,9 @@ Route::middleware('auth')->group(function () {
     Route::get('/goals', [GoalController::class, 'index'])->name('goals.index');
     Route::post('/goals', [GoalController::class, 'store'])->name('goals.store');
     Route::delete('/goals/{goal}', [GoalController::class, 'destroy'])->name('goals.destroy');
+
+    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
+    Route::post('/profile', [ProfileController::class, 'update'])->name('profile.update');
 
     Route::get('/reports', [ReportController::class, 'index'])->name('reports');
 });
