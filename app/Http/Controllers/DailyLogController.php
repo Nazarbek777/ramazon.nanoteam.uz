@@ -21,7 +21,10 @@ class DailyLogController extends Controller
         $user = Auth::user();
         $currentDate = $date ? Carbon::parse($date) : Carbon::today();
 
-        $habits = Habit::forUser($user->id)->orderBy('sort_order')->get();
+        $habits = Habit::forUser($user->id)
+            ->whereNotIn('slug', ['bomdod', 'peshin', 'asr', 'shom', 'xufton', 'taroveh'])
+            ->orderBy('sort_order')
+            ->get();
 
         $log = DailyLog::with('items')
             ->where('user_id', $user->id)
