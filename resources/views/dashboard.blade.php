@@ -135,7 +135,7 @@
             <div style="font-size:0.8rem; color:var(--gold); opacity:0.8; margin-top:15px; margin-bottom:10px; font-weight:700;">
                 Bugun o'qigan namozlaringizni belgilang
             </div>
-            <div style="display:flex; justify-content:center; gap:6px; flex-wrap:wrap; padding:10px 0;">
+            <div style="display:flex; justify-content:center; gap:8px; padding:10px 0; margin-top:5px;">
                 @php
                     $prayers = [
                         'fajr' => ['name' => 'Bomdod', 'icon' => 'ri-sun-foggy-line'],
@@ -148,10 +148,13 @@
                 @foreach($prayers as $id => $info)
                 <div class="prayer-lantern {{ ($namozData[$id] ?? false) ? 'active' : '' }}" 
                      onclick="toggleDashboardNamoz('{{ $id }}', this)">
-                    <span class="lantern-light"></span>
-                    <div class="lantern-content">
-                        <i class="{{ $info['icon'] }}"></i>
-                        <div class="lantern-name">{{ $info['name'] }}</div>
+                    <div class="lantern-wire"></div>
+                    <div class="lantern-box">
+                        <span class="lantern-light"></span>
+                        <div class="lantern-content">
+                            <i class="{{ $info['icon'] }}"></i>
+                            <div class="lantern-name">{{ $info['name'] }}</div>
+                        </div>
                     </div>
                 </div>
                 @endforeach
@@ -468,143 +471,108 @@
 
 @section('styles')
 <style>
-    .today-focus {
-        background: rgba(255,255,255,0.02);
-        padding: 20px 15px;
-        border-radius: 20px;
-        border: 1px solid var(--white-5);
-        margin: 20px 0;
+    .today-focus { 
+        background: rgba(255,255,255,0.03); 
+        padding: 20px 10px; 
+        border-radius: 20px; 
+        border: 1px solid rgba(255,255,255,0.08); 
+        margin: 15px 0;
+        position: relative;
     }
     .prayer-lantern {
-        width: 18.5%;
-        max-width: 65px;
-        aspect-ratio: 3/4;
-        height: auto;
-        min-height: 75px;
-        background: rgba(255,255,255,0.02);
-        border: 1px solid var(--white-10);
-        border-radius: 12px 12px 25px 25px;
+        width: 18%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
         position: relative;
         cursor: pointer;
-        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        transition: var(--transition);
+    }
+    .lantern-wire {
+        width: 1px;
+        height: 12px;
+        background: linear-gradient(to bottom, transparent, rgba(212,168,67,0.4));
+        margin-bottom: -2px;
+        z-index: 1;
+    }
+    .lantern-box {
+        width: 100%;
+        max-width: 65px;
+        padding: 12px 2px;
+        background: rgba(255,255,255,0.05);
+        border: 1px solid rgba(255,255,255,0.12);
+        border-radius: 12px 12px 28px 28px;
         display: flex;
         flex-direction: column;
         align-items: center;
         justify-content: center;
-        flex-shrink: 0;
-    }
-    .lantern-content {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 2px;
-        z-index: 2;
-    }
-    .lantern-content i {
-        font-size: 1.1rem;
-        color: var(--text-muted);
-        transition: all 0.4s ease;
-    }
-    .lantern-name {
-        font-size: 0.6rem;
-        font-weight: 800;
-        color: var(--text-muted);
-        text-transform: uppercase;
-        letter-spacing: 0.3px;
-    }
-    .prayer-lantern::before {
-        content: '';
-        position: absolute;
-        top: -10px;
-        width: 1px;
-        height: 10px;
-        background: linear-gradient(to bottom, transparent, var(--white-20));
-    }
-    .lantern-light {
-        position: absolute;
-        top: 25%;
-        width: 15px;
-        height: 15px;
-        background: var(--gold);
-        border-radius: 50%;
-        opacity: 0.05;
-        transition: all 0.4s ease;
-        filter: blur(5px);
-    }
-    .prayer-lantern.active {
-        background: linear-gradient(to bottom, rgba(212,168,67,0.2), rgba(212,168,67,0.05));
-        border-color: var(--gold);
-        transform: translateY(2px);
-        box-shadow: 0 4px 12px rgba(212,168,67,0.15);
-    }
-    .prayer-lantern.active::before {
-        background: var(--gold);
-        opacity: 0.4;
-    }
-    .prayer-lantern.active .lantern-light {
-        opacity: 0.9;
-        filter: blur(3px);
-        box-shadow: 0 0 15px var(--gold);
-        transform: scale(1.5);
-        background: #fff5e0;
-    }
-    .prayer-lantern.active .lantern-content i,
-    .prayer-lantern.active .lantern-name {
-        color: var(--gold);
-        text-shadow: 0 0 8px rgba(212,168,67,0.4);
-    }
-    .prayer-lantern.loading {
-        opacity: 0.5;
-        pointer-events: none;
-    }
-
-    .fasting-status {
         position: relative;
+        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
         overflow: hidden;
     }
-    .fasting-status.active {
-        background: linear-gradient(135deg, var(--gold), #f7c948) !important;
-        color: #1a1a1a !important;
-        border-color: #fff !important;
-        transform: scale(1.05);
-        box-shadow: 0 10px 20px rgba(212,168,67,0.3);
+    .lantern-content { 
+        display: flex; 
+        flex-direction: column; 
+        align-items: center; 
+        gap: 4px; 
+        z-index: 2; 
     }
-    .fasting-status.active i {
-        animation: rotateIcon 0.5s ease-out;
+    .lantern-content i { 
+        font-size: 1.25rem; 
+        color: var(--text-muted); 
+        transition: all 0.4s ease; 
     }
-    @keyframes rotateIcon {
-        from { transform: rotate(-45deg); }
-        to { transform: rotate(0); }
+    .lantern-name { 
+        font-size: 0.6rem; 
+        font-weight: 800; 
+        color: var(--text-muted); 
+        text-transform: uppercase; 
+        letter-spacing: 0.3px; 
     }
-
-    .reminder-banner {
-        overflow: hidden;
-        border-radius: 16px;
-        transition: transform 0.3s ease;
+    .lantern-light { 
+        position: absolute; 
+        top: 20%; 
+        width: 25px; 
+        height: 25px; 
+        background: var(--gold); 
+        border-radius: 50%; 
+        opacity: 0; 
+        transition: all 0.4s ease; 
+        filter: blur(8px); 
     }
-    .reminder-banner:hover {
-        transform: translateY(-2px);
+    .prayer-lantern.active .lantern-box { 
+        background: linear-gradient(to bottom, rgba(212,168,67,0.25), rgba(212,168,67,0.05)); 
+        border-color: var(--gold); 
+        transform: translateY(2px);
+        box-shadow: 0 5px 20px rgba(212,168,67,0.3);
     }
-    .reminder-glow {
-        position: absolute;
-        top: -50%;
-        left: -50%;
-        width: 200%;
-        height: 200%;
-        background: radial-gradient(circle, rgba(192,132,252,0.1) 0%, transparent 70%);
-        animation: rotateGlow 10s linear infinite;
-        pointer-events: none;
+    .prayer-lantern.active .lantern-wire {
+        background: var(--gold);
+        opacity: 0.6;
     }
-    @keyframes rotateGlow {
-        from { transform: rotate(0deg); }
-        to { transform: rotate(360deg); }
+    .prayer-lantern.active .lantern-light { 
+        opacity: 0.8; 
+        transform: scale(1.6); 
     }
-    #reminderContainer {
-        animation: slideInTop 0.6s cubic-bezier(0.23, 1, 0.32, 1);
+    .prayer-lantern.active .lantern-content i, 
+    .prayer-lantern.active .lantern-name { 
+        color: var(--gold); 
+        text-shadow: 0 0 10px rgba(212,168,67,0.5); 
     }
-    @keyframes slideInTop {
-        from { opacity: 0; transform: translateY(-30px); }
-        to { opacity: 1; transform: translateY(0); }
+    .prayer-lantern.loading { opacity: 0.5; pointer-events: none; }
+    
+    .fasting-status { position: relative; overflow: hidden; }
+    .fasting-status.active { 
+        background: linear-gradient(135deg, var(--gold), #f7c948) !important; 
+        color: #1a1a1a !important; 
+        border-color: #fff !important; 
+        transform: scale(1.05); 
+        box-shadow: 0 10px 20px rgba(212,168,67,0.3); 
     }
+    .reminder-banner { overflow: hidden; border-radius: 16px; transition: transform 0.3s ease; }
+    .reminder-glow { position: absolute; top: -50%; left: -50%; width: 200%; height: 200%; background: radial-gradient(circle, rgba(192,132,252,0.1) 0%, transparent 70%); animation: rotateGlow 10s linear infinite; pointer-events: none; }
+    @keyframes rotateGlow { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+    #reminderContainer { animation: slideInTop 0.6s cubic-bezier(0.23, 1, 0.32, 1); }
+    @keyframes slideInTop { from { opacity: 0; transform: translateY(-30px); } to { opacity: 1; transform: translateY(0); } }
 </style>
 @endsection
