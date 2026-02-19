@@ -46,7 +46,7 @@
         </div>
         <div style="flex:1; padding-top:4px;">
             <div id="reminderTitle" style="font-size:1.05rem; font-weight:800; color:var(--text-primary); margin-bottom:6px; line-height:1.2;">Bugungi amalni bajardingizmi?</div>
-            <div id="reminderText" style="font-size:0.85rem; color:var(--text-secondary); line-height:1.5;">Namoz vaqtlarini o'tkazib yubormang, har bir amal ajrga sabab bo'ladi.</div>
+            <div id="reminderText" style="font-size:0.85rem; color:var(--text-secondary); line-height:1.5;">Namoz vaqtlarini o'tkazib yubormang, har bir amal uchun savob juda katta!</div>
         </div>
         <i class="ri-close-line" onclick="closeReminder()" style="cursor:pointer; color:var(--text-muted); position:absolute; top:12px; right:12px; font-size:1.2rem;"></i>
     </div>
@@ -256,7 +256,7 @@
         <div class="dua-body">
             <p class="dua-arabic">ذَهَبَ الظَّمَأُ وَابتَلَّتِ العُرُوقُ وَثَبَتَ الأَجرُ إِن شَاءَ اللّهُ</p>
             <p class="dua-translit"><strong>Zahabaz zama'u vabtallatil 'uruqu va sabatal ajru insha Alloh.</strong></p>
-            <p class="dua-meaning">Tashnalik ketdi, tomir-lar namlandi va ajr sobit bo'ldi, inshaAlloh.</p>
+            <p class="dua-meaning">Tashnalik ketdi, tomirlar namlandi va savob sobit bo'ldi, inshaAlloh.</p>
         </div>
     </div>
 </div>
@@ -394,16 +394,16 @@
                 // Check for other deeds (e.g., Quran, Zikr)
                 // Assuming we can check some common labels or just generic
                 const randomDeeds = [
-                    "Bugun Qur'on o'qidingizmi?",
+                    "Bugun Qur'on o'qidingizmi? O'qigan bo'lsangiz, belgilab qo'ying.",
                     "Zikr aytishni unutmadingizmi?",
                     "Istig'for aytib, qalbni pokladingizmi?",
-                    "Sadaqa yoki yaxshilik qildingizmi?"
+                    "Bugungi yaxshilik va sadaqalarni belgiladingizmi?"
                 ];
                 const deed = randomDeeds[Math.floor(Math.random() * randomDeeds.length)];
                 
                 container.style.display = 'block';
                 title.innerHTML = `🌟 ${USER_NAME}, ${deed}`;
-                text.innerHTML = `Har bir kichik amal Ramazon oyida ulkan ajrlarga sabab bo'ladi. Mashallah!`;
+                text.innerHTML = `Har bir kichik amal Ramazon oyida juda katta savobga sabab bo'ladi. Mashallah!`;
             }
         });
     }
