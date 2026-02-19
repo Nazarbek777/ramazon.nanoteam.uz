@@ -135,13 +135,24 @@
             <div style="font-size:0.8rem; color:var(--gold); opacity:0.8; margin-bottom:15px; text-transform:uppercase; letter-spacing:2px; font-weight:800;">
                 Besh vaqt namoz
             </div>
-            <div style="display:flex; justify-content:center; gap:12px;">
-                @foreach(['fajr' => 'B', 'dhuhr' => 'P', 'asr' => 'A', 'maghrib' => 'Sh', 'isha' => 'X'] as $id => $short)
+            <div style="display:flex; justify-content:center; gap:8px; flex-wrap:nowrap; overflow-x:auto; padding-bottom:10px;">
+                @php
+                    $prayers = [
+                        'fajr' => ['name' => 'Bomdod', 'icon' => 'ri-sun-foggy-line'],
+                        'dhuhr' => ['name' => 'Peshin', 'icon' => 'ri-sun-line'],
+                        'asr' => ['name' => 'Asr', 'icon' => 'ri-sun-cloudy-line'],
+                        'maghrib' => ['name' => 'Shom', 'icon' => 'ri-moon-line'],
+                        'isha' => ['name' => 'Xufton', 'icon' => 'ri-moon-clear-line']
+                    ];
+                @endphp
+                @foreach($prayers as $id => $info)
                 <div class="prayer-lantern {{ ($namozData[$id] ?? false) ? 'active' : '' }}" 
-                     onclick="toggleDashboardNamoz('{{ $id }}', this)"
-                     title="{{ $id }}">
+                     onclick="toggleDashboardNamoz('{{ $id }}', this)">
                     <span class="lantern-light"></span>
-                    <div class="lantern-text">{{ $short }}</div>
+                    <div class="lantern-content">
+                        <i class="{{ $info['icon'] }}"></i>
+                        <div class="lantern-name">{{ $info['name'] }}</div>
+                    </div>
                 </div>
                 @endforeach
             </div>
@@ -495,19 +506,39 @@
         margin: 20px 0;
     }
     .prayer-lantern {
-        width: 50px;
-        height: 65px;
+        width: 65px;
+        height: 85px;
         background: rgba(255,255,255,0.03);
         border: 1px solid var(--white-10);
-        border-radius: 12px 12px 24px 24px;
+        border-radius: 12px 12px 30px 30px;
         position: relative;
         cursor: pointer;
         transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         display: flex;
         flex-direction: column;
         align-items: center;
-        justify-content: flex-end;
-        padding-bottom: 10px;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+    .lantern-content {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 4px;
+        z-index: 2;
+    }
+    .lantern-content i {
+        font-size: 1.2rem;
+        color: var(--text-muted);
+        transition: all 0.4s ease;
+    }
+    .lantern-name {
+        font-size: 0.65rem;
+        font-weight: 800;
+        color: var(--text-muted);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        transition: all 0.4s ease;
     }
     .prayer-lantern::before {
         content: '';
@@ -519,27 +550,20 @@
     }
     .lantern-light {
         position: absolute;
-        top: 20%;
-        width: 14px;
-        height: 14px;
+        top: 25%;
+        width: 18px;
+        height: 18px;
         background: var(--gold);
         border-radius: 50%;
-        opacity: 0.15;
+        opacity: 0.1;
         transition: all 0.4s ease;
-        filter: blur(5px);
-    }
-    .lantern-text {
-        font-size: 0.95rem;
-        font-weight: 800;
-        color: var(--text-muted);
-        z-index: 2;
-        transition: color 0.4s ease;
+        filter: blur(6px);
     }
     .prayer-lantern.active {
         background: linear-gradient(to bottom, rgba(212,168,67,0.25), rgba(212,168,67,0.05));
         border-color: var(--gold);
         transform: translateY(2px);
-        box-shadow: 0 5px 15px rgba(212,168,67,0.2);
+        box-shadow: 0 5px 20px rgba(212,168,67,0.2);
     }
     .prayer-lantern.active::before {
         background: var(--gold);
@@ -547,12 +571,13 @@
     }
     .prayer-lantern.active .lantern-light {
         opacity: 1;
-        filter: blur(3px);
-        box-shadow: 0 0 20px var(--gold);
-        transform: scale(1.6);
+        filter: blur(4px);
+        box-shadow: 0 0 25px var(--gold);
+        transform: scale(1.8);
         background: #fff5e0;
     }
-    .prayer-lantern.active .lantern-text {
+    .prayer-lantern.active .lantern-content i,
+    .prayer-lantern.active .lantern-name {
         color: var(--gold);
         text-shadow: 0 0 10px rgba(212,168,67,0.5);
     }
