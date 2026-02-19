@@ -132,10 +132,10 @@
                 <span>{{ ($namozData['roza'] ?? false) ? "Bugun ro'zadorman" : "Bugun ro'za tutdingizmi?" }}</span>
             </div>
 
-            <div style="font-size:0.8rem; color:var(--gold); opacity:0.8; margin-bottom:15px; text-transform:uppercase; letter-spacing:2px; font-weight:800;">
-                Besh vaqt namoz
+            <div style="font-size:0.8rem; color:var(--gold); opacity:0.8; margin-top:15px; margin-bottom:10px; font-weight:700;">
+                Bugun o'qigan namozlaringizni belgilang
             </div>
-            <div style="display:flex; justify-content:center; gap:8px; flex-wrap:nowrap; overflow-x:auto; padding-bottom:10px;">
+            <div style="display:flex; justify-content:center; gap:6px; flex-wrap:wrap; padding:10px 0;">
                 @php
                     $prayers = [
                         'fajr' => ['name' => 'Bomdod', 'icon' => 'ri-sun-foggy-line'],
@@ -506,11 +506,14 @@
         margin: 20px 0;
     }
     .prayer-lantern {
-        width: 65px;
-        height: 85px;
-        background: rgba(255,255,255,0.03);
+        width: 18.5%;
+        max-width: 65px;
+        aspect-ratio: 3/4;
+        height: auto;
+        min-height: 75px;
+        background: rgba(255,255,255,0.02);
         border: 1px solid var(--white-10);
-        border-radius: 12px 12px 30px 30px;
+        border-radius: 12px 12px 25px 25px;
         position: relative;
         cursor: pointer;
         transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
@@ -524,62 +527,62 @@
         display: flex;
         flex-direction: column;
         align-items: center;
-        gap: 4px;
+        gap: 2px;
         z-index: 2;
     }
     .lantern-content i {
-        font-size: 1.2rem;
+        font-size: 1.1rem;
         color: var(--text-muted);
         transition: all 0.4s ease;
     }
     .lantern-name {
-        font-size: 0.65rem;
+        font-size: 0.6rem;
         font-weight: 800;
         color: var(--text-muted);
         text-transform: uppercase;
-        letter-spacing: 0.5px;
+        letter-spacing: 0.3px;
         transition: all 0.4s ease;
     }
     .prayer-lantern::before {
         content: '';
         position: absolute;
-        top: -15px;
+        top: -10px;
         width: 1px;
-        height: 15px;
+        height: 10px;
         background: linear-gradient(to bottom, transparent, var(--white-20));
     }
     .lantern-light {
         position: absolute;
         top: 25%;
-        width: 18px;
-        height: 18px;
+        width: 15px;
+        height: 15px;
         background: var(--gold);
         border-radius: 50%;
-        opacity: 0.1;
+        opacity: 0.05;
         transition: all 0.4s ease;
-        filter: blur(6px);
+        filter: blur(5px);
     }
     .prayer-lantern.active {
-        background: linear-gradient(to bottom, rgba(212,168,67,0.25), rgba(212,168,67,0.05));
+        background: linear-gradient(to bottom, rgba(212,168,67,0.2), rgba(212,168,67,0.05));
         border-color: var(--gold);
         transform: translateY(2px);
-        box-shadow: 0 5px 20px rgba(212,168,67,0.2);
+        box-shadow: 0 4px 12px rgba(212,168,67,0.15);
     }
     .prayer-lantern.active::before {
         background: var(--gold);
-        opacity: 0.5;
+        opacity: 0.4;
     }
     .prayer-lantern.active .lantern-light {
-        opacity: 1;
-        filter: blur(4px);
-        box-shadow: 0 0 25px var(--gold);
-        transform: scale(1.8);
+        opacity: 0.9;
+        filter: blur(3px);
+        box-shadow: 0 0 15px var(--gold);
+        transform: scale(1.5);
         background: #fff5e0;
     }
     .prayer-lantern.active .lantern-content i,
     .prayer-lantern.active .lantern-name {
         color: var(--gold);
-        text-shadow: 0 0 10px rgba(212,168,67,0.5);
+        text-shadow: 0 0 8px rgba(212,168,67,0.4);
     }
     .prayer-lantern.loading {
         opacity: 0.5;
