@@ -383,6 +383,7 @@
 
             const prayerOrder = [
                 {id: 'fajr', name: 'Bomdod', time: times.Fajr},
+                {id: null, name: 'Quyosh', time: times.Sunrise},
                 {id: 'dhuhr', name: 'Peshin', time: times.Dhuhr},
                 {id: 'asr', name: 'Asr', time: times.Asr},
                 {id: 'maghrib', name: 'Shom', time: times.Maghrib},
@@ -395,8 +396,8 @@
                 if (nowMin >= (h * 60 + m)) activePrayer = prayerOrder[i];
             }
 
-            // Priorities: 1. Unchecked Prayer, 2. Unchecked Deeds, 3. Success
-            if (activePrayer && !namozData[activePrayer.id]) {
+            // Priorities: 1. Unchecked Prayer (only if it's the current one), 2. Unchecked Deeds, 3. Success
+            if (activePrayer && activePrayer.id && !namozData[activePrayer.id]) {
                 container.style.display = 'block';
                 const prompts = [
                     `${USER_NAME}, ${activePrayer.name} namozini o'qidingizmi?`,
