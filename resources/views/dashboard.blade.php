@@ -319,6 +319,7 @@
     }
 
     function toggleDashboardNamoz(id, el) {
+        if (el.classList.contains('loading')) return;
         const isDone = !el.classList.contains('active');
         el.classList.add('loading');
         
@@ -340,7 +341,7 @@
                     if (span) span.textContent = isDone ? "Bugun ro'zadorman" : "Bugun ro'za tutdingizmi?";
                 }
                 
-                checkReminders(); 
+                if (typeof checkReminders === 'function') checkReminders();
                 
                 // Update tree progress
                 const fill = document.querySelector('.tree-progress-fill');
@@ -358,11 +359,7 @@
                     else motivation.innerHTML = `✨ Bugun birinchi amaldan boshlang, ${USER_NAME}!`;
                 }
 
-                if (data.percent === 100) {
-                    showToast(`🌸 Barakalla, ${USER_NAME}! Barcha amallar bajarildi!`);
-                } else {
-                    showToast('Saqlandi');
-                }
+                showToast(data.percent === 100 ? `🌸 Barakalla, ${USER_NAME}! Barcha amallar bajarildi!` : 'Saqlandi');
             }
         });
     }
@@ -372,7 +369,7 @@
         const title = document.getElementById('reminderTitle');
         const text = document.getElementById('reminderText');
         
-        if (!typeof PrayerTimes !== 'undefined') return;
+        if (typeof PrayerTimes === 'undefined') return;
 
         PrayerTimes.getLocation().then(async loc => {
             const times = await PrayerTimes.getTimesForDate(loc.apiRegion, new Date());
@@ -410,7 +407,7 @@
                     "Bugun Qur'on o'qidingizmi? O'qigan bo'lsangiz, belgilab qo'ying.",
                     "Zikr aytishni unutmadingizmi?",
                     "Istig'for aytib, qalbni pokladingizmi?",
-                    "Bugungi yaxshilik va sadaqalarni belgiladingizmi?"
+                    "Bugundagi yaxshiliklarni belgiladingizmi?"
                 ];
                 const deed = randomDeeds[Math.floor(Math.random() * randomDeeds.length)];
                 
@@ -458,10 +455,7 @@
         t.textContent = msg;
         t.style.opacity = '1';
         t.style.transform = 'translateX(-50%) translateY(-10px)';
-        setTimeout(() => {
-            t.style.opacity = '0';
-            t.style.transform = 'translateX(-50%) translateY(0)';
-        }, 3000);
+        setTimeout(() => { t.style.opacity = '0'; t.style.transform = 'translateX(-50%) translateY(0)'; }, 3000);
     }
 
     document.addEventListener('DOMContentLoaded', () => {
@@ -471,56 +465,9 @@
     });
 </script>
 @endsection
-        toast.style.transform = 'translateX(-50%) translateY(0)';
-        setTimeout(() => {
-            toast.style.opacity = '0';
-            toast.style.transform = 'translateX(-50%) translateY(20px)';
-        }, 3000);
-    }
-</script>
 
+@section('styles')
 <style>
-    .quick-prayer-check {
-        animation: fadeIn 0.8s ease-out;
-    }
-    .prayer-bubble {
-        width: 44px;
-        height: 44px;
-        border-radius: 50%;
-        background: var(--white-5);
-        border: 1px solid var(--white-10);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 0.85rem;
-        font-weight: 700;
-        color: var(--text-muted);
-        cursor: pointer;
-        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        position: relative;
-    }
-    .prayer-bubble i {
-        position: absolute;
-        font-size: 0.7rem;
-        bottom: -2px;
-        right: -2px;
-        background: var(--success);
-        color: white;
-        border-radius: 50%;
-        padding: 2px;
-        display: none;
-    }
-    .prayer-bubble.active {
-        background: var(--gold-bg);
-        border-color: var(--gold);
-        color: var(--gold);
-        transform: scale(1.05);
-        box-shadow: 0 0 15px var(--gold-bg);
-    }
-    .prayer-bubble.active i {
-        display: block;
-        animation: scaleIn 0.3s ease-out;
-    }
     .today-focus {
         background: rgba(255,255,255,0.02);
         padding: 20px 15px;
@@ -564,7 +511,6 @@
         color: var(--text-muted);
         text-transform: uppercase;
         letter-spacing: 0.3px;
-        transition: all 0.4s ease;
     }
     .prayer-lantern::before {
         content: '';
