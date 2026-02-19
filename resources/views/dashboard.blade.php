@@ -300,6 +300,7 @@
     const TOGGLE_URL = "{{ route('daily.toggle') }}";
     const CSRF = "{{ csrf_token() }}";
     const DATE = "{{ $today->format('Y-m-d') }}";
+    const USER_NAME = "{{ explode(' ', Auth::user()->name)[0] }}";
     let namozData = {!! json_encode($namozData) !!};
 
     // Smooth scroll
@@ -339,21 +340,22 @@
                     if (span) span.textContent = isDone ? "Bugun ro'zadorman" : "Bugun ro'za tutdingizmi?";
                 }
                 
-                checkReminders(); // Update reminders after toggle
+                checkReminders(); 
                 
                 // Update tree progress
                 const fill = document.querySelector('.tree-progress-fill');
                 const pText = document.querySelector('.tree-percent');
-                const dText = document.querySelector('.tree-detail');
+                const pNav = document.querySelector('.tree-percent-nav');
                 const motivation = document.querySelector('.tree-motivation p');
                 
                 if (fill && data.percent !== undefined) fill.style.width = data.percent + '%';
                 if (pText && data.percent !== undefined) pText.textContent = data.percent + '%';
-                if (dText && data.completed !== undefined) dText.textContent = data.completed + '/' + data.total + ' amal bajarildi';
+                if (pNav && data.percent !== undefined) pNav.textContent = data.percent + '%';
                 
                 if (motivation && data.percent !== undefined) {
                     if (data.percent === 100) motivation.innerHTML = `🌸 Barakalla, ${USER_NAME}! Barcha amallar bajarildi!`;
                     else if (data.percent > 0) motivation.innerHTML = `🔥 Zo'r! Daraxtingiz o'sib bormoqda, ${USER_NAME}!`;
+                    else motivation.innerHTML = `✨ Bugun birinchi amaldan boshlang, ${USER_NAME}!`;
                 }
 
                 if (data.percent === 100) {
@@ -365,16 +367,13 @@
         });
     }
 
-    const USER_NAME = "{{ explode(' ', Auth::user()->name)[0] }}";
-    const HABITS_DONE = {!! json_encode($todayLog ? $todayLog->items->where('is_completed', true)->pluck('habit_id')->toArray() : []) !!};
-
-    // ... (toggleHelp and toggleDashboardNamoz as before) ...
-
     function checkReminders() {
         const container = document.getElementById('reminderContainer');
         const title = document.getElementById('reminderTitle');
         const text = document.getElementById('reminderText');
         
+        if (!typeof PrayerTimes !== 'undefined') return;
+
         PrayerTimes.getLocation().then(async loc => {
             const times = await PrayerTimes.getTimesForDate(loc.apiRegion, new Date());
             if (!times) return;
@@ -396,12 +395,32 @@
                 if (nowMin >= (h * 60 + m)) activePrayer = prayerOrder[i];
             }
 
-                text.innerHTML = `Har bir kichik amal Ramazon oyida juda katta savobga sabab bo'ladi. Mashallah!`;
+            // Priorities: 1. Unchecked Prayer, 2. Unchecked Deeds, 3. Success
+            if (activePrayer && !namozData[activePrayer.id]) {
+                container.style.display = 'block';
+                const prompts = [
+                    `${USER_NAME}, ${activePrayer.name} namozini o'qidingizmi?`,
+                    `Vaqt g'animat, ${USER_NAME}. ${activePrayer.name}ni ado etdingizmi?`,
+                    `${activePrayer.name} vaqti kirdi, ${USER_NAME}. Amalingizni belgilang.`
+                ];
+                title.innerHTML = `✨ ${prompts[Math.floor(Math.random() * prompts.length)]}`;
+                text.innerHTML = `Ibodat — qalb oromi. Uni belgilashni unutmang, har bir amal uchun savob juda katta!`;
+            } else {
+                const randomDeeds = [
+                    "Bugun Qur'on o'qidingizmi? O'qigan bo'lsangiz, belgilab qo'ying.",
+                    "Zikr aytishni unutmadingizmi?",
+                    "Istig'for aytib, qalbni pokladingizmi?",
+                    "Bugungi yaxshilik va sadaqalarni belgiladingizmi?"
+                ];
+                const deed = randomDeeds[Math.floor(Math.random() * randomDeeds.length)];
                 
-                // Track current active section
-                container.dataset.target = activePrayer ? 'prayer' : 'deeds';
-                container.dataset.extra = activePrayer ? activePrayer.id : '';
+                container.style.display = 'block';
+                title.innerHTML = `🌟 ${USER_NAME}, ${deed}`;
+                text.innerHTML = `Har bir kichik amal Ramazon oyida juda katta savobga sabab bo'ladi. Mashallah!`;
             }
+
+            // Track target for click
+            container.dataset.target = activePrayer ? 'prayer' : 'deeds';
         });
     }
 
@@ -413,14 +432,12 @@
             const anchor = document.getElementById('quick-focus-anchor');
             if (anchor) anchor.scrollIntoView({ behavior: 'smooth', block: 'center' });
             
-            // Highlight lanterns
-            const lanterns = document.querySelector('.today-focus');
-            if (lanterns) {
-                lanterns.style.boxShadow = '0 0 30px rgba(212,168,67,0.3)';
-                setTimeout(() => lanterns.style.boxShadow = '', 2000);
+            const area = document.getElementById('todayFocusArea');
+            if (area) {
+                area.style.boxShadow = '0 0 30px rgba(212,168,67,0.3)';
+                setTimeout(() => area.style.boxShadow = '', 2000);
             }
         } else {
-            // Redirect to daily amallar show page
             window.location.href = "{{ route('daily.show') }}";
         }
     }
@@ -430,24 +447,30 @@
         sessionStorage.setItem('reminder_closed_today', new Date().toDateString());
     }
 
+    function showToast(msg) {
+        let t = document.getElementById('dash-toast');
+        if (!t) {
+            t = document.createElement('div');
+            t.id = 'dash-toast';
+            t.style = 'position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:var(--gold);color:white;padding:12px 24px;border-radius:50px;z-index:1000;box-shadow:0 10px 30px rgba(0,0,0,0.3);font-size:0.9rem;font-weight:700;pointer-events:none;transition:all 0.4s;opacity:0;';
+            document.body.appendChild(t);
+        }
+        t.textContent = msg;
+        t.style.opacity = '1';
+        t.style.transform = 'translateX(-50%) translateY(-10px)';
+        setTimeout(() => {
+            t.style.opacity = '0';
+            t.style.transform = 'translateX(-50%) translateY(0)';
+        }, 3000);
+    }
+
     document.addEventListener('DOMContentLoaded', () => {
         if (sessionStorage.getItem('reminder_closed_today') !== new Date().toDateString()) {
-            setTimeout(checkReminders, 2000); // Wait for PrayerTimes to load
+            setTimeout(checkReminders, 2000);
         }
     });
-
-    function showToast(text) {
-        // Dashboard uses different toast or simple alert?
-        // Let's add a basic one if not present
-        let toast = document.getElementById('dash-toast');
-        if (!toast) {
-            toast = document.createElement('div');
-            toast.id = 'dash-toast';
-            toast.style = 'position:fixed; bottom:80px; left:50%; transform:translateX(-50%); background:var(--gold); color:white; padding:10px 20px; border-radius:30px; z-index:1000; box-shadow:0 10px 20px rgba(0,0,0,0.3); font-size:0.85rem; pointer-events:none; transition:all 0.4s; opacity:0;';
-            document.body.appendChild(toast);
-        }
-        toast.textContent = text;
-        toast.style.opacity = '1';
+</script>
+@endsection
         toast.style.transform = 'translateX(-50%) translateY(0)';
         setTimeout(() => {
             toast.style.opacity = '0';
