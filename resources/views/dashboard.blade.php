@@ -3,10 +3,14 @@
 
 @section('content')
 @php
-    $totalToday = count($habits);
+    $totalToday = count($habits) + 6;
     $completedToday = 0;
-    if ($todayLog && $todayLog->items->count() > 0) {
+    if ($todayLog) {
         $completedToday = $todayLog->items->where('is_completed', true)->count();
+        $nD = $todayLog->data['namoz'] ?? [];
+        foreach (['fajr', 'dhuhr', 'asr', 'maghrib', 'isha', 'roza'] as $k) {
+            if ($nD[$k] ?? false) $completedToday++;
+        }
     }
     $treePercent = $totalToday > 0 ? round(($completedToday / $totalToday) * 100) : 0;
     
@@ -39,7 +43,7 @@
 
 {{-- 🔔 REMINDERS & ENCOURAGEMENT --}}
 <div id="reminderContainer" style="margin-bottom:20px; display:none;">
-    <div class="card reminder-banner" style="display:flex; align-items:flex-start; gap:16px; padding:20px; background:linear-gradient(135deg, rgba(192,132,252,0.1), rgba(212,168,67,0.05)); border:1px solid var(--accent-glow); position:relative; overflow:hidden;">
+    <div class="card reminder-banner" id="reminderBanner" onclick="handleReminderClick()" style="display:flex; align-items:flex-start; gap:16px; padding:20px; background:linear-gradient(135deg, rgba(192,132,252,0.1), rgba(212,168,67,0.05)); border:1px solid var(--accent-glow); position:relative; overflow:hidden; cursor:pointer;">
         <div class="reminder-glow"></div>
         <div class="reminder-icon" style="font-size:1.6rem; color:var(--gold); display:flex; align-items:center; justify-content:center; width:48px; height:48px; min-width:48px; background:var(--gold-bg); border-radius:14px; box-shadow:0 8px 16px rgba(0,0,0,0.2);">
             <i class="ri-notification-3-line"></i>
@@ -48,7 +52,7 @@
             <div id="reminderTitle" style="font-size:1.05rem; font-weight:800; color:var(--text-primary); margin-bottom:6px; line-height:1.2;">Bugungi amalni bajardingizmi?</div>
             <div id="reminderText" style="font-size:0.85rem; color:var(--text-secondary); line-height:1.5;">Namoz vaqtlarini o'tkazib yubormang, har bir amal uchun savob juda katta!</div>
         </div>
-        <i class="ri-close-line" onclick="closeReminder()" style="cursor:pointer; color:var(--text-muted); position:absolute; top:12px; right:12px; font-size:1.2rem;"></i>
+        <i class="ri-close-line close-btn" onclick="event.stopPropagation(); closeReminder()" style="cursor:pointer; color:var(--text-muted); position:absolute; top:12px; right:12px; font-size:1.2rem; z-index:10;"></i>
     </div>
 </div>
 
@@ -117,8 +121,9 @@
             <div class="tree-progress-bar"><div class="tree-progress-fill" style="width:{{ $treePercent }}%"></div></div>
             <span class="tree-percent">{{ $treePercent }}%</span>
         </div>
+        <div id="quick-focus-anchor"></div>
         {{-- QUICK FOCUS SECTION --}}
-        <div class="today-focus" style="margin-top:20px; text-align:center;">
+        <div class="today-focus" id="todayFocusArea" style="margin-top:20px; text-align:center;">
             {{-- Fasting Status --}}
             <div class="fasting-status {{ ($namozData['roza'] ?? false) ? 'active' : '' }}" 
                  onclick="toggleDashboardNamoz('roza', this)"
@@ -380,32 +385,33 @@
                 if (nowMin >= (h * 60 + m)) activePrayer = prayerOrder[i];
             }
 
-            // Priorities: 1. Unchecked Prayer, 2. Unchecked Deeds, 3. Success
-            if (activePrayer && !namozData[activePrayer.id]) {
-                container.style.display = 'block';
-                const prompts = [
-                    `${USER_NAME}, ${activePrayer.name} namozini o'qidingizmi?`,
-                    `Vaqt g'animat, ${USER_NAME}. ${activePrayer.name}ni ado etdingizmi?`,
-                    `${activePrayer.name} vaqti kirdi, ${USER_NAME}. Amalingizni belgilang.`
-                ];
-                title.innerHTML = `✨ ${prompts[Math.floor(Math.random() * prompts.length)]}`;
-                text.innerHTML = `Ibodat — qalb oromi. Uni belgilashni unutmang, daraxtingiz o'sishiga yordam bering!`;
-            } else {
-                // Check for other deeds (e.g., Quran, Zikr)
-                // Assuming we can check some common labels or just generic
-                const randomDeeds = [
-                    "Bugun Qur'on o'qidingizmi? O'qigan bo'lsangiz, belgilab qo'ying.",
-                    "Zikr aytishni unutmadingizmi?",
-                    "Istig'for aytib, qalbni pokladingizmi?",
-                    "Bugungi yaxshilik va sadaqalarni belgiladingizmi?"
-                ];
-                const deed = randomDeeds[Math.floor(Math.random() * randomDeeds.length)];
-                
-                container.style.display = 'block';
-                title.innerHTML = `🌟 ${USER_NAME}, ${deed}`;
                 text.innerHTML = `Har bir kichik amal Ramazon oyida juda katta savobga sabab bo'ladi. Mashallah!`;
+                
+                // Track current active section
+                container.dataset.target = activePrayer ? 'prayer' : 'deeds';
+                container.dataset.extra = activePrayer ? activePrayer.id : '';
             }
         });
+    }
+
+    function handleReminderClick() {
+        const container = document.getElementById('reminderContainer');
+        const target = container.dataset.target;
+        
+        if (target === 'prayer') {
+            const anchor = document.getElementById('quick-focus-anchor');
+            if (anchor) anchor.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            
+            // Highlight lanterns
+            const lanterns = document.querySelector('.today-focus');
+            if (lanterns) {
+                lanterns.style.boxShadow = '0 0 30px rgba(212,168,67,0.3)';
+                setTimeout(() => lanterns.style.boxShadow = '', 2000);
+            }
+        } else {
+            // Redirect to daily amallar show page
+            window.location.href = "{{ route('daily.show') }}";
+        }
     }
 
     function closeReminder() {

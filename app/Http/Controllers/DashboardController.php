@@ -102,32 +102,33 @@ class DashboardController extends Controller
 
     private function getWeeklyProgress(int $userId): array
     {
-        $data = [];
+        // Weekly progress
+        $weeklyProgress = [];
         for ($i = 6; $i >= 0; $i--) {
             $date = Carbon::today()->subDays($i);
-            $log = DailyLog::where('user_id', $userId)
-                ->where('date', $date)
-                ->withCount([
-                    'items as completed_count' => fn($q) => $q->where('is_completed', true),
-                    'items as total_count',
-                ])
-                ->first();
+            $log = DailyLog::where('user_id', $userId)->where('date', $date)->first();
+            
+            $habitsTotal = Habit::forUser($userId)->count() + 6;
+            $habitsDone = 0;
+            if ($log) {
+                $habitsDone = $log->items()->where('is_completed', true)->count();
+                $namozData = $log->data['namoz'] ?? [];
+                foreach (['fajr', 'dhuhr', 'asr', 'maghrib', 'isha', 'roza'] as $k) {
+                    if ($namozData[$k] ?? false) $habitsDone++;
+                }
+            }
 
-            $ramadanDay = RamadanHelper::dayNumber($date);
-
-            $data[] = [
+            $weeklyProgress[] = [
                 'date' => $date->format('d.m'),
                 'day' => $this->getUzbekDay($date->dayOfWeek),
-                'ramadan_day' => $ramadanDay,
-                'completed' => $log->completed_count ?? 0,
-                'total' => $log->total_count ?? 0,
-                'percent' => ($log && $log->total_count > 0)
-                    ? round(($log->completed_count / $log->total_count) * 100)
-                    : 0,
+                'ramadan_day' => RamadanHelper::dayNumber($date),
+                'completed' => $habitsDone,
+                'total' => $habitsTotal,
+                'percent' => $habitsTotal > 0 ? round(($habitsDone / $habitsTotal) * 100) : 0,
             ];
         }
 
-        return $data;
+        return $weeklyProgress;
     }
 
     private function getUzbekDay(int $dayOfWeek): string

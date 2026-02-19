@@ -240,8 +240,17 @@
     let logData = @json($log->data ?? []);
 
     // Boshlang'ich holatni hisoblash
-    let totalHabits = {{ $habits->count() }};
-    let completedCount = {{ isset($log) && $log ? $log->items->where('is_completed', true)->count() : 0 }};
+    let totalHabits = {{ $habits->count() + 6 }};
+    @php
+        $extraDone = 0;
+        if(isset($log) && $log) {
+            $nD = $log->data['namoz'] ?? [];
+            foreach (['fajr', 'dhuhr', 'asr', 'maghrib', 'isha', 'roza'] as $k) {
+                if ($nD[$k] ?? false) $extraDone++;
+            }
+        }
+    @endphp
+    let completedCount = {{ (isset($log) && $log ? $log->items->where('is_completed', true)->count() : 0) + $extraDone }};
     updateProgress(completedCount, totalHabits);
 
     function toggleHabit(habitId, isChecked, value) {

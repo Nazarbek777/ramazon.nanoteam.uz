@@ -108,8 +108,15 @@ class DailyLogController extends Controller
             $log->update(['data' => $data]);
             
             $log->refresh();
-            $allHabits = Habit::forUser($user->id)->count();
-            $completedCount = $log->items->where('is_completed', true)->count();
+            $data = $log->data ?? [];
+            $namozData = $data['namoz'] ?? [];
+            $extraCompleted = 0;
+            foreach (['fajr', 'dhuhr', 'asr', 'maghrib', 'isha', 'roza'] as $nKey) {
+                if ($namozData[$nKey] ?? false) $extraCompleted++;
+            }
+
+            $allHabits = Habit::forUser($user->id)->count() + 6;
+            $completedCount = $log->items->where('is_completed', true)->count() + $extraCompleted;
             $percent = $allHabits > 0 ? round(($completedCount / $allHabits) * 100) : 0;
 
             return response()->json([
@@ -137,8 +144,15 @@ class DailyLogController extends Controller
         );
 
         $log->refresh();
-        $allHabits = Habit::forUser($user->id)->count();
-        $completedCount = $log->items->where('is_completed', true)->count();
+        $data = $log->data ?? [];
+        $namozData = $data['namoz'] ?? [];
+        $extraCompleted = 0;
+        foreach (['fajr', 'dhuhr', 'asr', 'maghrib', 'isha', 'roza'] as $nKey) {
+            if ($namozData[$nKey] ?? false) $extraCompleted++;
+        }
+
+        $allHabits = Habit::forUser($user->id)->count() + 6;
+        $completedCount = $log->items->where('is_completed', true)->count() + $extraCompleted;
         $percent = $allHabits > 0 ? round(($completedCount / $allHabits) * 100) : 0;
 
         $streak = $this->calculateStreak($user->id);
@@ -147,8 +161,8 @@ class DailyLogController extends Controller
 
         return response()->json([
             'success' => true,
-            'completed' => $completed,
-            'total' => $total,
+            'completed' => $completedCount,
+            'total' => $allHabits,
             'percent' => $percent,
             'streak' => $streak,
         ]);
