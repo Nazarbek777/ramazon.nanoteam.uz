@@ -1,0 +1,50 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Models\User;
+use App\Models\DailyLog;
+use App\Models\DailyLogItem;
+use Carbon\Carbon;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+
+class AdminController extends Controller
+{
+    public function index()
+    {
+        // Simple admin check directly in controller for safety
+        if (!Auth::user()->is_admin) {
+            return redirect()->route('dashboard')->with('error', 'Bu sahifaga ruxsat yo\'q.');
+        }
+
+        $today = Carbon::today();
+
+        // Key stats
+        $totalUsers = User::count();
+        $activeUsersToday = DailyLog::where('date', $today)->distinct('user_id')->count();
+        $totalDeedsLogged = DailyLogItem::where('is_completed', true)->count();
+        $maleUsers = User::where('gender', 'male')->count();
+        $femaleUsers = User::where('gender', 'female')->count();
+
+        // Recent users
+        $recentUsers = User::latest()->take(10)->get();
+
+        // Recent activity (last 15 items)
+        $recentActivity = DailyLogItem::with(['dailyLog.user', 'habit'])
+            ->where('is_completed', true)
+            ->latest()
+            ->take(15)
+            ->get();
+
+        return view('admin.dashboard', compact(
+            'totalUsers',
+            'activeUsersToday',
+            'totalDeedsLogged',
+            'maleUsers',
+            'femaleUsers',
+            'recentUsers',
+            'recentActivity'
+        ));
+    }
+}

@@ -45,6 +45,34 @@ Route::middleware('auth')->group(function () {
 
     Route::get('/reports', [ReportController::class, 'index'])->name('reports');
 
+    // ADMIN DASHBOARD
+Route::get('/admin', [App\Http\Controllers\AdminController::class, 'index'])->name('admin.index')->middleware('auth');
+
+// FORCE MIGRATION — because artisan doesn't work
+Route::get('/migrate-admin', function() {
+    try {
+        if (!\Illuminate\Support\Facades\Schema::hasColumn('users', 'is_admin')) {
+            \Illuminate\Support\Facades\Schema::table('users', function ($table) {
+                $table->boolean('is_admin')->default(false)->after('gender');
+            });
+            return "Muvaffaqiyatli: 'is_admin' ustuni qo'shildi. <a href='/make-me-admin'>Endi admin huquqini oling</a>";
+        }
+        return "Allaqachon qo'shilgan.";
+    } catch (\Exception $e) {
+        return "Xato: " . $e->getMessage();
+    }
+});
+
+// TEMP SETUP — give admin access to currently logged in user
+Route::get('/make-me-admin', function() {
+    $user = Auth::user();
+    if ($user) {
+        $user->update(['is_admin' => true]);
+        return "Muborak! Endi siz adminsiz. <a href='/admin'>Admin Panelga o'ting</a>";
+    }
+    return "Avval tizimga kiring.";
+})->middleware('auth');
+
     // TEMP DEBUG — delete after use
     Route::get('/debug-db', function() {
         return response()->json([
