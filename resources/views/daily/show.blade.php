@@ -353,7 +353,7 @@
             { min: 50, text: '🔥 Yarmi bajarildi! Siz zo\'rsiz!' },
             { min: 70, text: '🌟 Ajoyib! Deyarli tayyor!' },
             { min: 85, text: '🏆 Ozgina qoldi! Hammasi bo\'ladi!' },
-            { min: 100, text: '🌸 Barakalla! Barcha amallar bajarildi!' }
+            { min: 100, text: '🌸 Barcha amallar bajarildi!' }
         ];
         let msg = messages[0].text;
         for (const m of messages) { if (percent >= m.min) msg = m.text; }

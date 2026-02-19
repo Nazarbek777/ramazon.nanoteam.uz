@@ -30,6 +30,6 @@ class FeedbackController extends Controller
             'ip_address' => $request->ip(),
         ]);
 
-        return redirect()->back()->with('success', 'Fikringiz uchun rahmat! Mashallah!');
+        return redirect()->back()->with('success', 'Fikringiz uchun rahmat!');
     }
 }

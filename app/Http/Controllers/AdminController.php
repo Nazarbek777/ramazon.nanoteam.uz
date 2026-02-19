@@ -74,7 +74,7 @@ class AdminController extends Controller
         }
 
         $feedback->update(['is_approved' => true]);
-        return back()->with('success', 'Fikr tasdiqlandi. Mashallah!');
+        return back()->with('success', 'Fikr tasdiqlandi.');
     }
 
     public function deleteFeedback(Feedback $feedback)

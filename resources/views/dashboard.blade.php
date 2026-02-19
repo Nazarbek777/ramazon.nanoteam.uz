@@ -50,7 +50,7 @@
         </div>
         <div style="flex:1; padding-top:4px;">
             <div id="reminderTitle" style="font-size:1.05rem; font-weight:800; color:var(--text-primary); margin-bottom:6px; line-height:1.2;">Bugungi amalni bajardingizmi?</div>
-            <div id="reminderText" style="font-size:0.85rem; color:var(--text-secondary); line-height:1.5;">Namoz vaqtlarini o'tkazib yubormang, har bir amal uchun savob juda katta!</div>
+            <div id="reminderText" style="font-size:0.85rem; color:var(--text-secondary); line-height:1.5;">Namoz vaqtlarini o'tkazib yubormang, har bir amalni o'z vaqtida bajaring!</div>
         </div>
         <i class="ri-close-line close-btn" onclick="event.stopPropagation(); closeReminder()" style="cursor:pointer; color:var(--text-muted); position:absolute; top:12px; right:12px; font-size:1.2rem; z-index:10;"></i>
     </div>
@@ -167,7 +167,7 @@
             @elseif($treePercent < 100)
                 <p>🔥 Zo'r! Daraxtingiz o'sib bormoqda, {{ explode(' ', Auth::user()->name)[0] }}!</p>
             @else
-                <p>🌸 Barakalla, {{ explode(' ', Auth::user()->name)[0] }}! Barcha amallar bajarildi!</p>
+                <p>🌸 Barcha amallar bajarildi!</p>
             @endif
         </div>
     </div>
@@ -190,9 +190,9 @@
     </div>
     <div style="font-size:0.85rem; line-height:1.6; color:var(--text-secondary);">
         <p>1. <b>Namozlarni belgilang</b> — Daraxt ostidagi harflarni bosing. Har bir namoz daraxtingizni o'stiradi.</p>
-        <p>2. <b>Amallar bo'limiga o'ting</b> — U yerda Qur'on o'qish, zikr va boshqa savob amallar bor.</p>
+        <p>2. <b>Amallar bo'limiga o'ting</b> — U yerda Qur'on o'qish, zikr va boshqa foydali amallar bor.</p>
         <p>3. <b>Maqsad qo'ying</b> — "Maqsadlar" bo'limida Ramazon uchun o'z rejalaringizni belgilang.</p>
-        <p>4. <b>Daraxtni kuzating</b> — Kunlik amallaringizga qarab daraxtingiz niholdan katta jannat daraxtigacha o'sadi. Mashallah!</p>
+        <p>4. <b>Daraxtni kuzating</b> — Kunlik amallaringizga qarab daraxtingiz niholdan katta jannat daraxtigacha o'sadi.</p>
     </div>
 </div>
 
@@ -385,12 +385,12 @@
                 if (pNav && data.percent !== undefined) pNav.textContent = data.percent + '%';
                 
                 if (motivation && data.percent !== undefined) {
-                    if (data.percent === 100) motivation.innerHTML = `🌸 Barakalla, ${USER_NAME}! Barcha amallar bajarildi!`;
+                    if (data.percent === 100) motivation.innerHTML = `🌸 Barcha amallar bajarildi!`;
                     else if (data.percent > 0) motivation.innerHTML = `🔥 Zo'r! Daraxtingiz o'sib bormoqda, ${USER_NAME}!`;
                     else motivation.innerHTML = `✨ Bugun birinchi amaldan boshlang, ${USER_NAME}!`;
                 }
 
-                showToast(data.percent === 100 ? `🌸 Barakalla, ${USER_NAME}! Barcha amallar bajarildi!` : 'Saqlandi');
+                showToast(data.percent === 100 ? `🌸 Barcha amallar bajarildi!` : 'Saqlandi');
             }
         });
     }
@@ -433,7 +433,7 @@
                     `${activePrayer.name} vaqti kirdi, ${USER_NAME}. Amalingizni belgilang.`
                 ];
                 title.innerHTML = `✨ ${prompts[Math.floor(Math.random() * prompts.length)]}`;
-                text.innerHTML = `Ibodat — qalb oromi. Uni belgilashni unutmang, har bir amal uchun savob juda katta!`;
+                text.innerHTML = `Ibodat — qalb oromi. Uni belgilashni unutmang, har bir amalni o'z vaqtida ado eting!`;
             } else {
                 const randomDeeds = [
                     "Bugun Qur'on o'qidingizmi? O'qigan bo'lsangiz, belgilab qo'ying.",
@@ -445,7 +445,7 @@
                 
                 container.style.display = 'block';
                 title.innerHTML = `🌟 ${USER_NAME}, ${deed}`;
-                text.innerHTML = `Har bir kichik amal Ramazon oyida juda katta savobga sabab bo'ladi. Mashallah!`;
+                text.innerHTML = `Har bir kichik amal Ramazon oyida siz uchun foydali bo'ladi.`;
             }
 
             // Track target for click
