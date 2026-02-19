@@ -32,4 +32,26 @@ class FeedbackController extends Controller
 
         return redirect()->back()->with('success', 'Fikringiz uchun rahmat!');
     }
+
+    public function like(Feedback $feedback)
+    {
+        $sessionKey = 'voted_feedback_' . $feedback->id;
+        if (!session()->has($sessionKey)) {
+            $feedback->increment('likes_count');
+            session()->put($sessionKey, 'liked');
+            return response()->json(['success' => true, 'likes' => $feedback->likes_count]);
+        }
+        return response()->json(['success' => false, 'message' => 'Siz allaqachon munosabat bildirdingiz.']);
+    }
+
+    public function dislike(Feedback $feedback)
+    {
+        $sessionKey = 'voted_feedback_' . $feedback->id;
+        if (!session()->has($sessionKey)) {
+            $feedback->increment('dislikes_count');
+            session()->put($sessionKey, 'disliked');
+            return response()->json(['success' => true, 'dislikes' => $feedback->dislikes_count]);
+        }
+        return response()->json(['success' => false, 'message' => 'Siz allaqachon munosabat bildirdingiz.']);
+    }
 }

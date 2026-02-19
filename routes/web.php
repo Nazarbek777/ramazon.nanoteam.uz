@@ -50,8 +50,10 @@ Route::middleware('auth')->group(function () {
     Route::get('/reports', [ReportController::class, 'index'])->name('reports');
 
     // FEEDBACK
-    Route::get('/feedback', [App\Http\Controllers\FeedbackController::class, 'index'])->name('feedback.index');
-    Route::post('/feedback', [App\Http\Controllers\FeedbackController::class, 'store'])->name('feedback.store');
+    Route::get('/feedback', [FeedbackController::class, 'index'])->name('feedback.index');
+    Route::post('/feedback', [FeedbackController::class, 'store'])->name('feedback.store');
+    Route::post('/feedback/{feedback}/like', [FeedbackController::class, 'like'])->name('feedback.like');
+    Route::post('/feedback/{feedback}/dislike', [FeedbackController::class, 'dislike'])->name('feedback.dislike');
 
     // ADMIN DASHBOARD
     Route::get('/admin', [App\Http\Controllers\AdminController::class, 'index'])->name('admin.index');
