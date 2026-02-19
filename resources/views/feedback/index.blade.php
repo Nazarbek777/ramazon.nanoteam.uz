@@ -2,45 +2,45 @@
 @section('title', 'Jamoatchilik Fikri')
 
 @section('content')
-<div class="page-header" style="text-align:center; margin-bottom:40px; padding:0 20px;">
-    <div style="display:inline-flex; align-items:center; justify-content:center; width:64px; height:64px; background:var(--gold-bg); border-radius:20px; margin-bottom:20px; box-shadow:0 10px 25px rgba(212,168,67,0.2);">
-        <i class="ri-chat-voice-line" style="font-size:2rem; color:var(--gold);"></i>
+<div class="page-header" style="text-align:center; margin-bottom:25px; padding:0 15px;">
+    <div style="display:inline-flex; align-items:center; justify-content:center; width:48px; height:48px; background:var(--gold-bg); border-radius:14px; margin-bottom:12px; box-shadow:0 8px 15px rgba(212,168,67,0.15);">
+        <i class="ri-chat-voice-line" style="font-size:1.5rem; color:var(--gold);"></i>
     </div>
-    <h2 style="font-size:2rem; font-weight:900; color:var(--text-primary); margin-bottom:12px; letter-spacing:-0.5px;">Jamoatchilik Fikri</h2>
+    <h2 style="font-size:1.6rem; font-weight:900; color:var(--text-primary); margin-bottom:8px; letter-spacing:-0.5px;">Jamoatchilik Fikri</h2>
     <div style="max-width:500px; margin:0 auto;">
-        <p style="font-size:0.95rem; color:var(--text-secondary); line-height:1.6; margin-bottom:15px;">Biz haqimizda istalgan fikringizni yoki saytga nima qo'shish kerakligini bemalol bildirishingiz mumkin.</p>
-        <div style="display:inline-flex; align-items:center; gap:8px; padding:6px 16px; background:rgba(74, 222, 128, 0.1); border:1px solid rgba(74, 222, 128, 0.2); border-radius:50px; color:#4ade80; font-size:0.8rem; font-weight:600;">
-            <i class="ri-shield-user-fill"></i> Mutlaqo anonim — kim yozganini hech kim bilmaydi
+        <p style="font-size:0.88rem; color:var(--text-secondary); line-height:1.5; margin-bottom:10px;">Biz haqimizda istalgan fikringizni bemalol bildirishingiz mumkin.</p>
+        <div style="display:inline-flex; align-items:center; gap:6px; padding:4px 12px; background:rgba(74, 222, 128, 0.1); border:1px solid rgba(74, 222, 128, 0.2); border-radius:50px; color:#4ade80; font-size:0.75rem; font-weight:600;">
+            <i class="ri-shield-user-fill"></i> Mutlaqo anonim
         </div>
     </div>
 </div>
 
 {{-- 📢 FEEDBACK FORM --}}
-<div style="max-width:650px; margin:0 auto 60px auto; padding:0 15px;">
-    <div class="card" style="padding:30px; border:1px solid var(--white-10); background:linear-gradient(145deg, rgba(255,255,255,0.03), rgba(0,0,0,0.2)); border-radius:24px; box-shadow:0 20px 40px rgba(0,0,0,0.4);">
-        <h3 style="font-size:1.15rem; font-weight:800; color:var(--gold); margin-bottom:20px; display:flex; align-items:center; gap:10px;">
-            <i class="ri-edit-2-line"></i> O'z fikringizni qoldiring
+<div style="max-width:600px; margin:0 auto 30px auto; padding:0 15px;">
+    <div class="card" style="padding:20px; border:1px solid var(--white-10); background:linear-gradient(145deg, rgba(255,255,255,0.03), rgba(0,0,0,0.2)); border-radius:20px;">
+        <h3 style="font-size:1rem; font-weight:800; color:var(--gold); margin-bottom:15px; display:flex; align-items:center; gap:8px;">
+            <i class="ri-edit-2-line"></i> Fikr qoldirish
         </h3>
         <form action="{{ route('feedback.store') }}" method="POST">
             @csrf
-            <div style="position:relative; margin-bottom:20px;">
+            <div style="position:relative; margin-bottom:15px;">
                 <textarea name="content" placeholder="Fikringiz yoki taklifingiz..." required
-                        style="width:100%; min-height:120px; background:rgba(0,0,0,0.2); border:1px solid var(--white-10); border-radius:16px; padding:18px; color:var(--text-primary); font-family:inherit; resize:none; font-size:0.95rem; transition:all 0.3s;"></textarea>
+                        style="width:100%; min-height:90px; background:rgba(0,0,0,0.2); border:1px solid var(--white-10); border-radius:12px; padding:15px; color:var(--text-primary); font-family:inherit; resize:none; font-size:0.9rem; transition:all 0.3s;"></textarea>
             </div>
             
-            <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:15px;">
-                <label style="display:flex; align-items:center; gap:10px; cursor:pointer; font-size:0.9rem; color:var(--text-secondary); user-select:none;">
-                    <div class="checkbox-wrapper" style="position:relative; width:22px; height:22px;">
+            <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px;">
+                <label style="display:flex; align-items:center; gap:8px; cursor:pointer; font-size:0.85rem; color:var(--text-secondary); user-select:none;">
+                    <div class="checkbox-wrapper" style="position:relative; width:18px; height:18px;">
                         <input type="checkbox" name="is_public" value="1" checked 
                                style="width:100%; height:100%; opacity:0; position:absolute; cursor:pointer; z-index:2;">
-                        <div class="checkbox-custom" style="width:100%; height:100%; border:2px solid var(--white-20); border-radius:6px; transition:0.3s; display:flex; align-items:center; justify-content:center;">
-                            <i class="ri-check-line" style="font-size:1rem; color:white; display:none;"></i>
+                        <div class="checkbox-custom" style="width:100%; height:100%; border:2px solid var(--white-20); border-radius:4px; transition:0.3s; display:flex; align-items:center; justify-content:center;">
+                            <i class="ri-check-line" style="font-size:0.9rem; color:white; display:none;"></i>
                         </div>
                     </div>
                     <span>Ommaga ko'rsatilsin</span>
                 </label>
                 
-                <button type="submit" class="btn btn-gold" style="padding:12px 28px; border-radius:14px; box-shadow:0 8px 20px rgba(212,168,67,0.3);">
+                <button type="submit" class="btn btn-gold" style="padding:8px 20px; border-radius:10px; font-size:0.9rem;">
                     <i class="ri-send-plane-fill"></i> Yuborish
                 </button>
             </div>
@@ -48,11 +48,11 @@
     </div>
 </div>
 
-<div style="border-top:1px solid var(--white-10); margin-bottom:40px; position:relative;">
-    <span style="position:absolute; top:-12px; left:50%; transform:translateX(-50%); background:var(--bg-main); padding:0 20px; color:var(--text-muted); font-size:0.8rem; font-weight:700; text-transform:uppercase; letter-spacing:1px;">Fikrlar</span>
+<div style="border-top:1px solid var(--white-10); margin-bottom:25px; position:relative;">
+    <span style="position:absolute; top:-10px; left:50%; transform:translateX(-50%); background:var(--bg-main); padding:0 15px; color:var(--text-muted); font-size:0.75rem; font-weight:700; text-transform:uppercase; letter-spacing:1px;">Fikrlar</span>
 </div>
 
-<div class="feedback-grid" style="display:grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap:25px; padding:0 15px;">
+<div class="feedback-grid" style="display:grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap:15px; padding:0 10px;">
     @foreach($feedbacks as $feedback)
     <div class="card feedback-card" style="padding:25px; border:1px solid var(--white-10); border-radius:20px; background:var(--white-3); transition:all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); display:flex; flex-direction:column;">
         <div style="font-size:3rem; line-height:1; color:var(--gold); opacity:0.1; height:20px; margin-top:-10px;">
