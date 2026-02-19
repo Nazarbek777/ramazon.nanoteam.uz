@@ -29,7 +29,12 @@ class AdminController extends Controller
         $totalDeedsLogged = DailyLogItem::where('is_completed', true)->count();
         $maleUsers = User::where('gender', 'male')->count();
         $femaleUsers = User::where('gender', 'female')->count();
-        $pendingFeedbackCount = Feedback::where('is_approved', false)->where('is_public', true)->count();
+        $pendingFeedbackCount = 0;
+        try {
+            $pendingFeedbackCount = Feedback::where('is_approved', false)->where('is_public', true)->count();
+        } catch (\Exception $e) {
+            // Table might be missing
+        }
 
         // Recent users
         $recentUsers = User::latest()->take(10)->get();
