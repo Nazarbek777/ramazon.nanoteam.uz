@@ -171,9 +171,9 @@
             </div>
         </div>
         <div class="dua-body">
-            <p class="dua-arabic">نَوَيتُ أَن أَصُومَ غَداً مِن شَهرِ رَمَضَانَ المُبَارَكِ فَرضاً لَكَ يَا اللّهُ فَتَقَبَّلْ مِنِّي إِنَّكَ أَنتَ السَّمِيعُ العَلِيمُ</p>
-            <p class="dua-translit"><strong>Navaytu an asuma g'adan min shahri Ramazonal mubaraki fardan laka ya Allohu fataqabbal minni innaka antas-sami'ul 'alim.</strong></p>
-            <p class="dua-meaning">Ertangi Ramazon kunining ro'zasini tutmoqni niyat qildim. Ya Alloh, qabul ayla, albatta Sen Eshituvchi va Biluvchisan.</p>
+            <p class="dua-arabic">نَوَيْتُ أَنْ أَصُومَ صَوْمَ شَهْرِ رَمَضَانَ مِنَ الْفَجْرِ إِلَى الْمَغْرِبِ، خَالِصًا لِلَّهِ تَعَالَى أَللهُ أَكْبَرُ</p>
+            <p class="dua-translit"><strong>Navaytu an asuvma sovma shahri ramazona minal fajri ilal mag'ribi, xolisan lillaxi ta'aalaa Alloxu akbar.</strong></p>
+            <p class="dua-meaning">Ramazon oyining ro'zasini subxdan to kun botguncha tutmoqni niyat qildim. Xolis Alloh uchun Alloh buyukdir.</p>
         </div>
     </div>
 
@@ -189,9 +189,9 @@
             </div>
         </div>
         <div class="dua-body">
-            <p class="dua-arabic">اللّهُمَّ لَكَ صُمتُ وَبِكَ آمَنتُ وَعَلَيكَ تَوَكَّلتُ وَعَلَى رِزقِكَ أَفطَرتُ فَاغفِر لِي مَا قَدَّمتُ وَمَا أَخَّرتُ</p>
-            <p class="dua-translit"><strong>Allohumma laka sumtu va bika amantu va 'alayka tavakkaltu va 'ala rizqika aftartu, fag'fir li ma qaddamtu va ma axxartu.</strong></p>
-            <p class="dua-meaning">Yo Alloh, Sen uchun ro'za tutdim, Senga iymon keltirdim, Senga tavakkul qildim va bergan rizqing bilan og'iz ochdim. Oldingi va keyingi gunohlarimni mag'firat ayla.</p>
+            <p class="dua-arabic">اللَّهُمَّ لَكَ صُمْتُ وَ بِكَ آمَنْتُ وَ عَلَيْكَ تَوَكَّلْتُ وَ عَلَى رِزْقِكَ أَفْطَرْتُ، فَاغْفِرْلِي مَا قَدَّمْتُ وَ مَا أَخَّرْتُ بِرَحْمَتِكَ يَا أَرْحَمَ الرَّاحِمِينَ</p>
+            <p class="dua-translit"><strong>Allohumma laka sumtu va bika aamantu va a'layka tavakkaltu va a'laa rizqika aftartu, fag'firliy ma qoddamtu va maa axxortu biroxmatika yaa arhamar roohimiyn.</strong></p>
+            <p class="dua-meaning">Ey Alloh, ushbu Ro'zamni Sen uchun tutdim va Senga iymon keltirdim va Senga tavakkal qildim va bergan rizqing bilan iftor qildim. Ey mehribonlarning eng mehriboni, mening avvalgi va keyingi gunohlarimni mag'firat qilgil.</p>
         </div>
     </div>
 
