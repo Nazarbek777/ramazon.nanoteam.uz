@@ -43,7 +43,7 @@ class SocialController extends Controller
 
             Auth::login($user);
 
-            return redirect()->route('dashboard')->with('success', 'Xush kelibsiz! Mashallah!');
+            return redirect()->route('dashboard')->with('success', "Xush kelibsiz, {$user->name}!");
             
         } catch (\Exception $e) {
             return redirect()->route('login')->with('error', 'Google orqali kirishda xatolik yuz berdi.');

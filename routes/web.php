@@ -54,89 +54,10 @@ Route::middleware('auth')->group(function () {
     Route::post('/feedback', [App\Http\Controllers\FeedbackController::class, 'store'])->name('feedback.store');
 
     // ADMIN DASHBOARD
-    Route::get('/admin', [App\Http\Controllers\AdminController::class, 'index'])->name('admin.index')->middleware('auth');
-    Route::get('/admin/activity', [App\Http\Controllers\AdminController::class, 'activity'])->name('admin.activity')->middleware('auth');
-    Route::get('/admin/user/{user}', [App\Http\Controllers\AdminController::class, 'userShow'])->name('admin.user.show')->middleware('auth');
-    Route::get('/admin/feedback', [App\Http\Controllers\AdminController::class, 'feedback'])->name('admin.feedback')->middleware('auth');
-    Route::post('/admin/feedback/{feedback}/approve', [App\Http\Controllers\AdminController::class, 'approveFeedback'])->name('admin.feedback.approve')->middleware('auth');
-    Route::post('/admin/feedback/{feedback}/delete', [App\Http\Controllers\AdminController::class, 'deleteFeedback'])->name('admin.feedback.delete')->middleware('auth');
-
-// FORCE MIGRATION — because artisan doesn't work
-Route::get('/migrate-activity', function() {
-    try {
-        if (!\Illuminate\Support\Facades\Schema::hasTable('activity_logs')) {
-            \Illuminate\Support\Facades\Schema::create('activity_logs', function ($table) {
-                $table->id();
-                $table->foreignId('user_id')->constrained()->onDelete('cascade');
-                $table->string('action')->nullable();
-                $table->string('path');
-                $table->string('method');
-                $table->string('ip_address')->nullable();
-                $table->text('user_agent')->nullable();
-                $table->json('data')->nullable();
-                $table->timestamps();
-            });
-            return "Muvaffaqiyatli: 'activity_logs' jadvali qo'shildi. Mashallah!";
-        }
-        
-        if (!\Illuminate\Support\Facades\Schema::hasColumn('users', 'last_seen_at')) {
-            \Illuminate\Support\Facades\Schema::table('users', function ($table) {
-                $table->timestamp('last_seen_at')->nullable();
-                $table->string('google_id')->nullable()->after('id');
-                $table->string('avatar')->nullable()->after('email');
-            });
-            return "Muvaffaqiyatli: 'last_seen_at' va Google ustunlari qo'shildi. Mashallah!";
-        }
-
-        if (!\Illuminate\Support\Facades\Schema::hasTable('feedback')) {
-            \Illuminate\Support\Facades\Schema::create('feedback', function ($table) {
-                $table->id();
-                $table->text('content');
-                $table->boolean('is_public')->default(false);
-                $table->boolean('is_approved')->default(false);
-                $table->string('ip_address')->nullable();
-                $table->timestamps();
-            });
-            return "Muvaffaqiyatli: 'feedback' jadvali qo'shildi. Mashallah!";
-        }
-
-        return "Allaqachon qo'shilgan.";
-    } catch (\Exception $e) {
-        return "Xato: " . $e->getMessage();
-    }
-});
-
-// FORCE MIGRATION — because artisan doesn't work
-Route::get('/migrate-admin', function() {
-    try {
-        if (!\Illuminate\Support\Facades\Schema::hasColumn('users', 'is_admin')) {
-            \Illuminate\Support\Facades\Schema::table('users', function ($table) {
-                $table->boolean('is_admin')->default(false)->after('gender');
-            });
-            return "Muvaffaqiyatli: 'is_admin' ustuni qo'shildi. <a href='/make-me-admin'>Endi admin huquqini oling</a>";
-        }
-        return "Allaqachon qo'shilgan.";
-    } catch (\Exception $e) {
-        return "Xato: " . $e->getMessage();
-    }
-});
-
-// TEMP SETUP — give admin access to currently logged in user
-Route::get('/make-me-admin', function() {
-    $user = Auth::user();
-    if ($user) {
-        $user->update(['is_admin' => true]);
-        return "Muborak! Endi siz adminsiz. <a href='/admin'>Admin Panelga o'ting</a>";
-    }
-    return "Avval tizimga kiring.";
-})->middleware('auth');
-
-    // TEMP DEBUG — delete after use
-    Route::get('/debug-db', function() {
-        return response()->json([
-            'users_columns' => \Illuminate\Support\Facades\Schema::getColumnListing('users'),
-            'sessions_columns' => \Illuminate\Support\Facades\Schema::getColumnListing('sessions'),
-            'daily_logs_columns' => \Illuminate\Support\Facades\Schema::getColumnListing('daily_logs'),
-        ]);
-    });
+    Route::get('/admin', [App\Http\Controllers\AdminController::class, 'index'])->name('admin.index');
+    Route::get('/admin/activity', [App\Http\Controllers\AdminController::class, 'activity'])->name('admin.activity');
+    Route::get('/admin/user/{user}', [App\Http\Controllers\AdminController::class, 'userShow'])->name('admin.user.show');
+    Route::get('/admin/feedback', [App\Http\Controllers\AdminController::class, 'feedback'])->name('admin.feedback');
+    Route::post('/admin/feedback/{feedback}/approve', [App\Http\Controllers\AdminController::class, 'approveFeedback'])->name('admin.feedback.approve');
+    Route::post('/admin/feedback/{feedback}/delete', [App\Http\Controllers\AdminController::class, 'deleteFeedback'])->name('admin.feedback.delete');
 });
