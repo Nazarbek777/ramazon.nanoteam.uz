@@ -293,6 +293,34 @@
     </div>
 </div>
 
+    {{-- 📢 FEEDBACK SECTION --}}
+    <div class="feedback-section" style="margin-top:40px; margin-bottom:100px; padding:0 10px;">
+        <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:15px;">
+            <h3 style="font-size:1.1rem; color:var(--gold); margin:0;"><i class="ri-message-3-line"></i> Fikringizni yozing</h3>
+            <a href="{{ route('feedback.index') }}" style="font-size:0.8rem; color:var(--accent); text-decoration:none;">
+                Jamoatchilik fikri <i class="ri-arrow-right-s-line"></i>
+            </a>
+        </div>
+        <div class="card" style="padding:20px; border:1px dashed var(--white-15); background:rgba(255,255,255,0.02);">
+            <form action="{{ route('feedback.store') }}" method="POST">
+                @csrf
+                <textarea name="content" placeholder="Ilova haqida fikringiz yoki taklifingiz..." style="width:100%; min-height:80px; background:rgba(255,255,255,0.03); border:1px solid var(--white-10); border-radius:12px; padding:12px; color:var(--text-primary); font-family:inherit; resize:none; margin-bottom:12px;" required></textarea>
+                <div style="display:flex; align-items:center; justify-content:space-between; gap:10px;">
+                    <label style="display:flex; align-items:center; gap:8px; cursor:pointer; font-size:0.8rem; color:var(--text-muted);">
+                        <input type="checkbox" name="is_public" value="1" style="width:16px; height:16px; accent-color:var(--gold);">
+                        Ommaga ko'rsatilsin (anonim)
+                    </label>
+                    <button type="submit" class="btn btn-gold btn-sm">
+                        <i class="ri-send-plane-fill"></i> Yuborish
+                    </button>
+                </div>
+            </form>
+        </div>
+        <p style="text-align:center; font-size:0.75rem; color:var(--text-muted); margin-top:12px; opacity:0.6;">
+            <i class="ri-shield-user-line"></i> Fikringiz mutlaqo anonim tarzda qabul qilinadi.
+        </p>
+    </div>
+
 <div style="text-align:center;padding:16px 10px;margin-top:20px;border-top:1px solid var(--white-5);">
     <p style="font-size:0.7rem;color:var(--text-muted);margin:0;">Namoz vaqtlari islom.uz saytidan olindi</p>
 </div>
