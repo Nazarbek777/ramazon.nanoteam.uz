@@ -91,31 +91,33 @@ class DailyLogController extends Controller
             ['notes' => '', 'data' => []]
         );
 
-        if ($type === 'data_field') {
+        if ($type === 'data_field' || $type === 'priority') {
             $key = $request->input('key');
             $value = $request->input('value');
             
             $data = $log->data ?? [];
-            // Dot notation support (e.g., 'quran.sura')
-            data_set($data, $key, $value);
+            if ($type === 'priority') {
+                $index = $request->input('index');
+                $priorities = $data['priorities'] ?? ['', '', ''];
+                $priorities[$index] = $value;
+                $data['priorities'] = $priorities;
+            } else {
+                data_set($data, $key, $value);
+            }
             
             $log->update(['data' => $data]);
             
-            return response()->json(['success' => true]);
-        }
+            $log->refresh();
+            $allHabits = Habit::forUser($user->id)->count();
+            $completedCount = $log->items->where('is_completed', true)->count();
+            $percent = $allHabits > 0 ? round(($completedCount / $allHabits) * 100) : 0;
 
-        if ($type === 'priority') {
-            $index = $request->input('index');
-            $value = $request->input('value');
-            
-            $data = $log->data ?? [];
-            $priorities = $data['priorities'] ?? ['', '', ''];
-            $priorities[$index] = $value;
-            $data['priorities'] = $priorities;
-            
-            $log->update(['data' => $data]);
-            
-            return response()->json(['success' => true]);
+            return response()->json([
+                'success' => true,
+                'completed' => $completedCount,
+                'total' => $allHabits,
+                'percent' => $percent,
+            ]);
         }
 
         // Default 'habit' toggle

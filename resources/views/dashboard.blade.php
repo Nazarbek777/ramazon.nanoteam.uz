@@ -3,22 +3,23 @@
 
 @section('content')
 @php
-    $treePercent = 0;
-    $completedToday = 0;
     $totalToday = count($habits);
+    $completedToday = 0;
     if ($todayLog && $todayLog->items->count() > 0) {
         $completedToday = $todayLog->items->where('is_completed', true)->count();
     }
     $treePercent = $totalToday > 0 ? round(($completedToday / $totalToday) * 100) : 0;
+    
+    // Stages: 0: Seed, 1: Sprout, 2: Young, 3: Medium, 4: Big, 5: Paradise
     $stage = 0;
-    if ($treePercent >= 90) $stage = 5;
-    elseif ($treePercent >= 70) $stage = 4;
+    if ($treePercent >= 100) $stage = 5;
+    elseif ($treePercent >= 80) $stage = 4;
     elseif ($treePercent >= 50) $stage = 3;
-    elseif ($treePercent >= 30) $stage = 2;
-    elseif ($treePercent >= 10) $stage = 1;
+    elseif ($treePercent >= 25) $stage = 2;
+    elseif ($treePercent >= 5) $stage = 1;
 
-    $stageNames = ['Urug\'', 'Niholcha', 'Ko\'chat', 'Yosh daraxt', 'Katta daraxt', 'Jannat daraxti'];
-    $stageEmojis = ['🌰', '🌱', '🌿', '🌳', '🌲', '🌸'];
+    $stageNames = ['Urug\'', 'Nihol', 'Yosh daraxt', 'O\'rta daraxt', 'Katta daraxt', 'Jannat daraxti'];
+    $stageEmojis = ['🌱', '🌿', '🌳', '🌲', '🌴', '🌸'];
 @endphp
 
 {{-- Ramazon banner --}}
@@ -116,32 +117,38 @@
             <div class="tree-progress-bar"><div class="tree-progress-fill" style="width:{{ $treePercent }}%"></div></div>
             <span class="tree-percent">{{ $treePercent }}%</span>
         </div>
-        <div class="tree-detail">{{ $completedToday }}/{{ $totalToday }} amal bajarildi</div>
-        
-        {{-- QUICK NAMOS CHECK --}}
-        <div class="quick-prayer-check" style="margin:16px 0; background:rgba(255,255,255,0.03); padding:12px; border-radius:12px; border:1px solid var(--white-10);">
-            <div style="font-size:0.75rem; color:var(--text-muted); margin-bottom:10px; text-transform:uppercase; letter-spacing:0.5px; font-weight:700;">
-                <i class="ri-heart-pulse-line"></i> Bugungi namozlar
+        {{-- QUICK FOCUS SECTION --}}
+        <div class="today-focus" style="margin-top:20px; text-align:center;">
+            {{-- Fasting Status --}}
+            <div class="fasting-status {{ ($namozData['roza'] ?? false) ? 'active' : '' }}" 
+                 onclick="toggleDashboardNamoz('roza', this)"
+                 style="display:inline-flex; align-items:center; gap:8px; padding:6px 16px; border-radius:50px; background:rgba(212,168,67,0.1); border:1px solid rgba(212,168,67,0.3); color:var(--gold); font-size:0.85rem; font-weight:700; cursor:pointer; transition:all 0.3s; margin-bottom:15px;">
+                <i class="ri-moon-cloudy-line" style="font-size:1.1rem;"></i>
+                <span>{{ ($namozData['roza'] ?? false) ? "Bugun ro'zadorman" : "Bugun ro'zami?" }}</span>
             </div>
-            <div style="display:flex; justify-content:space-between; gap:5px;">
+
+            <div style="font-size:0.75rem; color:var(--text-muted); margin-bottom:10px; text-transform:uppercase; letter-spacing:1px; font-weight:700;">
+                Besh vaqt namoz
+            </div>
+            <div style="display:flex; justify-content:center; gap:12px;">
                 @foreach(['fajr' => 'B', 'dhuhr' => 'P', 'asr' => 'A', 'maghrib' => 'Sh', 'isha' => 'X'] as $id => $short)
-                <div class="prayer-bubble {{ ($namozData[$id] ?? false) ? 'active' : '' }}" 
+                <div class="prayer-lantern {{ ($namozData[$id] ?? false) ? 'active' : '' }}" 
                      onclick="toggleDashboardNamoz('{{ $id }}', this)"
                      title="{{ $id }}">
-                    {{ $short }}
-                    <i class="ri-check-line"></i>
+                    <span class="lantern-light"></span>
+                    <div class="lantern-text">{{ $short }}</div>
                 </div>
                 @endforeach
             </div>
         </div>
 
-        <div class="tree-motivation">
+        <div class="tree-motivation" style="margin-top:15px;">
             @if($treePercent === 0)
-                <p>✨ Bugungi amallarni belgilang va daraxtingiz o'sishini kuzating!</p>
+                <p>✨ Bugun birinchi amaldan boshlang, {{ explode(' ', Auth::user()->name)[0] }}!</p>
             @elseif($treePercent < 100)
-                <p>🔥 Zo'r! Davom eting, daraxtingiz o'sib bormoqda!</p>
+                <p>🔥 Zo'r! Daraxtingiz o'sib bormoqda, ${USER_NAME}!</p>
             @else
-                <p>🌸 Barakalla! Barcha amallar bajarildi!</p>
+                <p>🌸 Barakalla, {{ explode(' ', Auth::user()->name)[0] }}! Barcha amallar bajarildi!</p>
             @endif
         </div>
     </div>
@@ -309,20 +316,32 @@
             if (data.success) {
                 el.classList.toggle('active', isDone);
                 namozData[id] = isDone;
+                
+                // Update Ro'za text if applicable
+                if (id === 'roza') {
+                    const span = el.querySelector('span');
+                    if (span) span.textContent = isDone ? "Bugun ro'zadorman" : "Bugun ro'zami?";
+                }
+                
                 checkReminders(); // Update reminders after toggle
                 
                 // Update tree progress
                 const fill = document.querySelector('.tree-progress-fill');
                 const pText = document.querySelector('.tree-percent');
                 const dText = document.querySelector('.tree-detail');
+                const motivation = document.querySelector('.tree-motivation p');
                 
-                if (fill) fill.style.width = data.percent + '%';
-                if (pText) pText.textContent = data.percent + '%';
-                if (dText) dText.textContent = data.completed + '/' + data.total + ' amal bajarildi';
+                if (fill && data.percent !== undefined) fill.style.width = data.percent + '%';
+                if (pText && data.percent !== undefined) pText.textContent = data.percent + '%';
+                if (dText && data.completed !== undefined) dText.textContent = data.completed + '/' + data.total + ' amal bajarildi';
                 
-                // Refresh motivation? (Optional, maybe just success toast)
+                if (motivation && data.percent !== undefined) {
+                    if (data.percent === 100) motivation.innerHTML = `🌸 Barakalla, ${USER_NAME}! Barcha amallar bajarildi!`;
+                    else if (data.percent > 0) motivation.innerHTML = `🔥 Zo'r! Daraxtingiz o'sib bormoqda, ${USER_NAME}!`;
+                }
+
                 if (data.percent === 100) {
-                    showToast('🌸 Barakalla! Barcha amallar bajarildi!');
+                    showToast(`🌸 Barakalla, ${USER_NAME}! Barcha amallar bajarildi!`);
                 } else {
                     showToast('Saqlandi');
                 }
@@ -330,12 +349,16 @@
         });
     }
 
+    const USER_NAME = "{{ explode(' ', Auth::user()->name)[0] }}";
+    const HABITS_DONE = {!! json_encode($todayLog ? $todayLog->items->where('is_completed', true)->pluck('habit_id')->toArray() : []) !!};
+
+    // ... (toggleHelp and toggleDashboardNamoz as before) ...
+
     function checkReminders() {
         const container = document.getElementById('reminderContainer');
         const title = document.getElementById('reminderTitle');
         const text = document.getElementById('reminderText');
         
-        // Use PrayerTimes to get current data
         PrayerTimes.getLocation().then(async loc => {
             const times = await PrayerTimes.getTimesForDate(loc.apiRegion, new Date());
             if (!times) return;
@@ -354,22 +377,33 @@
             let activePrayer = null;
             for (let i = 0; i < prayerOrder.length; i++) {
                 const [h, m] = prayerOrder[i].time.split(':').map(Number);
-                const pMin = h * 60 + m;
-                if (nowMin >= pMin) {
-                    activePrayer = prayerOrder[i];
-                }
+                if (nowMin >= (h * 60 + m)) activePrayer = prayerOrder[i];
             }
 
+            // Priorities: 1. Unchecked Prayer, 2. Unchecked Deeds, 3. Success
             if (activePrayer && !namozData[activePrayer.id]) {
                 container.style.display = 'block';
-                title.innerHTML = `✨ ${activePrayer.name} namozini o'qidingizmi?`;
-                text.innerHTML = `Vaqt g'animat, darrov belgilab qo'ying va savobingizni daraxt o'sishida ko'ring!`;
-            } else if (activePrayer) {
-                // All current prayers done
+                const prompts = [
+                    `${USER_NAME}, ${activePrayer.name} namozini o'qidingizmi?`,
+                    `Vaqt g'animat, ${USER_NAME}. ${activePrayer.name}ni ado etdingizmi?`,
+                    `${activePrayer.name} vaqti kirdi, ${USER_NAME}. Amalingizni belgilang.`
+                ];
+                title.innerHTML = `✨ ${prompts[Math.floor(Math.random() * prompts.length)]}`;
+                text.innerHTML = `Ibodat — qalb oromi. Uni belgilashni unutmang, daraxtingiz o'sishiga yordam bering!`;
+            } else {
+                // Check for other deeds (e.g., Quran, Zikr)
+                // Assuming we can check some common labels or just generic
+                const randomDeeds = [
+                    "Bugun Qur'on o'qidingizmi?",
+                    "Zikr aytishni unutmadingizmi?",
+                    "Istig'for aytib, qalbni pokladingizmi?",
+                    "Sadaqa yoki yaxshilik qildingizmi?"
+                ];
+                const deed = randomDeeds[Math.floor(Math.random() * randomDeeds.length)];
+                
                 container.style.display = 'block';
-                title.innerHTML = `🌟 Barakalla!`;
-                text.innerHTML = `Hozirgacha bo'lgan barcha namozlarni ado etibsiz. Alloh qabul qilsin! Zikr aytishni va boshqa amallarni unutmang.`;
-                // Maybe auto-close after some time or keep as encouragement
+                title.innerHTML = `🌟 ${USER_NAME}, ${deed}`;
+                text.innerHTML = `Har bir kichik amal Ramazon oyida ulkan ajrlarga sabab bo'ladi. Mashallah!`;
             }
         });
     }
@@ -447,17 +481,66 @@
         display: block;
         animation: scaleIn 0.3s ease-out;
     }
-    .prayer-bubble.loading {
-        opacity: 0.6;
+    .prayer-lantern {
+        width: 48px;
+        height: 60px;
+        background: rgba(255,255,255,0.03);
+        border: 1px solid var(--white-10);
+        border-radius: 12px 12px 24px 24px;
+        position: relative;
+        cursor: pointer;
+        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: flex-end;
+        padding-bottom: 8px;
+    }
+    .lantern-light {
+        position: absolute;
+        top: 15%;
+        width: 12px;
+        height: 12px;
+        background: var(--gold);
+        border-radius: 50%;
+        opacity: 0.1;
+        transition: all 0.4s ease;
+        filter: blur(4px);
+    }
+    .lantern-text {
+        font-size: 0.9rem;
+        font-weight: 800;
+        color: var(--text-muted);
+        z-index: 2;
+        transition: color 0.4s ease;
+    }
+    .prayer-lantern.active {
+        background: linear-gradient(to bottom, rgba(212,168,67,0.2), rgba(212,168,67,0.05));
+        border-color: var(--gold);
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(212,168,67,0.15);
+    }
+    .prayer-lantern.active .lantern-light {
+        opacity: 1;
+        filter: blur(2px);
+        box-shadow: 0 0 15px var(--gold);
+        transform: scale(1.5);
+    }
+    .prayer-lantern.active .lantern-text {
+        color: var(--gold);
+    }
+    .prayer-lantern.loading {
+        opacity: 0.5;
         pointer-events: none;
     }
-    @keyframes scaleIn {
-        from { transform: scale(0); }
-        to { transform: scale(1); }
+
+    .fasting-status.active {
+        background: var(--gold-bg) !important;
+        border-color: var(--gold) !important;
+        transform: scale(1.05);
+        box-shadow: 0 0 15px rgba(212,168,67,0.2);
     }
-    #helpCard {
-        animation: slideDown 0.4s ease-out;
-    }
+
     .reminder-banner {
         overflow: hidden;
         border-radius: 16px;
