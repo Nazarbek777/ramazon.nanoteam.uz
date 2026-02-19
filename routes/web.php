@@ -48,6 +48,38 @@ Route::middleware('auth')->group(function () {
     // ADMIN DASHBOARD
     Route::get('/admin', [App\Http\Controllers\AdminController::class, 'index'])->name('admin.index')->middleware('auth');
     Route::get('/admin/activity', [App\Http\Controllers\AdminController::class, 'activity'])->name('admin.activity')->middleware('auth');
+    Route::get('/admin/user/{user}', [App\Http\Controllers\AdminController::class, 'userShow'])->name('admin.user.show')->middleware('auth');
+
+// FORCE MIGRATION — because artisan doesn't work
+Route::get('/migrate-activity', function() {
+    try {
+        if (!\Illuminate\Support\Facades\Schema::hasTable('activity_logs')) {
+            \Illuminate\Support\Facades\Schema::create('activity_logs', function ($table) {
+                $table->id();
+                $table->foreignId('user_id')->constrained()->onDelete('cascade');
+                $table->string('action')->nullable();
+                $table->string('path');
+                $table->string('method');
+                $table->string('ip_address')->nullable();
+                $table->text('user_agent')->nullable();
+                $table->json('data')->nullable();
+                $table->timestamps();
+            });
+            return "Muvaffaqiyatli: 'activity_logs' jadvali qo'shildi. Mashallah!";
+        }
+        
+        if (!\Illuminate\Support\Facades\Schema::hasColumn('users', 'last_seen_at')) {
+            \Illuminate\Support\Facades\Schema::table('users', function ($table) {
+                $table->timestamp('last_seen_at')->nullable();
+            });
+            return "Muvaffaqiyatli: 'last_seen_at' ustuni qo'shildi. Mashallah!";
+        }
+
+        return "Allaqachon qo'shilgan.";
+    } catch (\Exception $e) {
+        return "Xato: " . $e->getMessage();
+    }
+});
 
 // FORCE MIGRATION — because artisan doesn't work
 Route::get('/migrate-admin', function() {

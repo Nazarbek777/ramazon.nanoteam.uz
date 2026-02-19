@@ -30,26 +30,28 @@
                     <span style="display:block; font-size:0.7rem; opacity:0.6;">{{ $activity->created_at->diffForHumans() }}</span>
                 </td>
                 <td style="padding:15px;">
-                    <div style="display:flex; align-items:center; gap:10px;">
+                    <div style="display:flex; align-items:center; gap:10px; cursor:pointer;" onclick="window.location.href='{{ route('admin.user.show', $activity->user_id) }}'">
                         <div class="sidebar-avatar" style="width:30px; height:30px; font-size:0.8rem;">
-                            {{ strtoupper(substr($activity->dailyLog->user->name ?? '?', 0, 1)) }}
+                            {{ strtoupper(substr($activity->user->name ?? '?', 0, 1)) }}
                         </div>
-                        <span style="font-weight:600;">{{ $activity->dailyLog->user->name ?? 'Noma\'lum' }}</span>
+                        <span style="font-weight:600;">{{ $activity->user->name ?? 'Noma\'lum' }}</span>
                     </div>
                 </td>
                 <td style="padding:15px;">
-                    <div style="display:flex; align-items:center; gap:8px;">
-                        <i class="{{ $activity->habit->icon ?? 'ri-checkbox-circle-line' }}" style="color:var(--accent);"></i>
-                        <span>{{ $activity->habit->name ?? 'Amal' }}</span>
+                    <span class="badge" style="background:var(--white-5); color:var(--text-secondary); font-size:0.75rem; padding:4px 8px; border-radius:4px; text-transform:uppercase;">
+                        {{ $activity->action }}
+                    </span>
+                    <div style="font-size:0.75rem; color:var(--text-muted); margin-top:4px;">
+                        {{ $activity->method }} · /{{ $activity->path }}
                     </div>
                 </td>
-                <td style="padding:15px;">
-                    @if($activity->habit && $activity->habit->type === 'number')
-                        <span class="badge" style="background:var(--accent-bg); color:var(--accent); padding:4px 8px; border-radius:6px; font-weight:700;">
-                            {{ $activity->value }}
-                        </span>
+                <td style="padding:15px; font-size:0.8rem; color:var(--text-secondary);">
+                    @if($activity->action === 'toggle_deed')
+                        <span style="color:var(--gold); font-weight:700;">{{ $activity->data['key'] ?? '' }}</span> = {{ $activity->data['value'] ? 'HA' : 'YO\'Q' }}
+                    @elseif($activity->action === 'toggle_habit')
+                        <span style="color:var(--success); font-weight:700;">{{ $activity->data['habit_name'] ?? '' }}</span> = {{ $activity->data['is_completed'] ? 'HA' : 'YO\'Q' }}
                     @else
-                        <span style="color:var(--success);"><i class="ri-check-double-line"></i> Bajarildi</span>
+                        <span style="opacity:0.6;">Page visit</span>
                     @endif
                 </td>
             </tr>

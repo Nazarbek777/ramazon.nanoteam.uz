@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Helpers\HusnaHelper;
 use App\Helpers\RamadanHelper;
+use App\Models\ActivityLog;
 use App\Models\DailyLog;
 use App\Models\DailyLogItem;
 use App\Models\Goal;
@@ -106,6 +107,22 @@ class DailyLogController extends Controller
             }
             
             $log->update(['data' => $data]);
+
+            // Manual Logging
+            ActivityLog::create([
+                'user_id' => $user->id,
+                'action' => 'toggle_deed',
+                'path' => $request->path(),
+                'method' => $request->method(),
+                'ip_address' => $request->ip(),
+                'user_agent' => $request->header('User-Agent'),
+                'data' => [
+                    'key' => $key,
+                    'value' => $value,
+                    'type' => $type,
+                    'date' => $date
+                ]
+            ]);
             
             $log->refresh();
             $data = $log->data ?? [];
@@ -158,6 +175,23 @@ class DailyLogController extends Controller
         $streak = $this->calculateStreak($user->id);
         Cache::forget("stats_user_{$user->id}");
         $this->updateGoals($user->id);
+
+        // Manual Logging
+        ActivityLog::create([
+            'user_id' => $user->id,
+            'action' => 'toggle_habit',
+            'path' => $request->path(),
+            'method' => $request->method(),
+            'ip_address' => $request->ip(),
+            'user_agent' => $request->header('User-Agent'),
+            'data' => [
+                'habit_id' => $habitId,
+                'habit_name' => $habit->name,
+                'is_completed' => $isCompleted,
+                'value' => $value,
+                'date' => $date
+            ]
+        ]);
 
         return response()->json([
             'success' => true,

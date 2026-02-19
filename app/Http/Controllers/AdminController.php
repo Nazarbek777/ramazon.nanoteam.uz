@@ -9,6 +9,8 @@ use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
+use App\Models\ActivityLog;
+
 class AdminController extends Controller
 {
     public function index()
@@ -30,9 +32,8 @@ class AdminController extends Controller
         // Recent users
         $recentUsers = User::latest()->take(10)->get();
 
-        // Recent activity (last 20 items)
-        $recentActivity = DailyLogItem::with(['dailyLog.user', 'habit'])
-            ->where('is_completed', true)
+        // Recent activity (last 20 logs)
+        $recentActivity = ActivityLog::with('user')
             ->latest()
             ->take(20)
             ->get();
@@ -51,14 +52,26 @@ class AdminController extends Controller
     public function activity()
     {
         if (!Auth::user()->is_admin) {
-            return redirect()->route('dashboard')->with('error', 'Ramsat yo\'q.');
+            return redirect()->route('dashboard')->with('error', 'Ruvsat yo\'q.');
         }
 
-        $activities = DailyLogItem::with(['dailyLog.user', 'habit'])
-            ->where('is_completed', true)
+        $activities = ActivityLog::with('user')
             ->latest()
             ->paginate(50);
 
         return view('admin.activity', compact('activities'));
+    }
+
+    public function userShow(User $user)
+    {
+        if (!Auth::user()->is_admin) {
+            return redirect()->route('dashboard')->with('error', 'Ruvsat yo\'q.');
+        }
+
+        $activities = ActivityLog::where('user_id', $user->id)
+            ->latest()
+            ->paginate(100);
+
+        return view('admin.user_show', compact('user', 'activities'));
     }
 }

@@ -70,12 +70,12 @@
                 </thead>
                 <tbody>
                     @foreach($recentUsers as $user)
-                    <tr style="border-bottom:1px solid var(--white-5);">
+                    <tr style="border-bottom:1px solid var(--white-5); cursor:pointer;" onclick="window.location.href='{{ route('admin.user.show', $user->id) }}'">
                         <td style="padding:12px; display:flex; align-items:center; gap:10px;">
                             <div class="sidebar-avatar" style="width:28px; height:28px; font-size:0.75rem;">
                                 {{ strtoupper(substr($user->name, 0, 1)) }}
                             </div>
-                            <span>{{ $user->name }}</span>
+                            <span style="font-weight:600;">{{ $user->name }}</span>
                         </td>
                         <td style="padding:12px; color:var(--text-muted);">{{ $user->created_at->format('d.m.Y') }}</td>
                         <td style="padding:12px; color:var(--text-secondary); font-size:0.75rem;">
@@ -99,19 +99,39 @@
         <div class="card" style="padding:15px; max-height:480px; overflow-y:auto;">
             <div class="activity-timeline">
                 @foreach($recentActivity as $activity)
-                <div class="activity-item" style="padding-bottom:15px; margin-bottom:15px; border-bottom:1px dashed var(--white-10); display:flex; gap:12px; align-items:flex-start;">
-                    <div style="padding:8px; border-radius:10px; background:var(--accent-bg); color:var(--accent);">
-                        <i class="{{ $activity->habit->icon ?? 'ri-checkbox-circle-line' }}"></i>
+                <div class="activity-item" style="padding-bottom:12px; margin-bottom:12px; border-bottom:1px dashed var(--white-10); display:flex; gap:12px; align-items:flex-start;">
+                    @php
+                        $icon = 'ri-eye-line';
+                        $color = 'var(--text-muted)';
+                        $actionText = 'Sahifaga kirdi';
+                        
+                        if ($activity->action === 'toggle_deed') {
+                            $icon = 'ri-checkbox-circle-line';
+                            $color = 'var(--gold)';
+                            $actionText = 'Amalni o\'zgartirdi';
+                        } elseif ($activity->action === 'toggle_habit') {
+                            $icon = 'ri-check-double-line';
+                            $color = 'var(--success)';
+                            $actionText = 'Odatni o\'zgartirdi';
+                        }
+                    @endphp
+                    <div style="padding:8px; border-radius:10px; background:rgba(212,168,67,0.1); color:{{ $color }};">
+                        <i class="{{ $icon }}"></i>
                     </div>
                     <div style="flex:1;">
-                        <div style="font-size:0.85rem; font-weight:600; color:var(--text-primary);">
-                            {{ $activity->dailyLog->user->name ?? 'Noma\'lum' }}
+                        <div style="font-size:0.85rem; font-weight:700; color:var(--text-primary); cursor:pointer;" onclick="window.location.href='{{ route('admin.user.show', $activity->user_id) }}'">
+                            {{ $activity->user->name ?? 'Noma\'lum' }}
                         </div>
                         <div style="font-size:0.8rem; color:var(--text-secondary);">
-                            {{ $activity->habit->name ?? 'Amal' }} — bajarildi
+                            {{ $actionText }} 
+                            @if(isset($activity->data['key']) || isset($activity->data['habit_name']))
+                                · <span style="color:var(--gold); font-weight:600;">{{ $activity->data['key'] ?? $activity->data['habit_name'] }}</span>
+                            @else
+                                · <span style="font-size:0.75rem; opacity:0.7;">/{{ $activity->path }}</span>
+                            @endif
                         </div>
                         <div style="font-size:0.65rem; color:var(--text-muted); margin-top:4px;">
-                            {{ $activity->created_at->diffForHumans() }}
+                            {{ $activity->created_at->format('H:i') }} · {{ $activity->created_at->diffForHumans() }}
                         </div>
                     </div>
                 </div>
