@@ -15,21 +15,29 @@ class LogActivity
         $response = $next($request);
 
         if (Auth::check()) {
-            // Update last seen
-            Auth::user()->update(['last_seen_at' => now()]);
+            // Update last seen (Safe check)
+            try {
+                Auth::user()->update(['last_seen_at' => now()]);
+            } catch (\Exception $e) {
+                // Column might be missing, ignore for now
+            }
 
             if ($request->isMethod('GET')) {
-                ActivityLog::create([
-                'user_id' => Auth::id(),
-                'action' => 'page_visit',
-                'path' => $request->path(),
-                'method' => $request->method(),
-                'ip_address' => $request->ip(),
-                'user_agent' => $request->header('User-Agent'),
-                'data' => [
-                    'full_url' => $request->fullUrl(),
-                ]
-            ]);
+                try {
+                    ActivityLog::create([
+                        'user_id' => Auth::id(),
+                        'action' => 'page_visit',
+                        'path' => $request->path(),
+                        'method' => $request->method(),
+                        'ip_address' => $request->ip(),
+                        'user_agent' => $request->header('User-Agent'),
+                        'data' => [
+                            'full_url' => $request->fullUrl(),
+                        ]
+                    ]);
+                } catch (\Exception $e) {
+                    // Table might be missing
+                }
             }
         }
 
