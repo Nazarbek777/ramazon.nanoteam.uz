@@ -14,12 +14,16 @@ class Feedback extends Model
         'is_public',
         'is_approved',
         'ip_address',
-        'likes_count',
-        'dislikes_count'
+        'user_id'
     ];
 
     protected $casts = [
         'is_public' => 'boolean',
         'is_approved' => 'boolean'
     ];
+
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
 }

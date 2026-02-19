@@ -26,8 +26,9 @@ class FeedbackController extends Controller
 
         Feedback::create([
             'content' => $request->content,
-            'is_public' => $request->boolean('is_public'),
+            'is_public' => $request->has('is_public'),
             'ip_address' => $request->ip(),
+            'user_id' => auth()->id(),
         ]);
 
         return redirect()->back()->with('success', 'Fikringiz uchun rahmat!');

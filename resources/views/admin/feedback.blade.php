@@ -31,7 +31,17 @@
                     <span style="display:block; opacity:0.6;">{{ $feedback->ip_address }}</span>
                 </td>
                 <td style="padding:15px; vertical-align:top; max-width:400px;">
-                    <div style="color:var(--text-primary); line-height:1.5;">{{ $feedback->content }}</div>
+                    <div style="color:var(--text-primary); line-height:1.5; margin-bottom:5px;">{{ $feedback->content }}</div>
+                    @if($feedback->user)
+                        <div style="font-size:0.75rem; color:var(--accent); font-weight:600;">
+                            <i class="ri-user-line"></i> {{ $feedback->user->name }} 
+                            <span style="color:var(--text-muted); font-weight:400; margin-left:5px;">({{ $feedback->user->email }})</span>
+                        </div>
+                    @else
+                        <div style="font-size:0.75rem; color:var(--text-muted); font-style:italic;">
+                            <i class="ri-user-forbid-line"></i> Mehmon (Tizimga kirmagan)
+                        </div>
+                    @endif
                 </td>
                 <td style="padding:15px; vertical-align:top;">
                     @if($feedback->is_public)

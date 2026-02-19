@@ -258,6 +258,20 @@
         const isCheckbox = item.dataset.type === 'checkbox';
         const completed = isCheckbox ? isChecked : (parseInt(value) > 0);
 
+        // Form sync logic
+        if (isCheckbox) {
+            const formInput = document.getElementById('form_habit_' + habitId);
+            if (formInput) {
+                formInput.value = completed ? 'on' : '';
+                formInput.disabled = !completed;
+            }
+        } else {
+            const formInput = document.getElementById('form_value_' + habitId);
+            if (formInput) {
+                formInput.value = value;
+            }
+        }
+
         // Darhol vizual yangilash (optimistic UI)
         if (completed) {
             item.classList.add('active');
