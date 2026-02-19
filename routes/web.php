@@ -5,8 +5,11 @@ use App\Http\Controllers\DailyLogController;
 use App\Http\Controllers\GoalController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ReportController;
+use App\Http\Controllers\FeedbackController;
+use App\Http\Controllers\AdminController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\RegisterController;
+use App\Http\Controllers\Auth\SocialController;
 use Illuminate\Support\Facades\Route;
 
 // Guest sahifalar
@@ -25,8 +28,8 @@ Route::middleware('guest')->group(function () {
     Route::post('/login', [LoginController::class, 'login']);
 
     // Google Login
-    Route::get('/auth/google', [App\Http\Controllers\Auth\SocialController::class, 'redirectToGoogle'])->name('auth.google');
-    Route::get('/auth/google/callback', [App\Http\Controllers\Auth\SocialController::class, 'handleGoogleCallback']);
+    Route::get('/auth/google', [SocialController::class, 'redirectToGoogle'])->name('auth.google');
+    Route::get('/auth/google/callback', [SocialController::class, 'handleGoogleCallback']);
 });
 
 Route::post('/logout', [LoginController::class, 'logout'])->name('logout')->middleware('auth');
@@ -56,10 +59,10 @@ Route::middleware('auth')->group(function () {
     Route::post('/feedback/{feedback}/dislike', [FeedbackController::class, 'dislike'])->name('feedback.dislike');
 
     // ADMIN DASHBOARD
-    Route::get('/admin', [App\Http\Controllers\AdminController::class, 'index'])->name('admin.index');
-    Route::get('/admin/activity', [App\Http\Controllers\AdminController::class, 'activity'])->name('admin.activity');
-    Route::get('/admin/user/{user}', [App\Http\Controllers\AdminController::class, 'userShow'])->name('admin.user.show');
-    Route::get('/admin/feedback', [App\Http\Controllers\AdminController::class, 'feedback'])->name('admin.feedback');
-    Route::post('/admin/feedback/{feedback}/approve', [App\Http\Controllers\AdminController::class, 'approveFeedback'])->name('admin.feedback.approve');
-    Route::post('/admin/feedback/{feedback}/delete', [App\Http\Controllers\AdminController::class, 'deleteFeedback'])->name('admin.feedback.delete');
+    Route::get('/admin', [AdminController::class, 'index'])->name('admin.index');
+    Route::get('/admin/activity', [AdminController::class, 'activity'])->name('admin.activity');
+    Route::get('/admin/user/{user}', [AdminController::class, 'userShow'])->name('admin.user.show');
+    Route::get('/admin/feedback', [AdminController::class, 'feedback'])->name('admin.feedback');
+    Route::post('/admin/feedback/{feedback}/approve', [AdminController::class, 'approveFeedback'])->name('admin.feedback.approve');
+    Route::post('/admin/feedback/{feedback}/delete', [AdminController::class, 'deleteFeedback'])->name('admin.feedback.delete');
 });
