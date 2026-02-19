@@ -55,6 +55,14 @@
                         Hisobotlar
                     </a>
                 </li>
+                @if(auth()->user()->is_admin)
+                <li>
+                    <a href="{{ route('admin.index') }}" class="{{ request()->routeIs('admin.*') ? 'active' : '' }}" style="color:var(--accent);">
+                        <i class="ri-admin-line"></i>
+                        Admin Panel
+                    </a>
+                </li>
+                @endif
             </ul>
 
             <div class="sidebar-user">

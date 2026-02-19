@@ -90,7 +90,12 @@
 
     {{-- Live Activity Feed --}}
     <div class="admin-section">
-        <h3 class="section-title"><i class="ri-pulse-line"></i> Jonli faollik</h3>
+        <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:8px;">
+            <h3 class="section-title" style="margin-bottom:0;"><i class="ri-pulse-line"></i> Jonli faollik</h3>
+            <a href="{{ route('admin.activity') }}" style="font-size:0.75rem; color:var(--accent); text-decoration:none; display:flex; align-items:center; gap:4px;">
+                Batafsil <i class="ri-arrow-right-s-line"></i>
+            </a>
+        </div>
         <div class="card" style="padding:15px; max-height:480px; overflow-y:auto;">
             <div class="activity-timeline">
                 @foreach($recentActivity as $activity)

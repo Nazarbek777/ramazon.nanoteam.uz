@@ -30,11 +30,11 @@ class AdminController extends Controller
         // Recent users
         $recentUsers = User::latest()->take(10)->get();
 
-        // Recent activity (last 15 items)
+        // Recent activity (last 20 items)
         $recentActivity = DailyLogItem::with(['dailyLog.user', 'habit'])
             ->where('is_completed', true)
             ->latest()
-            ->take(15)
+            ->take(20)
             ->get();
 
         return view('admin.dashboard', compact(
@@ -46,5 +46,19 @@ class AdminController extends Controller
             'recentUsers',
             'recentActivity'
         ));
+    }
+
+    public function activity()
+    {
+        if (!Auth::user()->is_admin) {
+            return redirect()->route('dashboard')->with('error', 'Ramsat yo\'q.');
+        }
+
+        $activities = DailyLogItem::with(['dailyLog.user', 'habit'])
+            ->where('is_completed', true)
+            ->latest()
+            ->paginate(50);
+
+        return view('admin.activity', compact('activities'));
     }
 }
