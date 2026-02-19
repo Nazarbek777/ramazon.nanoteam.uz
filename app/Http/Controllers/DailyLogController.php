@@ -138,10 +138,8 @@ class DailyLogController extends Controller
 
         $log->refresh();
         $allHabits = Habit::forUser($user->id)->count();
-        $items = $log->items;
-        $completed = $items->where('is_completed', true)->count();
-        $total = max($allHabits, $items->count());
-        $percent = $total > 0 ? round(($completed / $total) * 100) : 0;
+        $completedCount = $log->items->where('is_completed', true)->count();
+        $percent = $allHabits > 0 ? round(($completedCount / $allHabits) * 100) : 0;
 
         $streak = $this->calculateStreak($user->id);
         Cache::forget("stats_user_{$user->id}");

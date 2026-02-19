@@ -39,16 +39,16 @@
 
 {{-- 🔔 REMINDERS & ENCOURAGEMENT --}}
 <div id="reminderContainer" style="margin-bottom:20px; display:none;">
-    <div class="card reminder-banner" style="display:flex; align-items:center; gap:16px; padding:16px; background:linear-gradient(135deg, rgba(192,132,252,0.1), rgba(212,168,67,0.05)); border:1px solid var(--accent-glow); position:relative; overflow:hidden;">
+    <div class="card reminder-banner" style="display:flex; align-items:flex-start; gap:16px; padding:20px; background:linear-gradient(135deg, rgba(192,132,252,0.1), rgba(212,168,67,0.05)); border:1px solid var(--accent-glow); position:relative; overflow:hidden;">
         <div class="reminder-glow"></div>
-        <div class="reminder-icon" style="font-size:1.8rem; color:var(--gold); display:flex; align-items:center; justify-content:center; width:48px; height:48px; background:var(--gold-bg); border-radius:12px;">
+        <div class="reminder-icon" style="font-size:1.6rem; color:var(--gold); display:flex; align-items:center; justify-content:center; width:48px; height:48px; min-width:48px; background:var(--gold-bg); border-radius:14px; box-shadow:0 8px 16px rgba(0,0,0,0.2);">
             <i class="ri-notification-3-line"></i>
         </div>
-        <div style="flex:1;">
-            <div id="reminderTitle" style="font-size:0.95rem; font-weight:800; color:var(--text-primary); margin-bottom:4px;">Bugungi amalni bajardingizmi?</div>
-            <div id="reminderText" style="font-size:0.8rem; color:var(--text-secondary); line-height:1.4;">Namoz vaqtlarini o'tkazib yubormang, har bir amal ajrga sabab bo'ladi.</div>
+        <div style="flex:1; padding-top:4px;">
+            <div id="reminderTitle" style="font-size:1.05rem; font-weight:800; color:var(--text-primary); margin-bottom:6px; line-height:1.2;">Bugungi amalni bajardingizmi?</div>
+            <div id="reminderText" style="font-size:0.85rem; color:var(--text-secondary); line-height:1.5;">Namoz vaqtlarini o'tkazib yubormang, har bir amal ajrga sabab bo'ladi.</div>
         </div>
-        <i class="ri-close-line" onclick="closeReminder()" style="cursor:pointer; color:var(--text-muted); position:absolute; top:10px; right:10px; font-size:1rem;"></i>
+        <i class="ri-close-line" onclick="closeReminder()" style="cursor:pointer; color:var(--text-muted); position:absolute; top:12px; right:12px; font-size:1.2rem;"></i>
     </div>
 </div>
 
@@ -124,10 +124,10 @@
                  onclick="toggleDashboardNamoz('roza', this)"
                  style="display:inline-flex; align-items:center; gap:8px; padding:6px 16px; border-radius:50px; background:rgba(212,168,67,0.1); border:1px solid rgba(212,168,67,0.3); color:var(--gold); font-size:0.85rem; font-weight:700; cursor:pointer; transition:all 0.3s; margin-bottom:15px;">
                 <i class="ri-moon-cloudy-line" style="font-size:1.1rem;"></i>
-                <span>{{ ($namozData['roza'] ?? false) ? "Bugun ro'zadorman" : "Bugun ro'zami?" }}</span>
+                <span>{{ ($namozData['roza'] ?? false) ? "Bugun ro'zadorman" : "Bugun ro'za tutdingizmi?" }}</span>
             </div>
 
-            <div style="font-size:0.75rem; color:var(--text-muted); margin-bottom:10px; text-transform:uppercase; letter-spacing:1px; font-weight:700;">
+            <div style="font-size:0.8rem; color:var(--gold); opacity:0.8; margin-bottom:15px; text-transform:uppercase; letter-spacing:2px; font-weight:800;">
                 Besh vaqt namoz
             </div>
             <div style="display:flex; justify-content:center; gap:12px;">
@@ -146,7 +146,7 @@
             @if($treePercent === 0)
                 <p>✨ Bugun birinchi amaldan boshlang, {{ explode(' ', Auth::user()->name)[0] }}!</p>
             @elseif($treePercent < 100)
-                <p>🔥 Zo'r! Daraxtingiz o'sib bormoqda, ${USER_NAME}!</p>
+                <p>🔥 Zo'r! Daraxtingiz o'sib bormoqda, {{ explode(' ', Auth::user()->name)[0] }}!</p>
             @else
                 <p>🌸 Barakalla, {{ explode(' ', Auth::user()->name)[0] }}! Barcha amallar bajarildi!</p>
             @endif
@@ -320,7 +320,7 @@
                 // Update Ro'za text if applicable
                 if (id === 'roza') {
                     const span = el.querySelector('span');
-                    if (span) span.textContent = isDone ? "Bugun ro'zadorman" : "Bugun ro'zami?";
+                    if (span) span.textContent = isDone ? "Bugun ro'zadorman" : "Bugun ro'za tutdingizmi?";
                 }
                 
                 checkReminders(); // Update reminders after toggle
@@ -481,9 +481,16 @@
         display: block;
         animation: scaleIn 0.3s ease-out;
     }
+    .today-focus {
+        background: rgba(255,255,255,0.02);
+        padding: 20px 15px;
+        border-radius: 20px;
+        border: 1px solid var(--white-5);
+        margin: 20px 0;
+    }
     .prayer-lantern {
-        width: 48px;
-        height: 60px;
+        width: 50px;
+        height: 65px;
         background: rgba(255,255,255,0.03);
         border: 1px solid var(--white-10);
         border-radius: 12px 12px 24px 24px;
@@ -494,51 +501,77 @@
         flex-direction: column;
         align-items: center;
         justify-content: flex-end;
-        padding-bottom: 8px;
+        padding-bottom: 10px;
+    }
+    .prayer-lantern::before {
+        content: '';
+        position: absolute;
+        top: -15px;
+        width: 1px;
+        height: 15px;
+        background: linear-gradient(to bottom, transparent, var(--white-20));
     }
     .lantern-light {
         position: absolute;
-        top: 15%;
-        width: 12px;
-        height: 12px;
+        top: 20%;
+        width: 14px;
+        height: 14px;
         background: var(--gold);
         border-radius: 50%;
-        opacity: 0.1;
+        opacity: 0.15;
         transition: all 0.4s ease;
-        filter: blur(4px);
+        filter: blur(5px);
     }
     .lantern-text {
-        font-size: 0.9rem;
+        font-size: 0.95rem;
         font-weight: 800;
         color: var(--text-muted);
         z-index: 2;
         transition: color 0.4s ease;
     }
     .prayer-lantern.active {
-        background: linear-gradient(to bottom, rgba(212,168,67,0.2), rgba(212,168,67,0.05));
+        background: linear-gradient(to bottom, rgba(212,168,67,0.25), rgba(212,168,67,0.05));
         border-color: var(--gold);
-        transform: translateY(-5px);
-        box-shadow: 0 10px 20px rgba(212,168,67,0.15);
+        transform: translateY(2px);
+        box-shadow: 0 5px 15px rgba(212,168,67,0.2);
+    }
+    .prayer-lantern.active::before {
+        background: var(--gold);
+        opacity: 0.5;
     }
     .prayer-lantern.active .lantern-light {
         opacity: 1;
-        filter: blur(2px);
-        box-shadow: 0 0 15px var(--gold);
-        transform: scale(1.5);
+        filter: blur(3px);
+        box-shadow: 0 0 20px var(--gold);
+        transform: scale(1.6);
+        background: #fff5e0;
     }
     .prayer-lantern.active .lantern-text {
         color: var(--gold);
+        text-shadow: 0 0 10px rgba(212,168,67,0.5);
     }
     .prayer-lantern.loading {
         opacity: 0.5;
         pointer-events: none;
     }
 
+    .fasting-status {
+        position: relative;
+        overflow: hidden;
+    }
     .fasting-status.active {
-        background: var(--gold-bg) !important;
-        border-color: var(--gold) !important;
+        background: linear-gradient(135deg, var(--gold), #f7c948) !important;
+        color: #1a1a1a !important;
+        border-color: #fff !important;
         transform: scale(1.05);
-        box-shadow: 0 0 15px rgba(212,168,67,0.2);
+        box-shadow: 0 10px 20px rgba(212,168,67,0.3);
+    }
+    .fasting-status.active i {
+        animation: rotateIcon 0.5s ease-out;
+    }
+    @keyframes rotateIcon {
+        from { transform: rotate(-45deg); }
+        to { transform: rotate(0); }
     }
 
     .reminder-banner {
