@@ -4,7 +4,8 @@
 @section('content')
 <div class="page-header" style="text-align:center; margin-bottom:30px;">
     <h2 style="font-size:1.8rem; color:var(--gold);"><i class="ri-chat-voice-line"></i> Jamoatchilik Fikri</h2>
-    <p class="text-muted">Biz haqimizda istalgan fikringizni yoki saytga nima qo'shish kerakligini bemalol bildirishingiz mumkin.</p>
+    <p class="text-muted" style="margin-bottom:8px;">Biz haqimizda istalgan fikringizni yoki saytga nima qo'shish kerakligini bemalol bildirishingiz mumkin.</p>
+    <p style="font-size:0.85rem; color:var(--accent); font-weight:600;"><i class="ri-shield-user-fill"></i> Bildirilgan fikrlar mutlaqo anonim – kim yozganini hech kim ko'ra olmaydi.</p>
 </div>
 
 {{-- 📢 DIRECT FEEDBACK FORM --}}

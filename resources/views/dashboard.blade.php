@@ -316,8 +316,8 @@
                 </div>
             </form>
         </div>
-        <p style="text-align:center; font-size:0.75rem; color:var(--text-muted); margin-top:12px; opacity:0.6;">
-            <i class="ri-shield-user-line"></i> Fikringiz mutlaqo anonim tarzda qabul qilinadi.
+        <p style="text-align:center; font-size:0.75rem; color:var(--text-muted); margin-top:12px; opacity:0.8;">
+            <i class="ri-shield-user-line"></i> Bildirilgan fikrlar mutlaqo anonim – kim yozganini hech kim ko'ra olmaydi.
         </p>
     </div>
 
