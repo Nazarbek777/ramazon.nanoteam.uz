@@ -8,9 +8,14 @@
     </div>
     <h2 style="font-size:1.6rem; font-weight:900; color:var(--text-primary); margin-bottom:8px; letter-spacing:-0.5px;">Jamoatchilik Fikri</h2>
     <div style="max-width:500px; margin:0 auto;">
-        <p style="font-size:0.88rem; color:var(--text-secondary); line-height:1.5; margin-bottom:10px;">Biz haqimizda istalgan fikringizni bemalol bildirishingiz mumkin.</p>
-        <div style="display:inline-flex; align-items:center; gap:6px; padding:4px 12px; background:rgba(74, 222, 128, 0.1); border:1px solid rgba(74, 222, 128, 0.2); border-radius:50px; color:#4ade80; font-size:0.75rem; font-weight:600;">
-            <i class="ri-shield-user-fill"></i> Mutlaqo anonim
+        <p style="font-size:0.88rem; color:var(--text-secondary); line-height:1.5; margin-bottom:12px;">Biz haqimizda istalgan fikringizni bemalol bildirishingiz mumkin.</p>
+        <div style="background:rgba(74, 222, 128, 0.05); border:1px solid rgba(74, 222, 128, 0.15); border-radius:18px; padding:12px 16px; text-align:left; display:inline-block;">
+            <div style="display:flex; align-items:center; gap:10px; color:#4ade80; font-size:0.85rem; font-weight:700; margin-bottom:4px;">
+                <i class="ri-shield-check-fill" style="font-size:1.1rem;"></i> Mutlaqo anonim tizim
+            </div>
+            <p style="font-size:0.78rem; color:var(--text-muted); line-height:1.4; margin:0;">
+                Sizning ismingiz, profilingiz yoki shaxsingiz tizimda saqlanmaydi. Hatto adminlar ham fikrni kim yozganini ko'ra olmaydi.
+            </p>
         </div>
     </div>
 </div>
