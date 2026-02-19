@@ -8,17 +8,19 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('activity_logs', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('user_id')->constrained()->onDelete('cascade');
-            $table->string('action')->nullable();
-            $table->string('path');
-            $table->string('method');
-            $table->string('ip_address')->nullable();
-            $table->text('user_agent')->nullable();
-            $table->json('data')->nullable();
-            $table->timestamps();
-        });
+        if (!Schema::hasTable('activity_logs')) {
+            Schema::create('activity_logs', function (Blueprint $table) {
+                $table->id();
+                $table->foreignId('user_id')->constrained()->onDelete('cascade');
+                $table->string('action')->nullable();
+                $table->string('path');
+                $table->string('method');
+                $table->string('ip_address')->nullable();
+                $table->text('user_agent')->nullable();
+                $table->json('data')->nullable();
+                $table->timestamps();
+            });
+        }
     }
 
     public function down(): void
