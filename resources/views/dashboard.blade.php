@@ -36,6 +36,21 @@
     </div>
 @endif
 
+{{-- 🔔 REMINDERS & ENCOURAGEMENT --}}
+<div id="reminderContainer" style="margin-bottom:20px; display:none;">
+    <div class="card reminder-banner" style="display:flex; align-items:center; gap:16px; padding:16px; background:linear-gradient(135deg, rgba(192,132,252,0.1), rgba(212,168,67,0.05)); border:1px solid var(--accent-glow); position:relative; overflow:hidden;">
+        <div class="reminder-glow"></div>
+        <div class="reminder-icon" style="font-size:1.8rem; color:var(--gold); display:flex; align-items:center; justify-content:center; width:48px; height:48px; background:var(--gold-bg); border-radius:12px;">
+            <i class="ri-notification-3-line"></i>
+        </div>
+        <div style="flex:1;">
+            <div id="reminderTitle" style="font-size:0.95rem; font-weight:800; color:var(--text-primary); margin-bottom:4px;">Bugungi amalni bajardingizmi?</div>
+            <div id="reminderText" style="font-size:0.8rem; color:var(--text-secondary); line-height:1.4;">Namoz vaqtlarini o'tkazib yubormang, har bir amal ajrga sabab bo'ladi.</div>
+        </div>
+        <i class="ri-close-line" onclick="closeReminder()" style="cursor:pointer; color:var(--text-muted); position:absolute; top:10px; right:10px; font-size:1rem;"></i>
+    </div>
+</div>
+
 {{-- ⚡ TEZKOR NAVIGATSIYA --}}
 <div class="quick-nav">
     <a href="#saharlik-iftorlik" class="quick-nav-btn">
@@ -59,6 +74,7 @@
 {{-- 🌳 DARAXT --}}
 <div class="tree-card">
     <div class="tree-scene">
+        {{-- ... tree scene content as before ... --}}
         <div class="tree-stars">
             <span style="top:8%;left:12%;animation-delay:0s;"></span>
             <span style="top:15%;right:18%;animation-delay:0.7s;"></span>
@@ -101,33 +117,57 @@
             <span class="tree-percent">{{ $treePercent }}%</span>
         </div>
         <div class="tree-detail">{{ $completedToday }}/{{ $totalToday }} amal bajarildi</div>
+        
+        {{-- QUICK NAMOS CHECK --}}
+        <div class="quick-prayer-check" style="margin:16px 0; background:rgba(255,255,255,0.03); padding:12px; border-radius:12px; border:1px solid var(--white-10);">
+            <div style="font-size:0.75rem; color:var(--text-muted); margin-bottom:10px; text-transform:uppercase; letter-spacing:0.5px; font-weight:700;">
+                <i class="ri-heart-pulse-line"></i> Bugungi namozlar
+            </div>
+            <div style="display:flex; justify-content:space-between; gap:5px;">
+                @foreach(['fajr' => 'B', 'dhuhr' => 'P', 'asr' => 'A', 'maghrib' => 'Sh', 'isha' => 'X'] as $id => $short)
+                <div class="prayer-bubble {{ ($namozData[$id] ?? false) ? 'active' : '' }}" 
+                     onclick="toggleDashboardNamoz('{{ $id }}', this)"
+                     title="{{ $id }}">
+                    {{ $short }}
+                    <i class="ri-check-line"></i>
+                </div>
+                @endforeach
+            </div>
+        </div>
+
         <div class="tree-motivation">
             @if($treePercent === 0)
                 <p>✨ Bugungi amallarni belgilang va daraxtingiz o'sishini kuzating!</p>
-            @elseif($treePercent < 20)
-                <p>🌱 Yaxshi boshlang'ich! Davom eting — har bir amal muhim!</p>
-            @elseif($treePercent < 40)
-                <p>💪 Ajoyib! Yarim yo'lga yetmadingiz, lekin yaqinsiz!</p>
-            @elseif($treePercent < 60)
-                <p>🔥 Zo'r! Yarmidan ko'pi bajarildi. Davom eting!</p>
-            @elseif($treePercent < 80)
-                <p>🌟 Ajoyib natija — ozgina qoldi!</p>
             @elseif($treePercent < 100)
-                <p>🏆 Deyarli tamom! Jannat daraxtiga ozgina qoldi!</p>
+                <p>🔥 Zo'r! Davom eting, daraxtingiz o'sib bormoqda!</p>
             @else
                 <p>🌸 Barakalla! Barcha amallar bajarildi!</p>
             @endif
         </div>
     </div>
-    <a href="{{ route('daily.show') }}" class="btn btn-gold" style="width:100%;margin-top:10px;">
-        @if($treePercent === 0)
-            <i class="ri-play-fill"></i> Boshlash — bugungi amallar
-        @elseif($treePercent < 100)
-            <i class="ri-edit-line"></i> Davom etish ({{ $totalToday - $completedToday }} ta qoldi)
-        @else
-            <i class="ri-check-double-line"></i> Bugungi amallar ✓
-        @endif
-    </a>
+
+    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-top:10px;">
+        <a href="{{ route('daily.show') }}" class="btn btn-gold" style="width:100%;">
+            <i class="ri-list-check"></i> Amallar
+        </a>
+        <button onclick="toggleHelp()" class="btn btn-outline" style="width:100%; border-color:var(--text-muted); color:var(--text-muted);">
+            <i class="ri-question-line"></i> Yo'riqnoma
+        </button>
+    </div>
+</div>
+
+{{-- 💡 HOW TO USE GUIDE (Help Card) --}}
+<div id="helpCard" class="card" style="display:none; margin-bottom:24px; background:linear-gradient(135deg, rgba(212,168,67,0.1), rgba(0,0,0,0.5)); border:1px solid var(--gold-border);">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+        <h4 style="color:var(--gold); margin:0;"><i class="ri-lightbulb-line"></i> Qanday foydalanish kerak?</h4>
+        <i class="ri-close-line" onclick="toggleHelp()" style="cursor:pointer; color:var(--text-muted);"></i>
+    </div>
+    <div style="font-size:0.85rem; line-height:1.6; color:var(--text-secondary);">
+        <p>1. <b>Namozlarni belgilang</b> — Daraxt ostidagi harflarni bosing. Har bir namoz daraxtingizni o'stiradi.</p>
+        <p>2. <b>Amallar bo'limiga o'ting</b> — U yerda Qur'on o'qish, zikr va boshqa savob amallar bor.</p>
+        <p>3. <b>Maqsad qo'ying</b> — "Maqsadlar" bo'limida Ramazon uchun o'z rejalaringizni belgilang.</p>
+        <p>4. <b>Daraxtni kuzating</b> — Kunlik amallaringizga qarab daraxtingiz niholdan katta jannat daraxtigacha o'sadi. Mashallah!</p>
+    </div>
 </div>
 
 {{-- 🕐 SAHARLIK / IFTORLIK --}}
@@ -234,6 +274,11 @@
 
 @section('scripts')
 <script>
+    const TOGGLE_URL = "{{ route('daily.toggle') }}";
+    const CSRF = "{{ csrf_token() }}";
+    const DATE = "{{ $today->format('Y-m-d') }}";
+    let namozData = {!! json_encode($namozData) !!};
+
     // Smooth scroll
     document.querySelectorAll('.quick-nav-btn[href^="#"]').forEach(btn => {
         btn.addEventListener('click', e => {
@@ -242,5 +287,205 @@
             if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
         });
     });
+
+    function toggleHelp() {
+        const card = document.getElementById('helpCard');
+        card.style.display = card.style.display === 'none' ? 'block' : 'none';
+        if (card.style.display === 'block') card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+
+    function toggleDashboardNamoz(id, el) {
+        const isDone = !el.classList.contains('active');
+        el.classList.add('loading');
+        
+        fetch(TOGGLE_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': CSRF, 'Accept': 'application/json' },
+            body: JSON.stringify({ key: 'namoz.' + id, value: isDone, date: DATE, type: 'data_field' })
+        })
+        .then(r => r.json())
+        .then(data => {
+            el.classList.remove('loading');
+            if (data.success) {
+                el.classList.toggle('active', isDone);
+                namozData[id] = isDone;
+                checkReminders(); // Update reminders after toggle
+                
+                // Update tree progress
+                const fill = document.querySelector('.tree-progress-fill');
+                const pText = document.querySelector('.tree-percent');
+                const dText = document.querySelector('.tree-detail');
+                
+                if (fill) fill.style.width = data.percent + '%';
+                if (pText) pText.textContent = data.percent + '%';
+                if (dText) dText.textContent = data.completed + '/' + data.total + ' amal bajarildi';
+                
+                // Refresh motivation? (Optional, maybe just success toast)
+                if (data.percent === 100) {
+                    showToast('🌸 Barakalla! Barcha amallar bajarildi!');
+                } else {
+                    showToast('Saqlandi');
+                }
+            }
+        });
+    }
+
+    function checkReminders() {
+        const container = document.getElementById('reminderContainer');
+        const title = document.getElementById('reminderTitle');
+        const text = document.getElementById('reminderText');
+        
+        // Use PrayerTimes to get current data
+        PrayerTimes.getLocation().then(async loc => {
+            const times = await PrayerTimes.getTimesForDate(loc.apiRegion, new Date());
+            if (!times) return;
+
+            const now = new Date();
+            const nowMin = now.getHours() * 60 + now.getMinutes();
+
+            const prayerOrder = [
+                {id: 'fajr', name: 'Bomdod', time: times.Fajr},
+                {id: 'dhuhr', name: 'Peshin', time: times.Dhuhr},
+                {id: 'asr', name: 'Asr', time: times.Asr},
+                {id: 'maghrib', name: 'Shom', time: times.Maghrib},
+                {id: 'isha', name: 'Xufton', time: times.Isha}
+            ];
+
+            let activePrayer = null;
+            for (let i = 0; i < prayerOrder.length; i++) {
+                const [h, m] = prayerOrder[i].time.split(':').map(Number);
+                const pMin = h * 60 + m;
+                if (nowMin >= pMin) {
+                    activePrayer = prayerOrder[i];
+                }
+            }
+
+            if (activePrayer && !namozData[activePrayer.id]) {
+                container.style.display = 'block';
+                title.innerHTML = `✨ ${activePrayer.name} namozini o'qidingizmi?`;
+                text.innerHTML = `Vaqt g'animat, darrov belgilab qo'ying va savobingizni daraxt o'sishida ko'ring!`;
+            } else if (activePrayer) {
+                // All current prayers done
+                container.style.display = 'block';
+                title.innerHTML = `🌟 Barakalla!`;
+                text.innerHTML = `Hozirgacha bo'lgan barcha namozlarni ado etibsiz. Alloh qabul qilsin! Zikr aytishni va boshqa amallarni unutmang.`;
+                // Maybe auto-close after some time or keep as encouragement
+            }
+        });
+    }
+
+    function closeReminder() {
+        document.getElementById('reminderContainer').style.display = 'none';
+        sessionStorage.setItem('reminder_closed_today', new Date().toDateString());
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        if (sessionStorage.getItem('reminder_closed_today') !== new Date().toDateString()) {
+            setTimeout(checkReminders, 2000); // Wait for PrayerTimes to load
+        }
+    });
+
+    function showToast(text) {
+        // Dashboard uses different toast or simple alert?
+        // Let's add a basic one if not present
+        let toast = document.getElementById('dash-toast');
+        if (!toast) {
+            toast = document.createElement('div');
+            toast.id = 'dash-toast';
+            toast.style = 'position:fixed; bottom:80px; left:50%; transform:translateX(-50%); background:var(--gold); color:white; padding:10px 20px; border-radius:30px; z-index:1000; box-shadow:0 10px 20px rgba(0,0,0,0.3); font-size:0.85rem; pointer-events:none; transition:all 0.4s; opacity:0;';
+            document.body.appendChild(toast);
+        }
+        toast.textContent = text;
+        toast.style.opacity = '1';
+        toast.style.transform = 'translateX(-50%) translateY(0)';
+        setTimeout(() => {
+            toast.style.opacity = '0';
+            toast.style.transform = 'translateX(-50%) translateY(20px)';
+        }, 3000);
+    }
 </script>
+
+<style>
+    .quick-prayer-check {
+        animation: fadeIn 0.8s ease-out;
+    }
+    .prayer-bubble {
+        width: 44px;
+        height: 44px;
+        border-radius: 50%;
+        background: var(--white-5);
+        border: 1px solid var(--white-10);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.85rem;
+        font-weight: 700;
+        color: var(--text-muted);
+        cursor: pointer;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        position: relative;
+    }
+    .prayer-bubble i {
+        position: absolute;
+        font-size: 0.7rem;
+        bottom: -2px;
+        right: -2px;
+        background: var(--success);
+        color: white;
+        border-radius: 50%;
+        padding: 2px;
+        display: none;
+    }
+    .prayer-bubble.active {
+        background: var(--gold-bg);
+        border-color: var(--gold);
+        color: var(--gold);
+        transform: scale(1.05);
+        box-shadow: 0 0 15px var(--gold-bg);
+    }
+    .prayer-bubble.active i {
+        display: block;
+        animation: scaleIn 0.3s ease-out;
+    }
+    .prayer-bubble.loading {
+        opacity: 0.6;
+        pointer-events: none;
+    }
+    @keyframes scaleIn {
+        from { transform: scale(0); }
+        to { transform: scale(1); }
+    }
+    #helpCard {
+        animation: slideDown 0.4s ease-out;
+    }
+    .reminder-banner {
+        overflow: hidden;
+        border-radius: 16px;
+        transition: transform 0.3s ease;
+    }
+    .reminder-banner:hover {
+        transform: translateY(-2px);
+    }
+    .reminder-glow {
+        position: absolute;
+        top: -50%;
+        left: -50%;
+        width: 200%;
+        height: 200%;
+        background: radial-gradient(circle, rgba(192,132,252,0.1) 0%, transparent 70%);
+        animation: rotateGlow 10s linear infinite;
+        pointer-events: none;
+    }
+    @keyframes rotateGlow {
+        from { transform: rotate(0deg); }
+        to { transform: rotate(360deg); }
+    }
+    #reminderContainer {
+        animation: slideInTop 0.6s cubic-bezier(0.23, 1, 0.32, 1);
+    }
+    @keyframes slideInTop {
+        from { opacity: 0; transform: translateY(-30px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+</style>
 @endsection

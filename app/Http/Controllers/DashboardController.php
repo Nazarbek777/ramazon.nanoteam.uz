@@ -68,8 +68,11 @@ class DashboardController extends Controller
         // Haftalik progress
         $weeklyProgress = $this->getWeeklyProgress($user->id);
 
+        // Namoz ma'lumotlari (Quick Check-in uchun)
+        $namozData = ($todayLog && isset($todayLog->data['namoz'])) ? $todayLog->data['namoz'] : [];
+
         return view('dashboard', compact(
-            'todayLog', 'habits', 'streak', 'stats', 'goals', 'weeklyProgress', 'today', 'ramadan'
+            'todayLog', 'habits', 'streak', 'stats', 'goals', 'weeklyProgress', 'today', 'ramadan', 'namozData'
         ));
     }
 
@@ -129,7 +132,7 @@ class DashboardController extends Controller
 
     private function getUzbekDay(int $dayOfWeek): string
     {
-        return match ($dayOfWeek) {
+        $days = [
             0 => 'Yak',
             1 => 'Dush',
             2 => 'Sesh',
@@ -137,6 +140,7 @@ class DashboardController extends Controller
             4 => 'Pay',
             5 => 'Jum',
             6 => 'Shan',
-        };
+        ];
+        return $days[$dayOfWeek] ?? '';
     }
 }
