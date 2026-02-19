@@ -10,6 +10,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 use App\Models\ActivityLog;
+use App\Models\Feedback;
 
 class AdminController extends Controller
 {
@@ -28,6 +29,7 @@ class AdminController extends Controller
         $totalDeedsLogged = DailyLogItem::where('is_completed', true)->count();
         $maleUsers = User::where('gender', 'male')->count();
         $femaleUsers = User::where('gender', 'female')->count();
+        $pendingFeedbackCount = Feedback::where('is_approved', false)->where('is_public', true)->count();
 
         // Recent users
         $recentUsers = User::latest()->take(10)->get();
@@ -45,8 +47,39 @@ class AdminController extends Controller
             'maleUsers',
             'femaleUsers',
             'recentUsers',
-            'recentActivity'
+            'recentActivity',
+            'pendingFeedbackCount'
         ));
+    }
+
+    public function feedback()
+    {
+        if (!Auth::user()->is_admin) {
+            return redirect()->route('dashboard')->with('error', 'Ruvsat yo\'q.');
+        }
+
+        $feedbacks = Feedback::latest()->paginate(50);
+        return view('admin.feedback', compact('feedbacks'));
+    }
+
+    public function approveFeedback(Feedback $feedback)
+    {
+        if (!Auth::user()->is_admin) {
+            return response()->json(['error' => 'Ruvsat yo\'q'], 403);
+        }
+
+        $feedback->update(['is_approved' => true]);
+        return back()->with('success', 'Fikr tasdiqlandi. Mashallah!');
+    }
+
+    public function deleteFeedback(Feedback $feedback)
+    {
+        if (!Auth::user()->is_admin) {
+            return response()->json(['error' => 'Ruvsat yo\'q'], 403);
+        }
+
+        $feedback->delete();
+        return back()->with('success', 'Fikr o\'chirildi.');
     }
 
     public function activity()

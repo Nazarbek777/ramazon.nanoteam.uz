@@ -7,7 +7,21 @@
     <p class="text-muted">Foydalanuvchilar faolligi va o'sish ko'rsatkichlari</p>
 </div>
 
-<div class="admin-stats-grid" style="display:grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap:16px; margin-bottom:24px;">
+<div class="admin-stats-grid" style="display:grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap:16px; margin-bottom:24px;">
+    {{-- Feedback Card --}}
+    <div class="card stat-card" style="text-align:center; padding:20px; cursor:pointer;" onclick="window.location.href='{{ route('admin.feedback') }}'">
+        <div class="stat-icon" style="font-size:1.8rem; color:var(--accent); margin-bottom:8px;">
+            <i class="ri-feedback-line"></i>
+        </div>
+        <div class="stat-value" style="font-size:1.5rem; font-weight:800; color:var(--text-primary);">
+            {{ $pendingFeedbackCount }}
+            @if($pendingFeedbackCount > 0)
+                <span style="font-size:0.7rem; background:var(--danger); color:#fff; padding:2px 6px; border-radius:10px; vertical-align:top; margin-left:-5px;">YANGI</span>
+            @endif
+        </div>
+        <div class="stat-label" style="font-size:0.75rem; color:var(--text-muted); text-transform:uppercase; letter-spacing:1px;">Fikrlar (Kutilmoqda)</div>
+    </div>
+
     {{-- Total Users Card --}}
     <div class="card stat-card" style="text-align:center; padding:20px;">
         <div class="stat-icon" style="font-size:1.8rem; color:var(--accent); margin-bottom:8px;">

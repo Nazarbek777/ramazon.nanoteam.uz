@@ -48,6 +48,17 @@
                 </button>
             </form>
 
+            <div style="margin:20px 0; display:flex; align-items:center; gap:10px;">
+                <div style="flex:1; height:1px; background:var(--white-10);"></div>
+                <div style="font-size:0.75rem; color:var(--text-muted); text-transform:uppercase;">Yoki</div>
+                <div style="flex:1; height:1px; background:var(--white-10);"></div>
+            </div>
+
+            <a href="{{ route('auth.google') }}" class="btn btn-outline" style="width:100%; display:flex; align-items:center; justify-content:center; gap:10px; border-color:var(--white-15); background:rgba(255,255,255,0.03);">
+                <img src="https://www.gstatic.com/images/branding/product/1x/googleg_48dp.png" alt="Google" style="width:18px; height:18px;">
+                Google orqali kirish
+            </a>
+
             <div class="auth-footer">
                 Hisobingiz yo'qmi? <a href="{{ route('register') }}">Ro'yxatdan o'tish</a>
             </div>

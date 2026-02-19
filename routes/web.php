@@ -23,6 +23,10 @@ Route::middleware('guest')->group(function () {
     Route::post('/register', [RegisterController::class, 'register']);
     Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
     Route::post('/login', [LoginController::class, 'login']);
+
+    // Google Login
+    Route::get('/auth/google', [App\Http\Controllers\Auth\SocialController::class, 'redirectToGoogle'])->name('auth.google');
+    Route::get('/auth/google/callback', [App\Http\Controllers\Auth\SocialController::class, 'handleGoogleCallback']);
 });
 
 Route::post('/logout', [LoginController::class, 'logout'])->name('logout')->middleware('auth');
@@ -45,10 +49,17 @@ Route::middleware('auth')->group(function () {
 
     Route::get('/reports', [ReportController::class, 'index'])->name('reports');
 
+    // FEEDBACK
+    Route::get('/feedback', [App\Http\Controllers\FeedbackController::class, 'index'])->name('feedback.index');
+    Route::post('/feedback', [App\Http\Controllers\FeedbackController::class, 'store'])->name('feedback.store');
+
     // ADMIN DASHBOARD
     Route::get('/admin', [App\Http\Controllers\AdminController::class, 'index'])->name('admin.index')->middleware('auth');
     Route::get('/admin/activity', [App\Http\Controllers\AdminController::class, 'activity'])->name('admin.activity')->middleware('auth');
     Route::get('/admin/user/{user}', [App\Http\Controllers\AdminController::class, 'userShow'])->name('admin.user.show')->middleware('auth');
+    Route::get('/admin/feedback', [App\Http\Controllers\AdminController::class, 'feedback'])->name('admin.feedback')->middleware('auth');
+    Route::post('/admin/feedback/{feedback}/approve', [App\Http\Controllers\AdminController::class, 'approveFeedback'])->name('admin.feedback.approve')->middleware('auth');
+    Route::post('/admin/feedback/{feedback}/delete', [App\Http\Controllers\AdminController::class, 'deleteFeedback'])->name('admin.feedback.delete')->middleware('auth');
 
 // FORCE MIGRATION — because artisan doesn't work
 Route::get('/migrate-activity', function() {
@@ -71,8 +82,22 @@ Route::get('/migrate-activity', function() {
         if (!\Illuminate\Support\Facades\Schema::hasColumn('users', 'last_seen_at')) {
             \Illuminate\Support\Facades\Schema::table('users', function ($table) {
                 $table->timestamp('last_seen_at')->nullable();
+                $table->string('google_id')->nullable()->after('id');
+                $table->string('avatar')->nullable()->after('email');
             });
-            return "Muvaffaqiyatli: 'last_seen_at' ustuni qo'shildi. Mashallah!";
+            return "Muvaffaqiyatli: 'last_seen_at' va Google ustunlari qo'shildi. Mashallah!";
+        }
+
+        if (!\Illuminate\Support\Facades\Schema::hasTable('feedback')) {
+            \Illuminate\Support\Facades\Schema::create('feedback', function ($table) {
+                $table->id();
+                $table->text('content');
+                $table->boolean('is_public')->default(false);
+                $table->boolean('is_approved')->default(false);
+                $table->string('ip_address')->nullable();
+                $table->timestamps();
+            });
+            return "Muvaffaqiyatli: 'feedback' jadvali qo'shildi. Mashallah!";
         }
 
         return "Allaqachon qo'shilgan.";
