@@ -14,16 +14,6 @@ const joinQuiz = () => {
     if (!testId.value) return;
     router.post('/webapp/quiz/join', { code: testId.value });
 };
-
-// Returns the worst status among a subject's quizzes for badge display
-const getSubjectBadge = (subject) => {
-    if (!subject.quizzes?.length) return null;
-    const statuses = subject.quizzes.map(q => props.quizStatuses[q.id]?.status).filter(Boolean);
-    if (statuses.includes('in_progress')) return 'in_progress';
-    if (statuses.some((s, i, arr) => arr.length === subject.quizzes.length && s === 'completed')) return 'all_done';
-    if (statuses.includes('completed')) return 'partial';
-    return null;
-};
 </script>
 
 <template>
@@ -61,15 +51,7 @@ const getSubjectBadge = (subject) => {
                 <div class="grid gap-3">
                     <div v-for="subject in subjects" :key="subject.id"
                          @click="router.visit('/webapp/subject/' + subject.id)"
-                         class="bg-white p-4 rounded-xl shadow-sm border border-slate-100 cursor-pointer active:scale-[0.98] transition-all group relative overflow-hidden">
-
-                        <!-- Badge -->
-                        <div v-if="getSubjectBadge(subject) === 'all_done'"
-                             class="absolute top-0 right-0 bg-emerald-500 text-white text-[9px] font-bold px-2.5 py-1 rounded-bl-xl uppercase">✓ Tugatildi</div>
-                        <div v-else-if="getSubjectBadge(subject) === 'in_progress'"
-                             class="absolute top-0 right-0 bg-blue-500 text-white text-[9px] font-bold px-2.5 py-1 rounded-bl-xl uppercase">▶ Davom etmoqda</div>
-                        <div v-else-if="getSubjectBadge(subject) === 'partial'"
-                             class="absolute top-0 right-0 bg-indigo-400 text-white text-[9px] font-bold px-2.5 py-1 rounded-bl-xl uppercase">Qisman</div>
+                         class="bg-white p-4 rounded-xl shadow-sm border border-slate-100 cursor-pointer active:scale-[0.98] transition-all group">
 
                         <div class="flex items-center gap-3">
                             <div class="w-11 h-11 rounded-xl flex items-center justify-center text-lg flex-shrink-0 bg-indigo-50 text-indigo-600 group-hover:bg-indigo-600 group-hover:text-white transition-colors">
