@@ -444,6 +444,8 @@ class SubjectsSeeder extends Seeder
                     'time_limit' => 15,
                     'pass_score' => 70,
                     'is_random' => true,
+                    'starts_at' => now(),
+                    'ends_at' => now()->addDays(30),
                 ]
             );
 
