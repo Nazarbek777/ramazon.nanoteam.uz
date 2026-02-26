@@ -2,16 +2,6 @@
 import { Head, router } from '@inertiajs/vue3';
 import { ref, onMounted, computed, onUnmounted } from 'vue';
 
-// Debug: Global Error Handler
-if (typeof window !== 'undefined') {
-    window.onerror = function(message, source, lineno, colno, error) {
-        alert('JS Error: ' + message + ' \nLine: ' + lineno);
-    };
-    window.onunhandledrejection = function(event) {
-        alert('Promise Rejection: ' + event.reason);
-    };
-}
-
 const props = defineProps({
     quiz: { type: Object, default: () => ({ title: 'Test', time_limit: 30 }) },
     questions: { type: Array, default: () => [] },
@@ -22,13 +12,11 @@ const props = defineProps({
 const currentQuestionIndex = ref(0);
 const answers = ref({});
 
-// Timer persistence logic
 const calculateTimeLeft = () => {
     try {
         if (!props.startedAt) return (props.quiz?.time_limit || 30) * 60;
         const started = new Date(props.startedAt).getTime();
         if (isNaN(started)) return (props.quiz?.time_limit || 30) * 60;
-        
         const now = new Date().getTime();
         const elapsedSeconds = Math.floor((now - started) / 1000);
         const limitSeconds = (props.quiz?.time_limit || 30) * 60;
@@ -43,13 +31,15 @@ const timeLeft = ref(calculateTimeLeft());
 let timerInterval = null;
 
 const currentQuestion = computed(() => props.questions[currentQuestionIndex.value]);
+const progress = computed(() => ((currentQuestionIndex.value + 1) / props.questions.length) * 100);
+const answeredCount = computed(() => Object.keys(answers.value).length);
 
 onMounted(() => {
     timerInterval = setInterval(() => {
         timeLeft.value = calculateTimeLeft();
         if (timeLeft.value <= 0) {
             clearInterval(timerInterval);
-            autoSubmit();
+            performSubmit();
         }
     }, 1000);
 });
@@ -86,10 +76,6 @@ const submitQuiz = () => {
     }
 };
 
-const autoSubmit = () => {
-    performSubmit();
-};
-
 const performSubmit = () => {
     router.post('/webapp/quiz/' + props.quiz.id + '/submit', {
         answers: answers.value,
@@ -101,121 +87,106 @@ const performSubmit = () => {
 <template>
     <Head :title="quiz.title" />
 
-    <div class="min-h-screen bg-[#F0F2F9] flex flex-col font-outfit select-none">
-        <!-- Premium Header Area -->
-        <div class="bg-indigo-600 pt-10 pb-20 px-6 rounded-b-[40px] shadow-2xl relative overflow-hidden">
-            <div class="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -mr-16 -mt-16 blur-3xl"></div>
-            <div class="absolute bottom-0 left-0 w-32 h-32 bg-indigo-400/20 rounded-full -ml-8 -mb-8 blur-2xl"></div>
-            
-            <div class="relative z-10 flex justify-between items-center mb-6">
-                <button @click="router.visit('/webapp')" class="w-10 h-10 bg-white/20 backdrop-blur-md rounded-xl flex items-center justify-center border border-white/30 text-white">
-                    <i class="fas fa-times"></i>
+    <div class="min-h-screen bg-slate-50 flex flex-col select-none" style="font-family: 'Outfit', sans-serif;">
+
+        <!-- Compact Top Bar -->
+        <div class="bg-indigo-600 px-4 pt-3 pb-4 relative">
+            <div class="flex items-center justify-between mb-3">
+                <button @click="router.visit('/webapp')" class="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center text-white text-sm">
+                    <i class="fas fa-arrow-left"></i>
                 </button>
-                <div class="flex items-center space-x-2 px-4 py-2 bg-white/10 backdrop-blur-md rounded-2xl border border-white/20">
-                    <i class="far fa-clock text-indigo-200" :class="timeLeft < 60 ? 'animate-ping text-red-400' : 'animate-pulse'"></i>
-                    <span class="text-white font-black font-mono text-xl">{{ formatTime(timeLeft) }}</span>
+                <h1 class="text-white text-sm font-bold truncate mx-3 flex-1 text-center">{{ quiz.title }}</h1>
+                <div class="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold"
+                     :class="timeLeft < 60 ? 'bg-red-500 text-white animate-pulse' : 'bg-white/20 text-white'">
+                    <i class="far fa-clock text-[10px]"></i>
+                    <span class="font-mono">{{ formatTime(timeLeft) }}</span>
                 </div>
             </div>
 
-            <div class="relative z-10 text-center" v-if="questions && questions.length > 0">
-                <h1 class="text-white text-lg font-bold opacity-80 mb-1">{{ quiz.title }}</h1>
-                <div class="flex items-center justify-center space-x-1">
-                    <div v-for="i in questions.length" :key="i" 
-                         class="h-1 rounded-full transition-all duration-300"
-                         :class="[
-                            questions[i-1] && (i-1 === currentQuestionIndex) ? 'w-6 bg-white' : 
-                            questions[i-1] && answers[questions[i-1].id] ? 'w-2 bg-emerald-400' : 'w-2 bg-white/30'
-                         ]">
-                    </div>
+            <!-- Progress Bar -->
+            <div class="flex items-center gap-2">
+                <div class="flex-1 h-1.5 bg-white/20 rounded-full overflow-hidden">
+                    <div class="h-full bg-emerald-400 rounded-full transition-all duration-500" :style="{ width: progress + '%' }"></div>
                 </div>
-            </div>
-            <div class="relative z-10 text-center" v-else>
-                <h1 class="text-white text-lg font-bold opacity-80 mb-1">{{ quiz.title }}</h1>
-                <p class="text-white/60 text-xs">Savollar yuklanmoqda...</p>
+                <span class="text-white/80 text-[10px] font-bold whitespace-nowrap">{{ currentQuestionIndex + 1 }}/{{ questions.length }}</span>
             </div>
         </div>
 
-        <!-- Main Content -->
-        <div class="px-6 -mt-12 relative z-20 flex-1 flex flex-col pb-10">
-            <!-- Loading/Empty State -->
-            <div v-if="!questions || questions.length === 0" class="bg-white rounded-[32px] shadow-2xl p-10 text-center">
-                <i class="fas fa-exclamation-circle text-indigo-200 text-6xl mb-6"></i>
-                <h2 class="text-xl font-bold text-slate-800 mb-2">Savollar topilmadi</h2>
-                <p class="text-slate-500 mb-8">Ushbu testda hozircha savollar yo'q yoki texnik xatolik yuz berdi.</p>
-                <button @click="router.visit('/webapp')" class="w-full h-14 bg-indigo-600 text-white rounded-2xl font-bold">Orqaga qaytish</button>
+        <!-- Empty State -->
+        <div v-if="!questions || questions.length === 0" class="flex-1 flex items-center justify-center p-6">
+            <div class="text-center bg-white rounded-2xl p-8 shadow-sm">
+                <i class="fas fa-inbox text-slate-200 text-4xl mb-3"></i>
+                <p class="text-slate-600 font-bold text-sm mb-1">Savollar topilmadi</p>
+                <p class="text-slate-400 text-xs mb-4">Bu testda hozircha savollar yo'q</p>
+                <button @click="router.visit('/webapp')" class="px-6 py-2.5 bg-indigo-600 text-white rounded-xl text-xs font-bold">Orqaga</button>
+            </div>
+        </div>
+
+        <!-- Question Content -->
+        <div v-else class="flex-1 flex flex-col p-4 pb-2">
+            <!-- Question Card -->
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-5 mb-3 flex-shrink-0">
+                <div class="flex items-center gap-2 mb-3">
+                    <span class="w-6 h-6 bg-indigo-100 text-indigo-600 rounded-md flex items-center justify-center text-xs font-black">{{ currentQuestionIndex + 1 }}</span>
+                    <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Savol</span>
+                    <span class="ml-auto text-[10px] text-slate-400 font-medium">{{ answeredCount }}/{{ questions.length }} javob</span>
+                </div>
+                <p class="text-sm font-bold text-slate-800 leading-relaxed">{{ currentQuestion.content }}</p>
             </div>
 
-            <!-- Question Content -->
-            <div v-else-if="currentQuestion" class="bg-white rounded-[32px] shadow-2xl shadow-indigo-200/50 p-6 sm:p-8 flex-1 flex flex-col border border-white">
-                 <div class="flex items-center space-x-2 mb-6 text-indigo-600">
-                    <div class="w-8 h-8 bg-indigo-50 rounded-lg flex items-center justify-center font-black text-xs">
-                        {{ currentQuestionIndex + 1 }}
+            <!-- Options -->
+            <div class="flex-1 overflow-y-auto space-y-2 mb-3 custom-scroll">
+                <div v-for="(option, index) in currentQuestion.options" :key="option.id"
+                     @click="selectOption(option.id)"
+                     class="flex items-center gap-3 p-3.5 rounded-xl border-2 transition-all duration-200 cursor-pointer active:scale-[0.98]"
+                     :class="answers[currentQuestion.id] === option.id
+                         ? 'border-indigo-500 bg-indigo-50'
+                         : 'border-slate-100 bg-white hover:border-slate-200'">
+
+                    <div class="w-8 h-8 rounded-lg flex items-center justify-center text-xs font-black flex-shrink-0 transition-all"
+                         :class="answers[currentQuestion.id] === option.id
+                             ? 'bg-indigo-600 text-white shadow-md shadow-indigo-200'
+                             : 'bg-slate-100 text-slate-400'">
+                        {{ String.fromCharCode(65 + index) }}
                     </div>
-                    <span class="text-[10px] font-black uppercase tracking-widest text-slate-400">Savol mazmuni</span>
-                </div>
 
-                <div class="text-xl sm:text-2xl font-black text-slate-800 leading-[1.4] mb-10 min-h-[100px]">
-                    {{ currentQuestion.content }}
-                </div>
+                    <span class="text-sm font-semibold flex-1"
+                          :class="answers[currentQuestion.id] === option.id ? 'text-indigo-700' : 'text-slate-600'">
+                        {{ option.content }}
+                    </span>
 
-                <!-- Custom Radio Options -->
-                <div class="space-y-3 mb-10 overflow-y-auto max-h-[40vh] pr-2 custom-scrollbar">
-                    <div v-for="(option, index) in currentQuestion.options" :key="option.id"
-                         @click="selectOption(option.id)"
-                         class="group relative flex items-center p-4 rounded-2xl border-2 transition-all duration-300 cursor-pointer"
-                         :class="answers[currentQuestion.id] === option.id ? 'border-indigo-600 bg-indigo-50/50' : 'border-slate-50 hover:border-indigo-100 hover:bg-slate-50/50'">
-                        
-                        <div class="w-9 h-9 rounded-xl border flex items-center justify-center text-sm font-black transition-all duration-300 mr-4"
-                             :class="answers[currentQuestion.id] === option.id ? 'bg-indigo-600 border-indigo-600 text-white shadow-lg shadow-indigo-200' : 'bg-slate-50 border-slate-100 text-slate-400 group-hover:bg-white group-hover:border-indigo-200'">
-                            {{ String.fromCharCode(65 + index) }}
-                        </div>
-                        
-                        <div class="flex-1 font-bold text-slate-700 group-hover:text-indigo-900 transition-colors pr-8">
-                            {{ option.content }}
-                        </div>
-
-                        <div v-if="answers[currentQuestion.id] === option.id" class="absolute right-4 w-5 h-5 bg-indigo-600 rounded-full flex items-center justify-center shadow-lg shadow-indigo-200 animate-in zoom-in duration-300">
-                            <i class="fas fa-check text-[10px] text-white"></i>
-                        </div>
-                    </div>
+                    <i v-if="answers[currentQuestion.id] === option.id" class="fas fa-check-circle text-indigo-500 text-sm"></i>
                 </div>
+            </div>
 
-                <!-- Navigation Buttons -->
-                <div class="mt-auto pt-6 flex space-x-4">
-                    <button @click="prevQuestion" 
-                            :disabled="currentQuestionIndex === 0"
-                            class="w-14 h-14 bg-slate-50 rounded-2xl flex items-center justify-center text-slate-400 hover:text-indigo-600 transition-all border border-slate-100 disabled:opacity-20 active:scale-90">
-                        <i class="fas fa-chevron-left"></i>
-                    </button>
-                    
-                    <button v-if="currentQuestionIndex < questions.length - 1" 
-                            @click="nextQuestion"
-                            class="flex-1 h-14 bg-indigo-600 hover:bg-indigo-700 text-white rounded-2xl font-black shadow-xl shadow-indigo-200 flex items-center justify-center space-x-3 transition-all active:scale-95">
-                        <span>Keyingi savol</span>
-                        <i class="fas fa-arrow-right text-xs"></i>
-                    </button>
-                    
-                    <button v-else 
-                            @click="submitQuiz"
-                            class="flex-1 h-14 bg-emerald-500 hover:bg-emerald-600 text-white rounded-2xl font-black shadow-xl shadow-emerald-200 flex items-center justify-center space-x-3 transition-all active:scale-95">
-                        <span>Testni yakunlash</span>
-                        <i class="fas fa-check-double text-xs"></i>
-                    </button>
-                </div>
+            <!-- Bottom Nav -->
+            <div class="flex gap-2 pt-2 pb-1 flex-shrink-0">
+                <button @click="prevQuestion"
+                        :disabled="currentQuestionIndex === 0"
+                        class="w-12 h-12 bg-white border border-slate-200 rounded-xl flex items-center justify-center text-slate-400 disabled:opacity-30 active:scale-90 transition-all">
+                    <i class="fas fa-chevron-left text-sm"></i>
+                </button>
+
+                <button v-if="currentQuestionIndex < questions.length - 1"
+                        @click="nextQuestion"
+                        class="flex-1 h-12 bg-indigo-600 text-white rounded-xl font-bold text-sm flex items-center justify-center gap-2 shadow-lg shadow-indigo-200 active:scale-[0.97] transition-all">
+                    Keyingi
+                    <i class="fas fa-chevron-right text-xs"></i>
+                </button>
+
+                <button v-else
+                        @click="submitQuiz"
+                        class="flex-1 h-12 bg-emerald-500 text-white rounded-xl font-bold text-sm flex items-center justify-center gap-2 shadow-lg shadow-emerald-200 active:scale-[0.97] transition-all">
+                    <i class="fas fa-check-double text-xs"></i>
+                    Yakunlash
+                </button>
             </div>
         </div>
     </div>
 </template>
 
 <style scoped>
-.custom-scrollbar::-webkit-scrollbar {
-    width: 4px;
-}
-.custom-scrollbar::-webkit-scrollbar-track {
-    background: transparent;
-}
-.custom-scrollbar::-webkit-scrollbar-thumb {
-    background: #E2E8F0;
-    border-radius: 10px;
-}
+.custom-scroll::-webkit-scrollbar { width: 3px; }
+.custom-scroll::-webkit-scrollbar-track { background: transparent; }
+.custom-scroll::-webkit-scrollbar-thumb { background: #E2E8F0; border-radius: 10px; }
 </style>
