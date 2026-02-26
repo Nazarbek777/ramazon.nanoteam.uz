@@ -13,6 +13,9 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
     <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
 
+    <!-- CKEditor -->
+    <script src="https://cdn.ckeditor.com/ckeditor5/40.0.0/classic/ckeditor.js"></script>
+
     <style>
         body { font-family: 'Outfit', sans-serif; background-color: #f8fafc; }
         .sidebar-link.active {
@@ -21,6 +24,11 @@
             border-right: 4px solid #4f46e5;
         }
         [x-cloak] { display: none !important; }
+        .ck-editor__editable {
+            min-height: 200px;
+            border-bottom-left-radius: 1rem !important;
+            border-bottom-right-radius: 1rem !important;
+        }
     </style>
 </head>
 <body class="antialiased text-slate-800">
@@ -58,6 +66,8 @@
                    class="sidebar-link group flex items-center px-4 py-3 rounded-xl transition duration-200 hover:bg-slate-50 {{ request()->routeIs('admin.quizzes.*') ? 'active' : '' }}">
                     <i class="fas fa-tasks w-6 text-indigo-500"></i>
                     <span class="ml-3 font-semibold" :class="!sidebarOpen && 'lg:hidden'">Testlar</span>
+                </a>
+
                 <a href="{{ route('admin.broadcast.index') }}" 
                    class="sidebar-link group flex items-center px-4 py-3 rounded-xl transition duration-200 hover:bg-slate-50 {{ request()->routeIs('admin.broadcast.*') ? 'active' : '' }}">
                     <i class="fas fa-bullhorn w-6 text-indigo-500"></i>
@@ -112,5 +122,6 @@
             </main>
         </div>
     </div>
+    @stack('scripts')
 </body>
 </html>
