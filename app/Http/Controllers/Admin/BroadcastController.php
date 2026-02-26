@@ -19,6 +19,8 @@ class BroadcastController extends Controller
     {
         $request->validate([
             'message' => 'required|string',
+            'button_text' => 'nullable|string|max:50',
+            'button_url' => 'nullable|url',
         ]);
 
         $users = User::whereNotNull('telegram_id')->get();
@@ -27,7 +29,13 @@ class BroadcastController extends Controller
 
         foreach ($users as $user) {
             try {
-                $this->sendTelegramMessage($token, $user->telegram_id, $request->message);
+                $this->sendTelegramMessage(
+                    $token, 
+                    $user->telegram_id, 
+                    $request->message, 
+                    $request->button_text, 
+                    $request->button_url
+                );
                 $count++;
             } catch (\Exception $e) {
                 Log::error("Broadcast failed for user {$user->telegram_id}: " . $e->getMessage());
@@ -37,14 +45,25 @@ class BroadcastController extends Controller
         return redirect()->back()->with('success', "Xabar {$count} ta foydalanuvchiga yuborildi.");
     }
 
-    private function sendTelegramMessage($token, $chatId, $text)
+    private function sendTelegramMessage($token, $chatId, $text, $buttonText = null, $buttonUrl = null)
     {
         $url = "https://api.telegram.org/bot{$token}/sendMessage";
         $params = [
             'chat_id' => $chatId,
             'text' => $text,
-            'parse_mode' => 'HTML'
+            'parse_mode' => 'HTML',
+            'disable_web_page_preview' => false
         ];
+
+        if ($buttonText && $buttonUrl) {
+            $params['reply_markup'] = json_encode([
+                'inline_keyboard' => [
+                    [
+                        ['text' => $buttonText, 'url' => $buttonUrl]
+                    ]
+                ]
+            ]);
+        }
 
         $ch = curl_init();
         curl_setopt($ch, CURLOPT_URL, $url);
