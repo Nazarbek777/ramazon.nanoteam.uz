@@ -47,7 +47,7 @@ const selectOption = (optionId) => {
 };
 
 const submitQuiz = () => {
-    router.post(route('webapp.quiz.submit', props.quiz.id), {
+    router.post('/webapp/quiz/' + props.quiz.id + '/submit', {
         answers: answers.value
     });
 };

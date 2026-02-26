@@ -20,7 +20,7 @@ defineProps({
                 <div v-for="subject in subjects" :key="subject.id" class="space-y-2">
                     <h2 class="text-lg font-bold text-gray-700 ml-2 mt-4">{{ subject.name }}</h2>
                     <div v-for="quiz in subject.quizzes" :key="quiz.id"
-                         @click="router.visit(route('webapp.quiz.show', quiz.id))"
+                         @click="router.visit('/webapp/quiz/' + quiz.id)"
                          class="bg-white p-4 rounded-2xl shadow-sm border hover:shadow-md transition cursor-pointer flex items-center space-x-4">
                         <div class="w-12 h-12 bg-indigo-100 rounded-xl flex items-center justify-center text-indigo-600">
                             <i :class="subject.icon || 'fas fa-book'"></i>
