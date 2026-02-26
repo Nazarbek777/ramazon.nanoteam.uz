@@ -1,5 +1,5 @@
 <script setup>
-import { Head, Link } from '@inertiajs/vue3';
+import { Head, router } from '@inertiajs/vue3';
 
 defineProps({
     subjects: Array,
@@ -9,30 +9,72 @@ defineProps({
 <template>
     <Head title="Asosiy Sahifa" />
 
-    <div class="min-h-screen bg-gray-100 p-6">
-        <div class="max-w-md mx-auto">
-            <header class="mb-8 text-center">
-                <h1 class="text-3xl font-bold text-indigo-900 leading-tight">Test Tizimiga Xush Kelibsiz!</h1>
-                <p class="text-gray-600 mt-2">O'zingizga kerakli fanni tanlang va bilimingizni sinab ko'ring.</p>
-            </header>
+    <div class="min-h-screen bg-[#F8F9FF] text-[#1E293B] pb-10">
+        <!-- Header Section -->
+        <div class="bg-indigo-600 px-6 pt-12 pb-24 rounded-b-[40px] shadow-2xl relative overflow-hidden">
+            <div class="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -mr-16 -mt-16 blur-3xl"></div>
+            <div class="absolute bottom-0 left-0 w-32 h-32 bg-indigo-400/20 rounded-full -ml-8 -mb-8 blur-2xl"></div>
+            
+            <div class="relative z-10 flex justify-between items-center mb-6">
+                <div>
+                    <h1 class="text-white text-3xl font-extrabold tracking-tight">Assalomu alaykum!</h1>
+                    <p class="text-indigo-100 mt-1 opacity-90">Keling, bugun bilimingizni sinaymiz</p>
+                </div>
+                <div class="w-12 h-12 bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center border border-white/30">
+                    <i class="fas fa-bell text-white"></i>
+                </div>
+            </div>
+        </div>
 
-            <div class="grid gap-4">
-                <div v-for="subject in subjects" :key="subject.id" class="space-y-2">
-                    <h2 class="text-lg font-bold text-gray-700 ml-2 mt-4">{{ subject.name }}</h2>
-                    <div v-for="quiz in subject.quizzes" :key="quiz.id"
-                         @click="router.visit('/webapp/quiz/' + quiz.id)"
-                         class="bg-white p-4 rounded-2xl shadow-sm border hover:shadow-md transition cursor-pointer flex items-center space-x-4">
-                        <div class="w-12 h-12 bg-indigo-100 rounded-xl flex items-center justify-center text-indigo-600">
-                            <i :class="subject.icon || 'fas fa-book'"></i>
-                        </div>
-                        <div class="flex-1">
-                            <h3 class="font-bold text-gray-800">{{ quiz.title }}</h3>
-                            <p class="text-gray-500 text-xs">{{ quiz.time_limit }} daqiqa • {{ quiz.pass_score }}% o'tish bali</p>
-                        </div>
-                        <i class="fas fa-chevron-right text-gray-300"></i>
+        <!-- content container -->
+        <div class="px-6 -mt-16 relative z-20">
+            <!-- Subjects and Quizzes -->
+            <div class="space-y-8">
+                <div v-for="subject in subjects" :key="subject.id" class="space-y-4">
+                    <div class="flex items-center space-x-2 px-2">
+                        <div class="w-1.5 h-6 bg-indigo-600 rounded-full"></div>
+                        <h2 class="text-xl font-bold text-gray-800 tracking-tight">{{ subject.name }}</h2>
                     </div>
+                    
+                    <div class="grid gap-4">
+                        <div v-for="quiz in subject.quizzes" :key="quiz.id"
+                             @click="router.visit('/webapp/quiz/' + quiz.id)"
+                             class="bg-white p-5 rounded-[24px] shadow-sm border border-gray-100 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 cursor-pointer group">
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center space-x-4">
+                                    <div class="w-14 h-14 bg-indigo-50 rounded-2xl flex items-center justify-center text-indigo-600 group-hover:bg-indigo-600 group-hover:text-white transition-colors duration-300">
+                                        <i :class="subject.icon || 'fas fa-book-open'" class="text-2xl"></i>
+                                    </div>
+                                    <div>
+                                        <h3 class="font-bold text-gray-900 group-hover:text-indigo-600 transition-colors">{{ quiz.title }}</h3>
+                                        <div class="flex items-center space-x-3 mt-1 text-xs text-gray-500 font-medium">
+                                            <span class="flex items-center"><i class="far fa-clock mr-1 text-indigo-400"></i> {{ quiz.time_limit }} daqiqa</span>
+                                            <span class="flex items-center"><i class="fas fa-bullseye mr-1 text-emerald-400"></i> {{ quiz.pass_score }}%</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="w-10 h-10 rounded-full bg-gray-50 flex items-center justify-center group-hover:bg-indigo-50 transition-colors">
+                                    <i class="fas fa-chevron-right text-gray-300 group-hover:text-indigo-600"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Empty State -->
+                <div v-if="subjects.length === 0" class="text-center py-20 bg-white rounded-3xl border border-dashed border-gray-300">
+                    <div class="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-4 text-gray-300">
+                        <i class="fas fa-folder-open text-3xl"></i>
+                    </div>
+                    <p class="text-gray-500 font-medium">Hozircha fanlar mavjud emas</p>
                 </div>
             </div>
         </div>
     </div>
 </template>
+
+<style>
+body {
+    -webkit-tap-highlight-color: transparent;
+}
+</style>

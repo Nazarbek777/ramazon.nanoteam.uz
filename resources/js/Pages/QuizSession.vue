@@ -1,6 +1,6 @@
 <script setup>
 import { Head, router } from '@inertiajs/vue3';
-import { ref, onMounted, computed } from 'vue';
+import { ref, onMounted, computed, onUnmounted } from 'vue';
 
 const props = defineProps({
     quiz: Object,
@@ -10,18 +10,23 @@ const props = defineProps({
 const currentQuestionIndex = ref(0);
 const answers = ref({});
 const timeLeft = ref(props.quiz.time_limit * 60);
+let timerInterval = null;
 
 const currentQuestion = computed(() => props.questions[currentQuestionIndex.value]);
 
 onMounted(() => {
-    const timer = setInterval(() => {
+    timerInterval = setInterval(() => {
         if (timeLeft.value > 0) {
             timeLeft.value--;
         } else {
-            clearInterval(timer);
+            clearInterval(timerInterval);
             submitQuiz();
         }
     }, 1000);
+});
+
+onUnmounted(() => {
+    if (timerInterval) clearInterval(timerInterval);
 });
 
 const formatTime = (seconds) => {
@@ -47,69 +52,103 @@ const selectOption = (optionId) => {
 };
 
 const submitQuiz = () => {
-    router.post('/webapp/quiz/' + props.quiz.id + '/submit', {
-        answers: answers.value
-    });
+    if (confirm('Testni yakunlamoqchimisiz?')) {
+        router.post('/webapp/quiz/' + props.quiz.id + '/submit', {
+            answers: answers.value
+        });
+    }
 };
 </script>
 
 <template>
     <Head :title="quiz.title" />
 
-    <div class="min-h-screen bg-gray-50 flex flex-col p-4">
-        <div class="max-w-md mx-auto w-full flex-1 flex flex-col">
-            <!-- Header -->
-            <div class="flex justify-between items-center mb-6">
+    <div class="min-h-screen bg-[#F8F9FF] flex flex-col font-outfit">
+        <!-- Top Bar -->
+        <div class="bg-white px-6 py-4 flex justify-between items-center shadow-sm sticky top-0 z-50 border-b border-indigo-50">
+            <div class="flex items-center space-x-3">
+                <button @click="router.visit('/webapp')" class="w-10 h-10 rounded-xl bg-gray-50 flex items-center justify-center text-gray-400">
+                    <i class="fas fa-times"></i>
+                </button>
                 <div>
-                    <h1 class="font-bold text-gray-800">{{ quiz.title }}</h1>
-                    <p class="text-xs text-gray-500">{{ currentQuestionIndex + 1 }} / {{ questions.length }} savol</p>
+                    <h1 class="text-sm font-bold text-gray-900 leading-none mb-1">{{ quiz.title }}</h1>
+                    <div class="flex items-center text-[10px] text-gray-400 font-bold uppercase tracking-wider">
+                        <span class="text-indigo-600 mr-1">{{ currentQuestionIndex + 1 }}</span> / {{ questions.length }} savol
+                    </div>
                 </div>
-                <div class="bg-indigo-100 text-indigo-700 px-3 py-1 rounded-full font-mono font-bold">
-                    {{ formatTime(timeLeft) }}
+            </div>
+            <div class="flex items-center space-x-2 px-4 py-2 bg-indigo-50 rounded-2xl border border-indigo-100">
+                <i class="far fa-clock text-indigo-600 animate-pulse"></i>
+                <span class="text-indigo-700 font-black font-mono text-lg">{{ formatTime(timeLeft) }}</span>
+            </div>
+        </div>
+
+        <div class="max-w-md mx-auto w-full flex-1 flex flex-col p-6">
+            <!-- Progress Tracker -->
+            <div class="flex space-x-1 mb-8">
+                <div v-for="(q, index) in questions" :key="index" 
+                     class="h-1.5 flex-1 rounded-full transition-all duration-300"
+                     :class="[
+                        index === currentQuestionIndex ? 'bg-indigo-600 scale-y-125 shadow-lg shadow-indigo-100' : 
+                        answers[q.id] ? 'bg-emerald-400' : 'bg-gray-200'
+                     ]">
                 </div>
             </div>
 
-            <!-- Progress Bar -->
-            <div class="w-full bg-gray-200 rounded-full h-1.5 mb-8">
-                <div class="bg-indigo-600 h-1.5 rounded-full transition-all duration-300" 
-                     :style="{ width: ((currentQuestionIndex + 1) / questions.length * 100) + '%' }"></div>
-            </div>
+            <!-- Question Card -->
+            <div class="flex-1 flex flex-col">
+                <span class="text-[10px] font-black text-indigo-600 uppercase tracking-[0.2em] mb-3 block">Savol mazmuni</span>
+                <div class="bg-white p-8 rounded-[32px] shadow-xl shadow-indigo-100/20 border border-white min-h-[200px] mb-8 relative overflow-hidden">
+                    <div class="absolute top-0 right-0 w-24 h-24 bg-indigo-50/50 rounded-full -mr-12 -mt-12"></div>
+                    <div class="relative z-10 text-xl text-gray-800 font-bold leading-relaxed mb-10">
+                        {{ currentQuestion.content }}
+                    </div>
 
-            <!-- Question Content -->
-            <div class="bg-white p-6 rounded-2xl shadow-sm border mb-6 flex-1">
-                <div class="text-lg text-gray-800 font-medium mb-8 leading-relaxed">
-                    {{ currentQuestion.content }}
-                </div>
-
-                <div class="space-y-4">
-                    <div v-for="option in currentQuestion.options" :key="option.id"
-                         @click="selectOption(option.id)"
-                         class="p-4 rounded-xl border-2 transition cursor-pointer flex items-center space-x-3"
-                         :class="answers[currentQuestion.id] === option.id ? 'border-indigo-600 bg-indigo-50' : 'border-gray-100 hover:border-indigo-200'">
-                        <div class="w-6 h-6 rounded-full border-2 flex items-center justify-center"
-                             :class="answers[currentQuestion.id] === option.id ? 'border-indigo-600 bg-indigo-600' : 'border-gray-300'">
-                            <div v-if="answers[currentQuestion.id] === option.id" class="w-2 h-2 bg-white rounded-full"></div>
+                    <!-- Options -->
+                    <div class="space-y-4">
+                        <div v-for="option in currentQuestion.options" :key="option.id"
+                             @click="selectOption(option.id)"
+                             class="group p-5 rounded-2xl border-2 transition-all duration-300 cursor-pointer flex items-center space-x-4 relative"
+                             :class="answers[currentQuestion.id] === option.id ? 'border-indigo-600 bg-indigo-50/50' : 'border-gray-50 hover:border-indigo-100 hover:bg-white'">
+                            
+                            <div class="w-7 h-7 rounded-lg border-2 flex items-center justify-center transition-all duration-300 shadow-sm"
+                                 :class="answers[currentQuestion.id] === option.id ? 'border-indigo-600 bg-indigo-600' : 'border-gray-200 bg-white group-hover:border-indigo-300'">
+                                <i v-if="answers[currentQuestion.id] === option.id" class="fas fa-check text-white text-xs"></i>
+                            </div>
+                            
+                            <span class="text-gray-700 font-bold group-hover:text-indigo-900 transition-colors">{{ option.content }}</span>
+                            
+                            <div v-if="answers[currentQuestion.id] === option.id" class="absolute right-4 w-2 h-2 bg-indigo-600 rounded-full"></div>
                         </div>
-                        <span class="text-gray-700 font-medium">{{ option.content }}</span>
                     </div>
                 </div>
             </div>
 
-            <!-- Navigation -->
-            <div class="flex space-x-4">
+            <!-- Bottom Navigation -->
+            <div class="flex space-x-4 sticky bottom-6 mt-auto">
                 <button @click="prevQuestion" :disabled="currentQuestionIndex === 0"
-                        class="flex-1 py-3 border border-gray-300 rounded-xl text-gray-600 font-bold disabled:opacity-30">
-                    Oldingisi
+                        class="w-16 h-14 bg-white border border-gray-100 rounded-2xl text-gray-400 hover:text-indigo-600 transition-all flex items-center justify-center disabled:opacity-30 disabled:pointer-events-none hover:shadow-lg">
+                    <i class="fas fa-arrow-left"></i>
                 </button>
+                
                 <button v-if="currentQuestionIndex < questions.length - 1" @click="nextQuestion"
-                        class="flex-1 py-3 bg-indigo-600 text-white rounded-xl font-bold shadow-lg shadow-indigo-200">
-                    Keyingisi
+                        class="flex-1 h-14 bg-indigo-600 hover:bg-indigo-700 text-white rounded-2xl font-black shadow-xl shadow-indigo-200 transition-all active:scale-95 flex items-center justify-center space-x-2">
+                    <span>Keyingi savol</span>
+                    <i class="fas fa-chevron-right text-xs opacity-70"></i>
                 </button>
+                
                 <button v-else @click="submitQuiz"
-                        class="flex-1 py-3 bg-green-600 text-white rounded-xl font-bold shadow-lg shadow-green-200">
-                    Tugallash
+                        class="flex-1 h-14 bg-emerald-500 hover:bg-emerald-600 text-white rounded-2xl font-black shadow-xl shadow-emerald-100 transition-all active:scale-95 flex items-center justify-center space-x-2">
+                    <span>Testni yakunlash</span>
+                    <i class="fas fa-flag-checkered"></i>
                 </button>
             </div>
         </div>
     </div>
 </template>
+
+<style scoped>
+.font-mono {
+    font-family: 'Outfit', monospace;
+}
+</style>
