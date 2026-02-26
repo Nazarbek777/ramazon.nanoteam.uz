@@ -79,8 +79,6 @@ const start = () => {
                 </span>
             </div>
 
-            <div class="flex-1"></div>
-
             <!-- CTA -->
             <button @click="start" :disabled="loading"
                     class="w-full bg-indigo-600 text-white font-black text-base py-4 rounded-2xl shadow-lg shadow-indigo-200 active:scale-[0.97] transition-all disabled:opacity-60 flex items-center justify-center gap-2">
