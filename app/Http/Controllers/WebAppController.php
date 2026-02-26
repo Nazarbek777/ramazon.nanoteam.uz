@@ -55,16 +55,6 @@ class WebAppController extends Controller
                 }
             }
 
-            // Find active attempt or create new
-            // IMPORTANT: If telegram_id is passed, try to login the user
-            $telegramId = request()->query('telegram_id');
-            if ($telegramId) {
-                $user = \App\Models\User::where('telegram_id', $telegramId)->first();
-                if ($user) {
-                    auth()->login($user);
-                }
-            }
-
             $userId = auth()->id() ?? (\App\Models\User::first()->id ?? 1);
             
             $attempt = \App\Models\QuizAttempt::where('user_id', $userId)
