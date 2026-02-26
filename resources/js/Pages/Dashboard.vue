@@ -30,20 +30,15 @@ const joinQuiz = () => {
 
         <div class="px-4 -mt-12 relative z-20 space-y-4">
             <!-- Test ID Input -->
-            <div class="bg-white p-4 rounded-2xl shadow-lg shadow-indigo-100/40 border border-white">
-                <h3 class="font-bold text-gray-800 mb-3 flex items-center text-sm gap-2">
-                    <i class="fas fa-key text-indigo-500"></i> ID orqali kirish
-                </h3>
-                <form @submit.prevent="joinQuiz" class="relative">
-                    <input v-model="testId" type="text" placeholder="Test ID (masalan: MAT-2024)"
-                           class="w-full bg-slate-50 border-none rounded-xl py-3 pl-4 pr-12 text-sm font-semibold focus:ring-4 focus:ring-indigo-500/10 placeholder:text-slate-400 uppercase transition-all">
-                    <button type="submit"
-                            class="absolute right-1.5 top-1.5 bottom-1.5 bg-indigo-600 text-white w-9 h-9 rounded-lg flex items-center justify-center active:scale-90 transition-all">
-                        <i class="fas fa-arrow-right text-sm"></i>
-                    </button>
-                    <p v-if="$page.props.flash?.error" class="text-xs text-red-500 mt-2 ml-1 font-bold">{{ $page.props.flash.error }}</p>
-                </form>
-            </div>
+            <form @submit.prevent="joinQuiz" class="bg-white rounded-2xl shadow-md shadow-indigo-100/40 border border-white px-4 py-3 flex gap-2">
+                <input v-model="testId" type="text" placeholder="Test ID kiriting..."
+                       class="flex-1 bg-slate-50 rounded-xl py-2.5 px-3 text-sm font-semibold focus:ring-4 focus:ring-indigo-500/10 placeholder:text-slate-400 uppercase outline-none">
+                <button type="submit"
+                        class="bg-indigo-600 text-white px-4 rounded-xl font-bold text-sm active:scale-90 transition-all flex items-center gap-1">
+                    <i class="fas fa-arrow-right"></i>
+                </button>
+            </form>
+            <p v-if="$page.props.flash?.error" class="text-xs text-red-500 -mt-3 ml-1 font-bold">{{ $page.props.flash.error }}</p>
 
             <!-- Subjects grid -->
             <div>
