@@ -56,7 +56,15 @@ class WebAppController extends Controller
             }
 
             // Find active attempt or create new
-            // IMPORTANT: If auth() is null, try to find the first user as fallback for testing
+            // IMPORTANT: If telegram_id is passed, try to login the user
+            $telegramId = request()->query('telegram_id');
+            if ($telegramId) {
+                $user = \App\Models\User::where('telegram_id', $telegramId)->first();
+                if ($user) {
+                    auth()->login($user);
+                }
+            }
+
             $userId = auth()->id() ?? (\App\Models\User::first()->id ?? 1);
             
             $attempt = \App\Models\QuizAttempt::where('user_id', $userId)
@@ -66,12 +74,17 @@ class WebAppController extends Controller
                 ->first();
 
             if (!$attempt) {
-                $attempt = \App\Models\QuizAttempt::create([
-                    'user_id' => $userId,
-                    'quiz_id' => $quiz->id,
-                    'started_at' => now(),
-                    'total_questions' => $questions->count(),
-                ]);
+                try {
+                    $attempt = \App\Models\QuizAttempt::create([
+                        'user_id' => $userId,
+                        'quiz_id' => $quiz->id,
+                        'started_at' => now(),
+                        'total_questions' => $questions->count(),
+                    ]);
+                } catch (\Exception $e) {
+                    \Log::error('Quiz Attempt Creation Error: ' . $e->getMessage());
+                    throw new \Exception("Sessiya yaratishda xatolik yuz berdi. Iltimos, bazani tekshiring.");
+                }
             }
 
             return Inertia::render('QuizSession', [

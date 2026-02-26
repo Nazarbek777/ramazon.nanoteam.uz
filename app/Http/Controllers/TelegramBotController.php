@@ -63,7 +63,7 @@ class TelegramBotController extends Controller
     private function sendStartMessage($chatId, $from, $requestContact = true)
     {
         $token = '8147881295:AAE9Zb2zBWmQw7iP_hasy_5Pn0rgLiT1YCA';
-        $webAppUrl = 'https://test.nanoteam.uz/webapp';
+        $webAppUrl = 'https://test.nanoteam.uz/webapp?telegram_id=' . $chatId;
         
         // If we don't have the user's phone yet, ask for it
         $user = \App\Models\User::where('telegram_id', $chatId)->whereNotNull('phone_number')->first();

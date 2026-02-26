@@ -2,6 +2,16 @@
 import { Head, router } from '@inertiajs/vue3';
 import { ref, onMounted, computed, onUnmounted } from 'vue';
 
+// Debug: Global Error Handler
+if (typeof window !== 'undefined') {
+    window.onerror = function(message, source, lineno, colno, error) {
+        alert('JS Error: ' + message + ' \nLine: ' + lineno);
+    };
+    window.onunhandledrejection = function(event) {
+        alert('Promise Rejection: ' + event.reason);
+    };
+}
+
 const props = defineProps({
     quiz: { type: Object, default: () => ({ title: 'Test', time_limit: 30 }) },
     questions: { type: Array, default: () => [] },
