@@ -62,6 +62,47 @@ class WebAppController extends Controller
         ]);
     }
 
+    public function showSubject(Subject $subject)
+    {
+        $userId = Auth::id();
+        $subject->load('quizzes');
+
+        $quizStatuses = [];
+        if ($userId) {
+            $quizIds = $subject->quizzes->pluck('id');
+            $attempts = QuizAttempt::where('user_id', $userId)
+                ->whereIn('quiz_id', $quizIds)
+                ->get();
+
+            foreach ($attempts as $attempt) {
+                $quiz = $subject->quizzes->firstWhere('id', $attempt->quiz_id);
+                if ($attempt->completed_at) {
+                    $quizStatuses[$attempt->quiz_id] = [
+                        'status' => 'completed',
+                        'score' => $attempt->score,
+                        'correct_answers' => $attempt->correct_answers,
+                        'total_questions' => $attempt->total_questions,
+                    ];
+                } elseif ($quiz && $attempt->started_at) {
+                    $limitSeconds = ($quiz->time_limit ?? 30) * 60;
+                    $elapsed = now()->diffInSeconds($attempt->started_at);
+                    if ($elapsed >= $limitSeconds) {
+                        $attempt->update(['score' => 0, 'completed_at' => $attempt->started_at->addSeconds($limitSeconds)]);
+                        $quizStatuses[$attempt->quiz_id] = ['status' => 'expired', 'score' => 0];
+                    } else {
+                        $quizStatuses[$attempt->quiz_id] = ['status' => 'in_progress', 'time_left' => $limitSeconds - $elapsed];
+                    }
+                }
+            }
+        }
+
+        return Inertia::render('SubjectQuizzes', [
+            'subject' => $subject,
+            'quizzes' => $subject->quizzes,
+            'quizStatuses' => $quizStatuses,
+        ]);
+    }
+
     public function history()
     {
         $userId = Auth::id();

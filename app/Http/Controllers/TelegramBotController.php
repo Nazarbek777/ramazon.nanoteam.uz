@@ -123,7 +123,7 @@ class TelegramBotController extends Controller
 
             $row[] = [
                 'text' => $subject->name,
-                'web_app' => ['url' => 'https://test.nanoteam.uz/webapp/quiz/' . $quiz->id . '?telegram_id=' . $chatId]
+                'web_app' => ['url' => 'https://test.nanoteam.uz/webapp/subject/' . $subject->id . '?telegram_id=' . $chatId]
             ];
 
             // 1 button per row for better readability
