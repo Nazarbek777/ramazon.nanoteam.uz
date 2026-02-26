@@ -16,6 +16,8 @@ Route::get('/', function () {
 });
 
 Route::get('/webapp', [App\Http\Controllers\WebAppController::class, 'index'])->name('webapp.index');
+Route::get('/webapp/history', [App\Http\Controllers\WebAppController::class, 'history'])->name('webapp.history');
+Route::get('/webapp/profile', [App\Http\Controllers\WebAppController::class, 'profile'])->name('webapp.profile');
 Route::get('/webapp/quiz/{quiz}', [App\Http\Controllers\WebAppController::class, 'showQuiz'])->name('webapp.quiz.show');
 Route::post('/webapp/quiz/join', [App\Http\Controllers\WebAppController::class, 'joinByCode'])->name('webapp.quiz.join');
 Route::post('/webapp/quiz/{quiz}/submit', [App\Http\Controllers\WebAppController::class, 'submitQuiz'])->name('webapp.quiz.submit');
