@@ -47,6 +47,21 @@
                     <p class="text-[10px] text-gray-400 mt-1 uppercase font-bold tracking-tighter">Foydalanuvchilar ushbu ID orqali testga kira olishadi</p>
                 </div>
 
+                <div class="grid grid-cols-2 gap-4 mb-5">
+                    <div>
+                        <label for="starts_at" class="block text-sm font-medium text-gray-700 mb-2">Boshlanish vaqti</label>
+                        <input type="datetime-local" name="starts_at" id="starts_at"
+                               class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none transition">
+                        <p class="text-[10px] text-gray-400 mt-1">Bo'sh qolsa — darhol ochiq</p>
+                    </div>
+                    <div>
+                        <label for="ends_at" class="block text-sm font-medium text-gray-700 mb-2">Tugash vaqti</label>
+                        <input type="datetime-local" name="ends_at" id="ends_at"
+                               class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none transition">
+                        <p class="text-[10px] text-gray-400 mt-1">Bo'sh qolsa — vaqtsiz</p>
+                    </div>
+                </div>
+
                 <div class="mb-8 p-6 bg-slate-50 rounded-2xl border border-slate-100">
                     <label class="inline-flex items-center cursor-pointer mb-4">
                         <input type="hidden" name="is_random" value="0">

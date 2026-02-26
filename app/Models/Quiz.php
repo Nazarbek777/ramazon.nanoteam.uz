@@ -8,7 +8,12 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Quiz extends Model
 {
-    protected $fillable = ['subject_id', 'title', 'access_code', 'time_limit', 'pass_score', 'is_random', 'random_questions_count'];
+    protected $fillable = ['subject_id', 'title', 'access_code', 'time_limit', 'pass_score', 'is_random', 'random_questions_count', 'starts_at', 'ends_at'];
+
+    protected $casts = [
+        'starts_at' => 'datetime',
+        'ends_at'   => 'datetime',
+    ];
 
     public function subject(): BelongsTo
     {

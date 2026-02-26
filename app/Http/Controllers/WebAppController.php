@@ -129,6 +129,26 @@ class WebAppController extends Controller
             $userId = Auth::id() ?? ((\App\Models\User::first())->id ?? 1);
             $quiz->load(['subject']);
 
+            // 0) Check quiz schedule (starts_at / ends_at)
+            $now = now();
+            if ($quiz->starts_at && $quiz->starts_at > $now) {
+                return Inertia::render('QuizBlocked', [
+                    'quiz' => $quiz,
+                    'type' => 'not_started',
+                    'attempt' => null,
+                    'message' => 'Bu test hali boshlanmagan. Boshlanish vaqti: ' . $quiz->starts_at->format('d.m.Y H:i'),
+                ]);
+            }
+
+            if ($quiz->ends_at && $quiz->ends_at < $now) {
+                return Inertia::render('QuizBlocked', [
+                    'quiz' => $quiz,
+                    'type' => 'expired',
+                    'attempt' => null,
+                    'message' => 'Bu testning muddati tugagan. Tugash vaqti: ' . $quiz->ends_at->format('d.m.Y H:i'),
+                ]);
+            }
+
             // 1) Check if user already COMPLETED this quiz
             $completedAttempt = QuizAttempt::where('user_id', $userId)
                 ->where('quiz_id', $quiz->id)

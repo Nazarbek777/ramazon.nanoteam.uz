@@ -16,18 +16,56 @@
             <tr>
                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nomi</th>
                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fan</th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Vaqt (daq)</th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">O'tish bali</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Vaqt</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Jadval</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Holat</th>
                 <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Amallar</th>
             </tr>
         </thead>
         <tbody class="bg-white divide-y divide-gray-200">
             @forelse($quizzes as $quiz)
-            <tr class="hover:bg-gray-50 transition">
-                <td class="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-900">{{ $quiz->title }}</td>
+            @php
+                $now = now();
+                $isExpired = $quiz->ends_at && $quiz->ends_at < $now;
+                $isNotStarted = $quiz->starts_at && $quiz->starts_at > $now;
+                $isActive = !$isExpired && !$isNotStarted;
+            @endphp
+            <tr class="hover:bg-gray-50 transition {{ $isExpired ? 'opacity-60' : '' }}">
+                <td class="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-900">
+                    {{ $quiz->title }}
+                    @if($quiz->access_code)
+                        <span class="ml-2 text-[10px] bg-gray-100 text-gray-500 px-1.5 py-0.5 rounded font-mono">{{ $quiz->access_code }}</span>
+                    @endif
+                </td>
                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ $quiz->subject->name }}</td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ $quiz->time_limit }} daqiqa</td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ $quiz->pass_score }}%</td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ $quiz->time_limit }} daq / {{ $quiz->pass_score }}%</td>
+                <td class="px-6 py-4 text-xs text-gray-500">
+                    @if($quiz->starts_at)
+                        <div class="flex items-center gap-1 mb-1">
+                            <i class="fas fa-play-circle text-emerald-400 text-[10px]"></i>
+                            {{ $quiz->starts_at->format('d.m.Y H:i') }}
+                        </div>
+                    @else
+                        <span class="text-gray-300 text-[10px]">Boshlanish — cheksiz</span><br>
+                    @endif
+                    @if($quiz->ends_at)
+                        <div class="flex items-center gap-1">
+                            <i class="fas fa-stop-circle text-rose-400 text-[10px]"></i>
+                            {{ $quiz->ends_at->format('d.m.Y H:i') }}
+                        </div>
+                    @else
+                        <span class="text-gray-300 text-[10px]">Tugash — cheksiz</span>
+                    @endif
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                    @if($isExpired)
+                        <span class="px-2 py-1 text-[10px] font-bold bg-red-100 text-red-600 rounded-full uppercase">Tugagan</span>
+                    @elseif($isNotStarted)
+                        <span class="px-2 py-1 text-[10px] font-bold bg-amber-100 text-amber-600 rounded-full uppercase">Boshlanmagan</span>
+                    @else
+                        <span class="px-2 py-1 text-[10px] font-bold bg-emerald-100 text-emerald-600 rounded-full uppercase">Faol</span>
+                    @endif
+                </td>
                 <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                     <a href="{{ route('admin.quizzes.edit', $quiz) }}" class="text-indigo-600 hover:text-indigo-900 mr-3">
                         <i class="fas fa-edit"></i>
@@ -43,14 +81,14 @@
             </tr>
             @empty
             <tr>
-                <td colspan="5" class="px-6 py-10 text-center text-gray-500 italic">
+                <td colspan="6" class="px-6 py-10 text-center text-gray-500 italic">
                     Hozircha testlar yaratilmagan.
                 </td>
             </tr>
             @endforelse
         </tbody>
     </table>
-    
+
     <div class="px-6 py-4 border-t">
         {{ $quizzes->links() }}
     </div>

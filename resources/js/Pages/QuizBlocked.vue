@@ -16,14 +16,14 @@ const props = defineProps({
 
         <!-- Top -->
         <div class="px-4 pt-6 pb-8 text-center"
-             :class="type === 'completed' ? 'bg-indigo-600' : 'bg-amber-500'">
+             :class="type === 'completed' ? 'bg-indigo-600' : type === 'not_started' ? 'bg-amber-500' : 'bg-rose-500'">
             <div class="w-16 h-16 rounded-2xl mx-auto mb-3 flex items-center justify-center"
-                 :class="type === 'completed' ? 'bg-indigo-500' : 'bg-amber-400'">
+                 :class="type === 'completed' ? 'bg-indigo-500' : type === 'not_started' ? 'bg-amber-400' : 'bg-rose-400'">
                 <i class="text-white text-3xl"
-                   :class="type === 'completed' ? 'fas fa-check-circle' : 'fas fa-hourglass-end'"></i>
+                   :class="type === 'completed' ? 'fas fa-check-circle' : type === 'not_started' ? 'fas fa-clock' : 'fas fa-hourglass-end'"></i>
             </div>
             <h1 class="text-white text-lg font-extrabold">
-                {{ type === 'completed' ? 'Test allaqachon yechilgan' : 'Vaqt tugagan' }}
+                {{ type === 'completed' ? 'Test allaqachon yechilgan' : type === 'not_started' ? 'Test hali boshlanmagan' : 'Vaqt tugagan' }}
             </h1>
             <p class="text-white/70 text-xs mt-1">{{ message }}</p>
         </div>

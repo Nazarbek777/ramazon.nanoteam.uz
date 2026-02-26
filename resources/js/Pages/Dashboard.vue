@@ -89,11 +89,19 @@ const getStatus = (quizId) => {
                                     </div>
                                     <div>
                                         <h3 class="font-bold text-gray-900 text-sm">{{ quiz.title }}</h3>
-                                        <div class="flex items-center space-x-3 mt-0.5 text-[11px] text-gray-400 font-medium">
+                                        <div class="flex flex-wrap items-center gap-2 mt-0.5 text-[11px] text-gray-400 font-medium">
                                             <span><i class="far fa-clock mr-1"></i>{{ quiz.time_limit }} daq</span>
                                             <span><i class="fas fa-bullseye mr-1"></i>{{ quiz.pass_score }}%</span>
                                             <span v-if="getStatus(quiz.id)?.status === 'completed'" class="text-emerald-500 font-bold">
                                                 {{ getStatus(quiz.id).score }}%
+                                            </span>
+                                        </div>
+                                        <div v-if="quiz.starts_at || quiz.ends_at" class="flex flex-wrap gap-2 mt-1">
+                                            <span v-if="quiz.starts_at" class="text-[10px] text-slate-400">
+                                                <i class="fas fa-play-circle text-emerald-400 mr-0.5"></i>{{ new Date(quiz.starts_at).toLocaleString('uz-UZ', {day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'}) }}
+                                            </span>
+                                            <span v-if="quiz.ends_at" class="text-[10px] text-slate-400">
+                                                <i class="fas fa-stop-circle text-rose-400 mr-0.5"></i>{{ new Date(quiz.ends_at).toLocaleString('uz-UZ', {day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'}) }}
                                             </span>
                                         </div>
                                     </div>

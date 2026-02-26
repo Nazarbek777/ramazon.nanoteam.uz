@@ -11,7 +11,12 @@ class QuizController extends Controller
 {
     public function index()
     {
-        $quizzes = Quiz::with('subject')->latest()->paginate(10);
+        $now = now();
+        // Active quizzes first (no ends_at or ends_at in future), then expired
+        $quizzes = Quiz::with('subject')
+            ->orderByRaw("CASE WHEN ends_at IS NULL OR ends_at > '$now' THEN 0 ELSE 1 END")
+            ->orderBy('created_at', 'desc')
+            ->paginate(20);
         return view('admin.quizzes.index', compact('quizzes'));
     }
 
@@ -31,6 +36,8 @@ class QuizController extends Controller
             'pass_score' => 'required|integer|min:1|max:100',
             'is_random' => 'required|boolean',
             'random_questions_count' => 'nullable|integer|min:1',
+            'starts_at' => 'nullable|date',
+            'ends_at' => 'nullable|date|after_or_equal:starts_at',
         ]);
 
         Quiz::create($validated);
@@ -54,6 +61,8 @@ class QuizController extends Controller
             'pass_score' => 'required|integer|min:1|max:100',
             'is_random' => 'required|boolean',
             'random_questions_count' => 'nullable|integer|min:1',
+            'starts_at' => 'nullable|date',
+            'ends_at' => 'nullable|date|after_or_equal:starts_at',
         ]);
 
         $quiz->update($validated);
