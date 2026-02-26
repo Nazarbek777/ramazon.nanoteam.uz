@@ -33,18 +33,43 @@ class WebAppController extends Controller
 
     public function showQuiz(\App\Models\Quiz $quiz)
     {
-        $quiz->load(['subject', 'subject.questions.options']);
+        $quiz->load(['subject']);
         
-        // Shuffle questions if needed
-        $questions = $quiz->subject->questions;
-        if ($quiz->is_random) {
-            $questions = $questions->shuffle();
+        $questions = collect();
+
+        if ($quiz->random_questions_count > 0) {
+            // Get questions from this subject and all its sub-subjects
+            $subjectIds = $this->getAllChildSubjectIds($quiz->subject_id);
+            $questions = \App\Models\Question::whereIn('subject_id', $subjectIds)
+                ->with('options')
+                ->inRandomOrder()
+                ->limit($quiz->random_questions_count)
+                ->get();
+        } else {
+            // Use manually attached questions
+            $quiz->load(['questions.options']);
+            $questions = $quiz->questions;
+            if ($quiz->is_random) {
+                $questions = $questions->shuffle();
+            }
         }
 
         return Inertia::render('QuizSession', [
             'quiz' => $quiz,
             'questions' => $questions,
         ]);
+    }
+
+    private function getAllChildSubjectIds($subjectId)
+    {
+        $ids = [$subjectId];
+        $children = \App\Models\Subject::where('parent_id', $subjectId)->pluck('id');
+        
+        foreach ($children as $childId) {
+            $ids = array_merge($ids, $this->getAllChildSubjectIds($childId));
+        }
+        
+        return $ids;
     }
 
     public function submitQuiz(Request $request, Quiz $quiz)

@@ -7,7 +7,17 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Subject extends Model
 {
-    protected $fillable = ['name', 'slug', 'icon'];
+    protected $fillable = ['name', 'slug', 'icon', 'parent_id'];
+
+    public function parent()
+    {
+        return $this->belongsTo(Subject::class, 'parent_id');
+    }
+
+    public function children()
+    {
+        return $this->hasMany(Subject::class, 'parent_id');
+    }
 
     public function questions(): HasMany
     {
