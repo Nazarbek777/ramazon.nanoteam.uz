@@ -100,24 +100,36 @@ const performSubmit = () => {
                 </div>
             </div>
 
-            <div class="relative z-10 text-center">
+            <div class="relative z-10 text-center" v-if="questions && questions.length > 0">
                 <h1 class="text-white text-lg font-bold opacity-80 mb-1">{{ quiz.title }}</h1>
                 <div class="flex items-center justify-center space-x-1">
                     <div v-for="i in questions.length" :key="i" 
                          class="h-1 rounded-full transition-all duration-300"
                          :class="[
-                            i-1 === currentQuestionIndex ? 'w-6 bg-white' : 
-                            answers[questions[i-1]?.id] ? 'w-2 bg-emerald-400' : 'w-2 bg-white/30'
+                            questions[i-1] && (i-1 === currentQuestionIndex) ? 'w-6 bg-white' : 
+                            questions[i-1] && answers[questions[i-1].id] ? 'w-2 bg-emerald-400' : 'w-2 bg-white/30'
                          ]">
                     </div>
                 </div>
+            </div>
+            <div class="relative z-10 text-center" v-else>
+                <h1 class="text-white text-lg font-bold opacity-80 mb-1">{{ quiz.title }}</h1>
+                <p class="text-white/60 text-xs">Savollar yuklanmoqda...</p>
             </div>
         </div>
 
         <!-- Main Content -->
         <div class="px-6 -mt-12 relative z-20 flex-1 flex flex-col pb-10">
+            <!-- Loading/Empty State -->
+            <div v-if="!questions || questions.length === 0" class="bg-white rounded-[32px] shadow-2xl p-10 text-center">
+                <i class="fas fa-exclamation-circle text-indigo-200 text-6xl mb-6"></i>
+                <h2 class="text-xl font-bold text-slate-800 mb-2">Savollar topilmadi</h2>
+                <p class="text-slate-500 mb-8">Ushbu testda hozircha savollar yo'q yoki texnik xatolik yuz berdi.</p>
+                <button @click="router.visit('/webapp')" class="w-full h-14 bg-indigo-600 text-white rounded-2xl font-bold">Orqaga qaytish</button>
+            </div>
+
             <!-- Question Content -->
-            <div class="bg-white rounded-[32px] shadow-2xl shadow-indigo-200/50 p-6 sm:p-8 flex-1 flex flex-col border border-white">
+            <div v-else-if="currentQuestion" class="bg-white rounded-[32px] shadow-2xl shadow-indigo-200/50 p-6 sm:p-8 flex-1 flex flex-col border border-white">
                  <div class="flex items-center space-x-2 mb-6 text-indigo-600">
                     <div class="w-8 h-8 bg-indigo-50 rounded-lg flex items-center justify-center font-black text-xs">
                         {{ currentQuestionIndex + 1 }}

@@ -13,7 +13,7 @@ return new class extends Migration
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
             $table->foreignId('quiz_id')->constrained()->onDelete('cascade');
             $table->integer('score')->nullable();
-            $table->integer('total_questions');
+            $table->integer('total_questions')->nullable();
             $table->integer('correct_answers')->default(0);
             $table->timestamp('started_at')->nullable();
             $table->timestamp('completed_at')->nullable();

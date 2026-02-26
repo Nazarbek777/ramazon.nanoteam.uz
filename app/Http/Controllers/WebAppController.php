@@ -35,22 +35,6 @@ class WebAppController extends Controller
     {
         $quiz->load(['subject']);
         
-        // Find active attempt or create new
-        $userId = auth()->id() ?? 1; // Fallback for dev
-        $attempt = \App\Models\QuizAttempt::where('user_id', $userId)
-            ->where('quiz_id', $quiz->id)
-            ->whereNull('completed_at')
-            ->latest()
-            ->first();
-
-        if (!$attempt) {
-            $attempt = \App\Models\QuizAttempt::create([
-                'user_id' => $userId,
-                'quiz_id' => $quiz->id,
-                'started_at' => now(),
-            ]);
-        }
-
         $questions = collect();
 
         if ($quiz->random_questions_count > 0) {
@@ -68,6 +52,23 @@ class WebAppController extends Controller
             if ($quiz->is_random) {
                 $questions = $questions->shuffle();
             }
+        }
+
+        // Find active attempt or create new
+        $userId = auth()->id() ?? 1; // Fallback for dev
+        $attempt = \App\Models\QuizAttempt::where('user_id', $userId)
+            ->where('quiz_id', $quiz->id)
+            ->whereNull('completed_at')
+            ->latest()
+            ->first();
+
+        if (!$attempt) {
+            $attempt = \App\Models\QuizAttempt::create([
+                'user_id' => $userId,
+                'quiz_id' => $quiz->id,
+                'started_at' => now(),
+                'total_questions' => $questions->count(),
+            ]);
         }
 
         return Inertia::render('QuizSession', [
