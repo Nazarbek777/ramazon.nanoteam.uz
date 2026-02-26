@@ -33,50 +33,57 @@ class WebAppController extends Controller
 
     public function showQuiz(\App\Models\Quiz $quiz)
     {
-        $quiz->load(['subject']);
-        
-        $questions = collect();
+        try {
+            $quiz->load(['subject']);
+            
+            $questions = collect();
 
-        if ($quiz->random_questions_count > 0) {
-            // Get questions from this subject and all its sub-subjects
-            $subjectIds = $this->getAllChildSubjectIds($quiz->subject_id);
-            $questions = \App\Models\Question::whereIn('subject_id', $subjectIds)
-                ->with('options')
-                ->inRandomOrder()
-                ->limit($quiz->random_questions_count)
-                ->get();
-        } else {
-            // Use manually attached questions
-            $quiz->load(['questions.options']);
-            $questions = $quiz->questions;
-            if ($quiz->is_random) {
-                $questions = $questions->shuffle();
+            if ($quiz->random_questions_count > 0) {
+                // Get questions from this subject and all its sub-subjects
+                $subjectIds = $this->getAllChildSubjectIds($quiz->subject_id);
+                $questions = \App\Models\Question::whereIn('subject_id', $subjectIds)
+                    ->with('options')
+                    ->inRandomOrder()
+                    ->limit($quiz->random_questions_count)
+                    ->get();
+            } else {
+                // Use manually attached questions
+                $quiz->load(['questions.options']);
+                $questions = $quiz->questions;
+                if ($quiz->is_random) {
+                    $questions = $questions->shuffle();
+                }
             }
-        }
 
-        // Find active attempt or create new
-        $userId = auth()->id() ?? 1; // Fallback for dev
-        $attempt = \App\Models\QuizAttempt::where('user_id', $userId)
-            ->where('quiz_id', $quiz->id)
-            ->whereNull('completed_at')
-            ->latest()
-            ->first();
+            // Find active attempt or create new
+            // IMPORTANT: If auth() is null, try to find the first user as fallback for testing
+            $userId = auth()->id() ?? (\App\Models\User::first()->id ?? 1);
+            
+            $attempt = \App\Models\QuizAttempt::where('user_id', $userId)
+                ->where('quiz_id', $quiz->id)
+                ->whereNull('completed_at')
+                ->latest()
+                ->first();
 
-        if (!$attempt) {
-            $attempt = \App\Models\QuizAttempt::create([
-                'user_id' => $userId,
-                'quiz_id' => $quiz->id,
-                'started_at' => now(),
-                'total_questions' => $questions->count(),
+            if (!$attempt) {
+                $attempt = \App\Models\QuizAttempt::create([
+                    'user_id' => $userId,
+                    'quiz_id' => $quiz->id,
+                    'started_at' => now(),
+                    'total_questions' => $questions->count(),
+                ]);
+            }
+
+            return Inertia::render('QuizSession', [
+                'quiz' => $quiz,
+                'questions' => $questions,
+                'startedAt' => $attempt->started_at ? $attempt->started_at->toIso8601String() : now()->toIso8601String(),
+                'attemptId' => $attempt->id
             ]);
+        } catch (\Exception $e) {
+            \Log::error('Quiz Show Error: ' . $e->getMessage());
+            return redirect()->route('webapp.index')->with('error', 'Kechirasiz, testni yuklashda xatolik yuz berdi.');
         }
-
-        return Inertia::render('QuizSession', [
-            'quiz' => $quiz,
-            'questions' => $questions,
-            'startedAt' => $attempt->started_at->toIso8601String(),
-            'attemptId' => $attempt->id
-        ]);
     }
 
     private function getAllChildSubjectIds($subjectId)

@@ -3,9 +3,9 @@ import { Head, router } from '@inertiajs/vue3';
 import { ref, onMounted, computed, onUnmounted } from 'vue';
 
 const props = defineProps({
-    quiz: Object,
-    questions: Array,
-    startedAt: String,
+    quiz: { type: Object, default: () => ({ title: 'Test', time_limit: 30 }) },
+    questions: { type: Array, default: () => [] },
+    startedAt: { type: String, default: () => new Date().toISOString() },
     attemptId: Number
 });
 
@@ -14,12 +14,19 @@ const answers = ref({});
 
 // Timer persistence logic
 const calculateTimeLeft = () => {
-    const started = new Date(props.startedAt).getTime();
-    const now = new Date().getTime();
-    const elapsedSeconds = Math.floor((now - started) / 1000);
-    const limitSeconds = props.quiz.time_limit * 60;
-    const remaining = limitSeconds - elapsedSeconds;
-    return remaining > 0 ? remaining : 0;
+    try {
+        if (!props.startedAt) return (props.quiz?.time_limit || 30) * 60;
+        const started = new Date(props.startedAt).getTime();
+        if (isNaN(started)) return (props.quiz?.time_limit || 30) * 60;
+        
+        const now = new Date().getTime();
+        const elapsedSeconds = Math.floor((now - started) / 1000);
+        const limitSeconds = (props.quiz?.time_limit || 30) * 60;
+        const remaining = limitSeconds - elapsedSeconds;
+        return remaining > 0 ? remaining : 0;
+    } catch (e) {
+        return 30 * 60;
+    }
 };
 
 const timeLeft = ref(calculateTimeLeft());
