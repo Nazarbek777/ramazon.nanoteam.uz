@@ -55,19 +55,19 @@ const start = () => {
                     <div class="w-7 h-7 bg-rose-100 rounded-lg flex items-center justify-center flex-shrink-0">
                         <i class="fas fa-ban text-rose-500 text-xs"></i>
                     </div>
-                    <span class="font-medium leading-snug mt-0.5">Test faqat <strong>bir marta</strong> yechilishi mumkin</span>
+                    <span class="font-medium leading-snug mt-0.5">Faqat <strong>bir marta</strong> yechiladi</span>
                 </div>
                 <div class="flex items-start gap-3 text-sm text-slate-600">
                     <div class="w-7 h-7 bg-amber-100 rounded-lg flex items-center justify-center flex-shrink-0">
                         <i class="fas fa-stopwatch text-amber-500 text-xs"></i>
                     </div>
-                    <span class="font-medium leading-snug mt-0.5">Boshlagan zahoti <strong>{{ quiz.time_limit }} daqiqa</strong> vaqt boshlanadi</span>
+                    <span class="font-medium leading-snug mt-0.5">Boshlashda <strong>{{ quiz.time_limit }} daqiqa</strong> vaqt boshlanadi</span>
                 </div>
                 <div class="flex items-start gap-3 text-sm text-slate-600">
                     <div class="w-7 h-7 bg-slate-200 rounded-lg flex items-center justify-center flex-shrink-0">
                         <i class="fas fa-hourglass-end text-slate-500 text-xs"></i>
                     </div>
-                    <span class="font-medium leading-snug mt-0.5">Vaqt tugasa test <strong>avtomatik</strong> yakunlanadi</span>
+                    <span class="font-medium leading-snug mt-0.5">Vaqt tugasa <strong>avtomatik</strong> yakunlanadi</span>
                 </div>
             </div>
 

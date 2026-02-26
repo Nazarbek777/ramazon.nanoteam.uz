@@ -439,7 +439,7 @@ class SubjectsSeeder extends Seeder
                 ['access_code' => $subjectData['code']],
                 [
                     'subject_id' => $subject->id,
-                    'title' => $subjectData['name'],
+                    'title' => $subjectData['name'] . ' — Attestatsiya testi',
                     'access_code' => $subjectData['code'],
                     'time_limit' => 15,
                     'pass_score' => 70,
