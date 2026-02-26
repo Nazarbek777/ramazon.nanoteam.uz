@@ -58,6 +58,10 @@
                    class="sidebar-link group flex items-center px-4 py-3 rounded-xl transition duration-200 hover:bg-slate-50 {{ request()->routeIs('admin.quizzes.*') ? 'active' : '' }}">
                     <i class="fas fa-tasks w-6 text-indigo-500"></i>
                     <span class="ml-3 font-semibold" :class="!sidebarOpen && 'lg:hidden'">Testlar</span>
+                <a href="{{ route('admin.broadcast.index') }}" 
+                   class="sidebar-link group flex items-center px-4 py-3 rounded-xl transition duration-200 hover:bg-slate-50 {{ request()->routeIs('admin.broadcast.*') ? 'active' : '' }}">
+                    <i class="fas fa-bullhorn w-6 text-indigo-500"></i>
+                    <span class="ml-3 font-semibold" :class="!sidebarOpen && 'lg:hidden'">Broadcast</span>
                 </a>
             </nav>
 

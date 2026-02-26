@@ -33,5 +33,9 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::resource('subjects', SubjectController::class);
         Route::resource('questions', QuestionController::class);
         Route::resource('quizzes', QuizController::class);
+        
+        // Broadcast
+        Route::get('broadcast', [App\Http\Controllers\Admin\BroadcastController::class, 'index'])->name('broadcast.index');
+        Route::post('broadcast', [App\Http\Controllers\Admin\BroadcastController::class, 'send'])->name('broadcast.send');
     });
 });

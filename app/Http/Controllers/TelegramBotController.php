@@ -16,10 +16,17 @@ class TelegramBotController extends Controller
 
             if (isset($update['message'])) {
                 $chatId = $update['message']['chat']['id'];
+                
+                // Contact message (Phone Number)
+                if (isset($update['message']['contact'])) {
+                    $this->handleContact($update['message']);
+                    return response()->json(['status' => 'success']);
+                }
+
                 $text = $update['message']['text'] ?? '';
 
                 if ($text === '/start') {
-                    $this->sendStartMessage($chatId);
+                    $this->sendStartMessage($chatId, $update['message']['from']);
                 }
             }
             
@@ -31,20 +38,53 @@ class TelegramBotController extends Controller
         }
     }
 
-    private function sendStartMessage($chatId)
+    private function handleContact($message)
+    {
+        $contact = $message['contact'];
+        $telegramId = $contact['user_id'];
+        $phoneNumber = $contact['phone_number'];
+        $firstName = $contact['first_name'] ?? 'User';
+
+        $user = \App\Models\User::updateOrCreate(
+            ['telegram_id' => $telegramId],
+            [
+                'name' => $firstName,
+                'phone_number' => $phoneNumber,
+                // generate a fake email if needed, or leave it null if migration allows
+                'email' => $telegramId . '@telegram.com', 
+                'password' => \Illuminate\Support\Facades\Hash::make(\Illuminate\Support\Str::random(12)),
+            ]
+        );
+
+        $this->sendMessage($telegramId, "Rahmat! Ma'lumotlaringiz saqlandi. Endi testni boshlashingiz mumkin.");
+        $this->sendStartMessage($telegramId, $message['from'], false); // Send with WebApp button now
+    }
+
+    private function sendStartMessage($chatId, $from, $requestContact = true)
     {
         $token = '8147881295:AAE9Zb2zBWmQw7iP_hasy_5Pn0rgLiT1YCA';
         $webAppUrl = 'https://test.nanoteam.uz/webapp';
         
-        $message = "Assalomu alaykum! Test botiga xush kelibsiz.\n\nTestni boshlash uchun quyidagi tugmani bosing:";
-        
-        $keyboard = json_encode([
-            'inline_keyboard' => [
-                [
-                    ['text' => '🚀 Testni boshlash', 'web_app' => ['url' => $webAppUrl]]
+        // If we don't have the user's phone yet, ask for it
+        $user = \App\Models\User::where('telegram_id', $chatId)->whereNotNull('phone_number')->first();
+
+        if (!$user && $requestContact) {
+            $message = "Assalomu alaykum! Botdan foydalanish uchun telefon raqamingizni yuboring:";
+            $keyboard = json_encode([
+                'keyboard' => [
+                    [['text' => '📱 Telefon raqamni yuborish', 'request_contact' => true]]
+                ],
+                'resize_keyboard' => true,
+                'one_time_keyboard' => true
+            ]);
+        } else {
+            $message = "Xush kelibsiz! Testni boshlash uchun quyidagi tugmani bosing:";
+            $keyboard = json_encode([
+                'inline_keyboard' => [
+                    [['text' => '🚀 Testni boshlash', 'web_app' => ['url' => $webAppUrl]]]
                 ]
-            ]
-        ]);
+            ]);
+        }
 
         $url = "https://api.telegram.org/bot{$token}/sendMessage";
         
@@ -55,6 +95,16 @@ class TelegramBotController extends Controller
         ]);
         
         Log::channel('single')->info('Telegram Send Response: ' . $response);
+    }
+
+    private function sendMessage($chatId, $text)
+    {
+        $token = '8147881295:AAE9Zb2zBWmQw7iP_hasy_5Pn0rgLiT1YCA';
+        $url = "https://api.telegram.org/bot{$token}/sendMessage";
+        return $this->callTelegramApi($url, [
+            'chat_id' => $chatId,
+            'text' => $text
+        ]);
     }
 
     private function callTelegramApi($url, $params)
