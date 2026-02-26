@@ -10,17 +10,18 @@ defineProps({
 <template>
     <Head title="Natija" />
 
-    <div class="min-h-screen bg-[#F0F3FF] flex flex-col font-outfit">
-        <div class="max-w-md mx-auto w-full flex-1 flex flex-col p-8 pt-16">
+    <div class="min-h-screen bg-[#F0F3FF] flex flex-col font-outfit select-none">
+        <div class="max-w-md mx-auto w-full flex-1 flex flex-col p-8 pt-10">
             <!-- trophy icon -->
             <div class="relative mb-12 text-center">
-                <div class="w-32 h-32 bg-indigo-600 rounded-[40px] rotate-[15deg] flex items-center justify-center mx-auto shadow-2xl shadow-indigo-300/60 relative">
+                <div class="w-32 h-32 bg-indigo-600 rounded-[40px] rotate-[15deg] flex items-center justify-center mx-auto shadow-2xl shadow-indigo-300/60 relative animate-in zoom-in spin-in-12 duration-700">
                     <div class="absolute inset-0 bg-white/10 rounded-[40px] animate-pulse"></div>
                     <i class="fas fa-trophy text-white text-5xl -rotate-[15deg] drop-shadow-lg"></i>
                 </div>
                 <!-- sparkles -->
-                <i class="fas fa-star absolute top-0 right-1/4 text-yellow-400 text-xl animate-bounce"></i>
-                <i class="fas fa-star absolute bottom-0 left-1/4 text-yellow-400 text-sm opacity-50"></i>
+                <i class="fas fa-star absolute top-0 right-1/4 text-yellow-400 text-xl animate-bounce delay-100"></i>
+                <i class="fas fa-star absolute bottom-0 left-1/4 text-yellow-400 text-sm animate-pulse opacity-50"></i>
+                <i class="fas fa-sparkles absolute top-1/2 left-0 text-indigo-400 text-lg opacity-30 animate-pulse"></i>
             </div>
 
             <div class="text-center mb-10">
