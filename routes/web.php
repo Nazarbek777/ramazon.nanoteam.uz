@@ -17,6 +17,7 @@ Route::get('/', function () {
 
 Route::get('/webapp', [App\Http\Controllers\WebAppController::class, 'index'])->name('webapp.index');
 Route::get('/webapp/quiz/{quiz}', [App\Http\Controllers\WebAppController::class, 'showQuiz'])->name('webapp.quiz.show');
+Route::post('/webapp/quiz/join', [App\Http\Controllers\WebAppController::class, 'joinByCode'])->name('webapp.quiz.join');
 Route::post('/webapp/quiz/{quiz}/submit', [App\Http\Controllers\WebAppController::class, 'submitQuiz'])->name('webapp.quiz.submit');
 Route::post('/telegram/webhook', [App\Http\Controllers\TelegramBotController::class, 'handle'])->name('telegram.webhook');
 Route::get('/debug/logs', [App\Http\Controllers\LogViewerController::class, 'index']);

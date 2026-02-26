@@ -1,10 +1,16 @@
-<script setup>
 import { Head, router } from '@inertiajs/vue3';
+import { ref } from 'vue';
 
 defineProps({
     subjects: Array,
 });
-</script>
+
+const testId = ref('');
+
+const joinQuiz = () => {
+    if (!testId.value) return;
+    router.post('/webapp/quiz/join', { code: testId.value });
+};
 
 <template>
     <Head title="Asosiy Sahifa" />
@@ -28,6 +34,23 @@ defineProps({
 
         <!-- content container -->
         <div class="px-6 -mt-16 relative z-20">
+            <!-- Test ID Input Section -->
+            <div class="bg-white p-6 rounded-[32px] shadow-xl shadow-indigo-100/50 border border-white mb-8">
+                <h3 class="font-bold text-gray-800 mb-4 flex items-center">
+                    <i class="fas fa-key text-indigo-500 mr-2"></i>
+                    Testga ID orqali kirish
+                </h3>
+                <form @submit.prevent="joinQuiz" class="relative">
+                    <input v-model="testId" type="text" placeholder="Test ID kodi (masalan: MAT-2024)"
+                           class="w-full bg-slate-50 border-none rounded-2xl py-4 pl-5 pr-14 text-sm font-semibold focus:ring-4 focus:ring-indigo-500/10 placeholder:text-slate-400 transition-all uppercase">
+                    <button type="submit" 
+                            class="absolute right-2 top-2 bottom-2 bg-indigo-600 text-white w-10 h-10 rounded-xl flex items-center justify-center shadow-lg shadow-indigo-200 active:scale-90 transition-all">
+                        <i class="fas fa-arrow-right"></i>
+                    </button>
+                    <p v-if="$page.props.flash?.error" class="text-xs text-red-500 mt-2 ml-1 font-bold">{{ $page.props.flash.error }}</p>
+                </form>
+            </div>
+
             <!-- Subjects and Quizzes -->
             <div class="space-y-8">
                 <div v-for="subject in subjects" :key="subject.id" class="space-y-4">

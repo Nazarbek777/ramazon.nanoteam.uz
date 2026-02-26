@@ -16,7 +16,22 @@ class WebAppController extends Controller
         ]);
     }
 
-    public function showQuiz(Quiz $quiz)
+    public function joinByCode(Request $request)
+    {
+        $request->validate([
+            'code' => 'required|string'
+        ]);
+
+        $quiz = \App\Models\Quiz::where('access_code', $request->code)->first();
+
+        if (!$quiz) {
+            return back()->with('error', 'Kechirasiz, bunday ID bilan test topilmadi.');
+        }
+
+        return redirect()->route('webapp.quiz.show', $quiz->id);
+    }
+
+    public function showQuiz(\App\Models\Quiz $quiz)
     {
         $quiz->load(['subject', 'subject.questions.options']);
         

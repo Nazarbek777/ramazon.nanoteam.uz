@@ -8,11 +8,16 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Quiz extends Model
 {
-    protected $fillable = ['subject_id', 'title', 'time_limit', 'pass_score', 'is_random'];
+    protected $fillable = ['subject_id', 'title', 'access_code', 'time_limit', 'pass_score', 'is_random'];
 
     public function subject(): BelongsTo
     {
         return $this->belongsTo(Subject::class);
+    }
+
+    public function questions(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
+    {
+        return $this->belongsToMany(Question::class, 'quiz_questions');
     }
 
     public function attempts(): HasMany
