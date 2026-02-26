@@ -1,3 +1,4 @@
+<script setup>
 import { Head, router } from '@inertiajs/vue3';
 import { ref } from 'vue';
 
@@ -11,6 +12,7 @@ const joinQuiz = () => {
     if (!testId.value) return;
     router.post('/webapp/quiz/join', { code: testId.value });
 };
+</script>
 
 <template>
     <Head title="Asosiy Sahifa" />
