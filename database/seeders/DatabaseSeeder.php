@@ -15,11 +15,21 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // User::factory(10)->create();
+        // Default admin user
+        User::firstOrCreate(
+            ['email' => 'admin@test.com'],
+            [
+                'name' => 'Admin',
+                'email' => 'admin@test.com',
+                'password' => bcrypt('admin123'),
+                'role' => 'admin',
+            ]
+        );
 
-        User::factory()->create([
-            'name' => 'Test User',
-            'email' => 'test@example.com',
+        // Seed all subjects, quizzes and questions
+        $this->call([
+            SubjectsSeeder::class,
+            DemoSeeder::class,
         ]);
     }
 }
