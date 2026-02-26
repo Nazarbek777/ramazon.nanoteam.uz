@@ -10,6 +10,7 @@ return new class extends Migration
     {
         Schema::table('subjects', function (Blueprint $table) {
             $table->foreignId('parent_id')->nullable()->constrained('subjects')->onDelete('cascade');
+            $table->text('description')->nullable()->after('name');
         });
 
         Schema::table('quizzes', function (Blueprint $table) {

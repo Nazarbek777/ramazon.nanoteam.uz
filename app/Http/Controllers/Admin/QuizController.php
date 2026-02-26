@@ -26,9 +26,11 @@ class QuizController extends Controller
         $validated = $request->validate([
             'subject_id' => 'required|exists:subjects,id',
             'title' => 'required|string|max:255',
+            'access_code' => 'nullable|string|max:50|unique:quizzes,access_code',
             'time_limit' => 'required|integer|min:1',
             'pass_score' => 'required|integer|min:1|max:100',
-            'is_random' => 'boolean',
+            'is_random' => 'required|boolean',
+            'random_questions_count' => 'nullable|integer|min:1',
         ]);
 
         Quiz::create($validated);
@@ -47,9 +49,11 @@ class QuizController extends Controller
         $validated = $request->validate([
             'subject_id' => 'required|exists:subjects,id',
             'title' => 'required|string|max:255',
+            'access_code' => 'nullable|string|max:50|unique:quizzes,access_code,' . $quiz->id,
             'time_limit' => 'required|integer|min:1',
             'pass_score' => 'required|integer|min:1|max:100',
-            'is_random' => 'boolean',
+            'is_random' => 'required|boolean',
+            'random_questions_count' => 'nullable|integer|min:1',
         ]);
 
         $quiz->update($validated);

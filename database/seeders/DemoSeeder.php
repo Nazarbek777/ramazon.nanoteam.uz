@@ -15,6 +15,7 @@ class DemoSeeder extends Seeder
         // 1. Create Subject
         $subject = Subject::create([
             'name' => 'Matematika (Demo)',
+            'slug' => 'matematika-demo',
             'description' => 'Matematika fanidan sinov testi',
         ]);
 

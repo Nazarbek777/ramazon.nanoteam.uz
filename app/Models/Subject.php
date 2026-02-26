@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Subject extends Model
 {
-    protected $fillable = ['name', 'slug', 'icon', 'parent_id'];
+    protected $fillable = ['name', 'slug', 'description', 'icon', 'parent_id'];
 
     public function parent()
     {

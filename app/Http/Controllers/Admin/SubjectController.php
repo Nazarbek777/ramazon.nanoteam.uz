@@ -17,7 +17,8 @@ class SubjectController extends Controller
 
     public function create()
     {
-        return view('admin.subjects.create');
+        $subjects = Subject::whereNull('parent_id')->get();
+        return view('admin.subjects.create', compact('subjects'));
     }
 
     public function store(Request $request)
@@ -25,6 +26,7 @@ class SubjectController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'icon' => 'nullable|string|max:255',
+            'parent_id' => 'nullable|exists:subjects,id',
         ]);
 
         $validated['slug'] = Str::slug($validated['name']);
@@ -36,7 +38,8 @@ class SubjectController extends Controller
 
     public function edit(Subject $subject)
     {
-        return view('admin.subjects.edit', compact('subject'));
+        $subjects = Subject::whereNull('parent_id')->where('id', '!=', $subject->id)->get();
+        return view('admin.subjects.edit', compact('subject', 'subjects'));
     }
 
     public function update(Request $request, Subject $subject)
@@ -44,6 +47,7 @@ class SubjectController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'icon' => 'nullable|string|max:255',
+            'parent_id' => 'nullable|exists:subjects,id',
         ]);
 
         $validated['slug'] = Str::slug($validated['name']);

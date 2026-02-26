@@ -37,6 +37,8 @@ Route::prefix('admin')->name('admin.')->group(function () {
         
         // Broadcast
         Route::get('broadcast', [App\Http\Controllers\Admin\BroadcastController::class, 'index'])->name('broadcast.index');
-        Route::post('broadcast', [App\Http\Controllers\Admin\BroadcastController::class, 'send'])->name('broadcast.send');
+        // Stats
+        Route::get('stats', [App\Http\Controllers\Admin\StatsController::class, 'index'])->name('stats.index');
+        Route::get('stats/{quiz}', [App\Http\Controllers\Admin\StatsController::class, 'show'])->name('stats.show');
     });
 });
