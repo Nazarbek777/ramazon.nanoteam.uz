@@ -9,16 +9,25 @@ class TelegramBotController extends Controller
 {
     public function handle(Request $request)
     {
-        $update = $request->all();
-        Log::info('Telegram Update:', $update);
+        try {
+            $update = $request->all();
+            Log::channel('single')->info('--- Telegram Update Start ---');
+            Log::channel('single')->info(json_encode($update, JSON_PRETTY_PRINT));
 
-        if (isset($update['message'])) {
-            $chatId = $update['message']['chat']['id'];
-            $text = $update['message']['text'] ?? '';
+            if (isset($update['message'])) {
+                $chatId = $update['message']['chat']['id'];
+                $text = $update['message']['text'] ?? '';
 
-            if ($text === '/start') {
-                $this->sendStartMessage($chatId);
+                if ($text === '/start') {
+                    $this->sendStartMessage($chatId);
+                }
             }
+            
+            return response()->json(['status' => 'success']);
+        } catch (\Exception $e) {
+            Log::channel('single')->error('Telegram Error: ' . $e->getMessage());
+            Log::channel('single')->error($e->getTraceAsString());
+            return response()->json(['status' => 'error', 'message' => $e->getMessage()], 500);
         }
     }
 
@@ -39,11 +48,13 @@ class TelegramBotController extends Controller
 
         $url = "https://api.telegram.org/bot{$token}/sendMessage";
         
-        $this->callTelegramApi($url, [
+        $response = $this->callTelegramApi($url, [
             'chat_id' => $chatId,
             'text' => $message,
             'reply_markup' => $keyboard
         ]);
+        
+        Log::channel('single')->info('Telegram Send Response: ' . $response);
     }
 
     private function callTelegramApi($url, $params)
@@ -53,7 +64,11 @@ class TelegramBotController extends Controller
         curl_setopt($ch, CURLOPT_POST, 1);
         curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($params));
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false); // For compatibility
         $response = curl_exec($ch);
+        if (curl_errno($ch)) {
+            Log::channel('single')->error('CURL Error: ' . curl_error($ch));
+        }
         curl_close($ch);
         return $response;
     }
