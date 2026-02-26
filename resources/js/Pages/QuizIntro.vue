@@ -2,13 +2,10 @@
 import { Head, router } from '@inertiajs/vue3';
 import { ref } from 'vue';
 
-const props = defineProps({
-    quiz: Object,
-});
-
+const props = defineProps({ quiz: Object });
 const loading = ref(false);
 
-const startQuiz = () => {
+const start = () => {
     if (loading.value) return;
     loading.value = true;
     router.post(`/webapp/quiz/${props.quiz.id}/start`, {}, {
@@ -19,90 +16,71 @@ const startQuiz = () => {
 
 <template>
     <Head :title="quiz.title" />
+    <div class="min-h-screen flex flex-col bg-slate-50" style="font-family:'Outfit',sans-serif;">
 
-    <div class="min-h-screen bg-slate-50 flex flex-col" style="font-family: 'Outfit', sans-serif;">
-
-        <!-- Header -->
-        <div class="bg-indigo-600 px-5 pt-10 pb-20 relative overflow-hidden">
-            <div class="absolute top-0 right-0 w-48 h-48 bg-white/10 rounded-full -mr-12 -mt-12 blur-2xl"></div>
-            <div class="absolute bottom-0 left-0 w-32 h-32 bg-white/5 rounded-full -ml-10 -mb-10"></div>
-            <button @click="router.visit('/webapp')" class="flex items-center gap-2 text-indigo-200 text-sm mb-5 relative z-10">
-                <i class="fas fa-arrow-left"></i>
-                <span class="font-medium">Orqaga</span>
+        <!-- Top banner -->
+        <div class="bg-indigo-600 pt-10 pb-16 px-5 relative overflow-hidden">
+            <div class="absolute inset-0 bg-gradient-to-br from-indigo-500 to-indigo-700"></div>
+            <button @click="router.visit('/webapp')" class="relative z-10 flex items-center gap-1.5 text-indigo-200 text-sm mb-6">
+                <i class="fas fa-arrow-left text-xs"></i> Orqaga
             </button>
             <div class="relative z-10">
-                <div class="w-14 h-14 bg-white/20 rounded-2xl flex items-center justify-center mb-4 border border-white/30">
-                    <i class="fas fa-clipboard-list text-white text-2xl"></i>
-                </div>
-                <h1 class="text-white text-xl font-extrabold leading-tight">{{ quiz.title }}</h1>
-                <p class="text-indigo-200 text-sm mt-1">{{ quiz.subject?.name }}</p>
+                <p class="text-indigo-300 text-xs font-semibold uppercase tracking-wider mb-1">{{ quiz.subject?.name }}</p>
+                <h1 class="text-white text-xl font-extrabold leading-snug">{{ quiz.title }}</h1>
             </div>
         </div>
 
-        <!-- Content -->
-        <div class="px-5 -mt-10 relative z-10 flex flex-col gap-4 flex-1">
+        <!-- Card floated over banner -->
+        <div class="px-4 -mt-6 flex flex-col gap-4 flex-1">
 
-            <!-- Quiz info cards -->
-            <div class="bg-white rounded-2xl shadow-md p-5">
-                <h3 class="text-xs font-black text-slate-400 uppercase tracking-widest mb-4">Test ma'lumotlari</h3>
-                <div class="grid grid-cols-3 gap-3">
-                    <div class="bg-indigo-50 rounded-xl p-3 text-center">
-                        <div class="text-xl font-black text-indigo-600">{{ quiz.time_limit }}</div>
-                        <div class="text-[9px] font-bold text-indigo-400 uppercase mt-0.5">Daqiqa</div>
-                    </div>
-                    <div class="bg-emerald-50 rounded-xl p-3 text-center">
-                        <div class="text-xl font-black text-emerald-600">{{ quiz.pass_score }}%</div>
-                        <div class="text-[9px] font-bold text-emerald-400 uppercase mt-0.5">O'tish bali</div>
-                    </div>
-                    <div class="bg-amber-50 rounded-xl p-3 text-center">
-                        <div class="text-xl font-black text-amber-600">1x</div>
-                        <div class="text-[9px] font-bold text-amber-400 uppercase mt-0.5">Urinish</div>
-                    </div>
+            <!-- Stats row -->
+            <div class="bg-white rounded-2xl shadow-md p-4 flex items-center justify-around">
+                <div class="text-center">
+                    <div class="text-2xl font-black text-indigo-600">{{ quiz.time_limit }}</div>
+                    <div class="text-[10px] text-slate-400 font-bold uppercase mt-0.5">Daqiqa</div>
+                </div>
+                <div class="w-px h-10 bg-slate-100"></div>
+                <div class="text-center">
+                    <div class="text-2xl font-black text-emerald-600">{{ quiz.pass_score }}%</div>
+                    <div class="text-[10px] text-slate-400 font-bold uppercase mt-0.5">O'tish bali</div>
+                </div>
+                <div class="w-px h-10 bg-slate-100"></div>
+                <div class="text-center">
+                    <div class="text-2xl font-black text-amber-500">1</div>
+                    <div class="text-[10px] text-slate-400 font-bold uppercase mt-0.5">Urinish</div>
                 </div>
             </div>
 
             <!-- Warning -->
-            <div class="bg-rose-50 border border-rose-100 rounded-2xl p-4 flex items-start gap-3">
-                <div class="w-9 h-9 bg-rose-100 rounded-xl flex items-center justify-center flex-shrink-0">
-                    <i class="fas fa-exclamation-triangle text-rose-500"></i>
+            <div class="bg-rose-50 border border-rose-100 rounded-2xl p-4">
+                <div class="flex items-center gap-2 mb-2">
+                    <i class="fas fa-exclamation-circle text-rose-500"></i>
+                    <span class="font-black text-rose-600 text-sm">Boshlashdan oldin o'qing</span>
                 </div>
-                <div>
-                    <h4 class="font-black text-rose-700 text-sm mb-1">Diqqat!</h4>
-                    <ul class="text-rose-500 text-xs space-y-1 font-medium leading-relaxed">
-                        <li>• Testni boshlaganingizdan so'ng uni qaytadan yechib bo'lmaydi</li>
-                        <li>• Testni boshlaganingizdan so'ng vaqt hisoblana boshlaydi</li>
-                        <li>• Vaqt tugasa test avtomatik yakunlanadi</li>
-                        <li>• Natija darhol ko'rsatiladi</li>
-                    </ul>
-                </div>
+                <ul class="text-rose-500 text-xs space-y-1.5 font-medium">
+                    <li class="flex items-start gap-2"><i class="fas fa-times-circle mt-0.5 flex-shrink-0"></i>Test bir martagina yechilishi mumkin</li>
+                    <li class="flex items-start gap-2"><i class="fas fa-clock mt-0.5 flex-shrink-0"></i>Boshlagan zahoti vaqt hisoblana boshlaydi</li>
+                    <li class="flex items-start gap-2"><i class="fas fa-hourglass-end mt-0.5 flex-shrink-0"></i>Vaqt tugasa test avtomatik yakunlanadi</li>
+                </ul>
             </div>
 
-            <!-- Schedule info -->
-            <div v-if="quiz.ends_at" class="bg-amber-50 border border-amber-100 rounded-xl px-4 py-3 flex items-center gap-3 text-sm">
-                <i class="fas fa-calendar-times text-amber-400 text-base flex-shrink-0"></i>
-                <div class="text-amber-700 text-xs font-medium">
-                    Bu test <strong>{{ new Date(quiz.ends_at).toLocaleString('uz-UZ', {day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'}) }}</strong> gacha mavjud
-                </div>
+            <!-- Deadline badge -->
+            <div v-if="quiz.ends_at" class="bg-amber-50 border border-amber-100 rounded-xl px-4 py-2.5 flex items-center gap-2 text-xs text-amber-700 font-medium">
+                <i class="fas fa-calendar-alt text-amber-400 flex-shrink-0"></i>
+                Muddati: <strong>{{ new Date(quiz.ends_at).toLocaleString('uz-UZ',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'}) }}</strong>
             </div>
 
-            <!-- Spacer -->
             <div class="flex-1"></div>
 
-            <!-- Start Button -->
-            <div class="pb-8 pt-2">
-                <button @click="startQuiz"
-                        :disabled="loading"
-                        class="w-full bg-indigo-600 text-white font-black text-base py-4 rounded-2xl shadow-xl shadow-indigo-200 active:scale-95 transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-3">
-                    <span v-if="loading">
-                        <i class="fas fa-spinner fa-spin mr-2"></i>Yuklanmoqda...
-                    </span>
-                    <span v-else>
-                        <i class="fas fa-play mr-2"></i>Testni boshlash
-                    </span>
+            <!-- CTA -->
+            <div class="pb-8">
+                <button @click="start" :disabled="loading"
+                        class="w-full bg-indigo-600 text-white font-black text-base py-4 rounded-2xl shadow-lg shadow-indigo-200 active:scale-95 transition-all disabled:opacity-60 flex items-center justify-center gap-2">
+                    <i v-if="loading" class="fas fa-spinner fa-spin"></i>
+                    <i v-else class="fas fa-play"></i>
+                    {{ loading ? 'Yuklanmoqda...' : 'Testni boshlash' }}
                 </button>
-                <p class="text-center text-xs text-slate-400 mt-3 font-medium">
-                    Boshlash tugmasini bosgandan so'ng vaqt boshlanadi
-                </p>
+                <p class="text-center text-[11px] text-slate-400 mt-2">Boshlagan zahoti qaytib bo'lmaydi</p>
             </div>
         </div>
     </div>
