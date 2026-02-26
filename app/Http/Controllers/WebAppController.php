@@ -203,7 +203,43 @@ class WebAppController extends Controller
                 ]);
             }
 
-            // 3) No attempt exists — create new
+            // 3) No attempt exists — show intro/confirmation screen
+            return Inertia::render('QuizIntro', [
+                'quiz' => $quiz,
+            ]);
+
+        } catch (\Exception $e) {
+            return redirect()->route('webapp.index')->with('error', 'Xatolik yuz berdi.');
+        }
+    }
+
+    public function startQuiz(Quiz $quiz)
+    {
+        try {
+            $userId = Auth::id() ?? ((\App\Models\User::first())->id ?? 1);
+            $quiz->load(['subject']);
+
+            // Guard: already completed?
+            $completed = QuizAttempt::where('user_id', $userId)
+                ->where('quiz_id', $quiz->id)
+                ->whereNotNull('completed_at')
+                ->exists();
+
+            if ($completed) {
+                return redirect()->route('webapp.quiz.show', $quiz->id);
+            }
+
+            // Guard: already in progress?
+            $active = QuizAttempt::where('user_id', $userId)
+                ->where('quiz_id', $quiz->id)
+                ->whereNull('completed_at')
+                ->first();
+
+            if ($active) {
+                return redirect()->route('webapp.quiz.show', $quiz->id);
+            }
+
+            // Create attempt now
             $questions = $this->getQuestionsForQuiz($quiz);
 
             $attempt = QuizAttempt::create([
