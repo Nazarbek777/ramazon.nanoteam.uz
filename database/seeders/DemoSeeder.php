@@ -32,33 +32,33 @@ class DemoSeeder extends Seeder
         // 3. Create Questions & Options
         $questions = [
             [
-                'text' => '2 + 2 * 2 nechaga teng?',
+                'content' => '2 + 2 * 2 nechaga teng?',
                 'type' => 'single',
                 'options' => [
-                    ['text' => '4', 'is_correct' => false],
-                    ['text' => '6', 'is_correct' => true],
-                    ['text' => '8', 'is_correct' => false],
-                    ['text' => '10', 'is_correct' => false],
+                    ['content' => '4', 'is_correct' => false],
+                    ['content' => '6', 'is_correct' => true],
+                    ['content' => '8', 'is_correct' => false],
+                    ['content' => '10', 'is_correct' => false],
                 ]
             ],
             [
-                'text' => 'Uchburchakning ichki burchaklari yig\'indisi necha gradus?',
+                'content' => 'Uchburchakning ichki burchaklari yig\'indisi necha gradus?',
                 'type' => 'single',
                 'options' => [
-                    ['text' => '90', 'is_correct' => false],
-                    ['text' => '180', 'is_correct' => true],
-                    ['text' => '270', 'is_correct' => false],
-                    ['text' => '360', 'is_correct' => false],
+                    ['content' => '90', 'is_correct' => false],
+                    ['content' => '180', 'is_correct' => true],
+                    ['content' => '270', 'is_correct' => false],
+                    ['content' => '360', 'is_correct' => false],
                 ]
             ],
             [
-                'text' => '5 ning kvadrati necha?',
+                'content' => '5 ning kvadrati necha?',
                 'type' => 'single',
                 'options' => [
-                    ['text' => '10', 'is_correct' => false],
-                    ['text' => '20', 'is_correct' => false],
-                    ['text' => '25', 'is_correct' => true],
-                    ['text' => '50', 'is_correct' => false],
+                    ['content' => '10', 'is_correct' => false],
+                    ['content' => '20', 'is_correct' => false],
+                    ['content' => '25', 'is_correct' => true],
+                    ['content' => '50', 'is_correct' => false],
                 ]
             ],
         ];
@@ -66,14 +66,14 @@ class DemoSeeder extends Seeder
         foreach ($questions as $qData) {
             $question = Question::create([
                 'subject_id' => $subject->id,
-                'text' => $qData['text'],
+                'content' => $qData['content'],
                 'type' => $qData['type'],
             ]);
 
             foreach ($qData['options'] as $oData) {
                 Option::create([
                     'question_id' => $question->id,
-                    'text' => $oData['text'],
+                    'content' => $oData['content'],
                     'is_correct' => $oData['is_correct'],
                 ]);
             }
