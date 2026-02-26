@@ -13,6 +13,11 @@ Route::get('/', function () {
     return view('welcome');
 });
 
+Route::get('/webapp', [App\Http\Controllers\WebAppController::class, 'index'])->name('webapp.index');
+Route::get('/webapp/quiz/{quiz}', [App\Http\Controllers\WebAppController::class, 'showQuiz'])->name('webapp.quiz.show');
+Route::post('/webapp/quiz/{quiz}/submit', [App\Http\Controllers\WebAppController::class, 'submitQuiz'])->name('webapp.quiz.submit');
+Route::post('/telegram/webhook', [App\Http\Controllers\TelegramBotController::class, 'handle'])->name('telegram.webhook');
+
 // Admin Auth Routes
 Route::prefix('admin')->name('admin.')->group(function () {
     Route::get('/login', [App\Http\Controllers\Admin\AuthController::class, 'showLogin'])->name('login');

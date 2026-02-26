@@ -3,60 +3,107 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Panel - @yield('title')</title>
+    <title>@yield('title', 'Admin Panel') - Premium Test System</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+    
+    <!-- KaTeX -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
-        body { font-family: 'Inter', sans-serif; }
+        body { font-family: 'Outfit', sans-serif; background-color: #f8fafc; }
+        .sidebar-link.active {
+            background-color: rgba(99, 102, 241, 0.1);
+            color: #4f46e5;
+            border-right: 4px solid #4f46e5;
+        }
+        [x-cloak] { display: none !important; }
     </style>
 </head>
-<body class="bg-gray-50">
-    <div class="min-h-screen flex">
+<body class="antialiased text-slate-800">
+    <div class="flex h-screen overflow-hidden" x-data="{ sidebarOpen: true }">
         <!-- Sidebar -->
-        <div class="w-64 bg-indigo-900 text-white flex-shrink-0">
-            <div class="p-6">
-                <h1 class="text-2xl font-bold tracking-wider">TEST ADMIN</h1>
+        <aside class="relative w-72 bg-white border-r border-slate-200 transition-all duration-300 flex flex-col"
+               :class="sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0 lg:w-20'">
+            
+            <!-- Logo area -->
+            <div class="h-20 flex items-center px-6 border-b border-slate-100">
+                <div class="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center shrink-0">
+                    <i class="fas fa-microchip text-white"></i>
+                </div>
+                <span class="ml-3 font-bold text-xl tracking-tight transition-opacity duration-300"
+                      :class="sidebarOpen ? 'opacity-100' : 'opacity-0 lg:hidden'">ADMIN<span class="text-indigo-600">PRO</span></span>
             </div>
-            <nav class="mt-6 px-4">
-                <a href="#" class="flex items-center py-3 px-4 rounded-lg bg-indigo-800 text-white mb-2">
-                    <i class="fas fa-tachometer-alt mr-3"></i> Dashboard
+
+            <!-- Navigation -->
+            <nav class="flex-1 overflow-y-auto p-4 space-y-2">
+                <p class="text-[10px] uppercase font-bold text-slate-400 px-3 mb-2" :class="!sidebarOpen && 'hidden'">Asosiy</p>
+                
+                <a href="{{ route('admin.subjects.index') }}" 
+                   class="sidebar-link group flex items-center px-4 py-3 rounded-xl transition duration-200 hover:bg-slate-50 {{ request()->routeIs('admin.subjects.*') ? 'active' : '' }}">
+                    <i class="fas fa-layer-group w-6 text-indigo-500"></i>
+                    <span class="ml-3 font-semibold" :class="!sidebarOpen && 'lg:hidden'">Fanlar</span>
                 </a>
-                <a href="{{ route('admin.subjects.index') }}" class="flex items-center py-3 px-4 rounded-lg hover:bg-indigo-800 text-indigo-100 transition mb-2">
-                    <i class="fas fa-book mr-3"></i> Fanlar
+
+                <a href="{{ route('admin.questions.index') }}" 
+                   class="sidebar-link group flex items-center px-4 py-3 rounded-xl transition duration-200 hover:bg-slate-50 {{ request()->routeIs('admin.questions.*') ? 'active' : '' }}">
+                    <i class="fas fa-question-circle w-6 text-indigo-500"></i>
+                    <span class="ml-3 font-semibold" :class="!sidebarOpen && 'lg:hidden'">Savollar</span>
                 </a>
-                <a href="{{ route('admin.questions.index') }}" class="flex items-center py-3 px-4 rounded-lg hover:bg-indigo-800 text-indigo-100 transition mb-2">
-                    <i class="fas fa-question-circle mr-3"></i> Savollar
+
+                <a href="{{ route('admin.quizzes.index') }}" 
+                   class="sidebar-link group flex items-center px-4 py-3 rounded-xl transition duration-200 hover:bg-slate-50 {{ request()->routeIs('admin.quizzes.*') ? 'active' : '' }}">
+                    <i class="fas fa-tasks w-6 text-indigo-500"></i>
+                    <span class="ml-3 font-semibold" :class="!sidebarOpen && 'lg:hidden'">Testlar</span>
                 </a>
-                <a href="{{ route('admin.quizzes.index') }}" class="flex items-center py-3 px-4 rounded-lg hover:bg-indigo-800 text-indigo-100 transition mb-2">
-                    <i class="fas fa-tasks mr-3"></i> Testlar
-                </a>
-                <form action="{{ route('admin.logout') }}" method="POST" class="mt-10 px-4">
+            </nav>
+
+            <!-- Logout -->
+            <div class="p-4 border-t border-slate-100">
+                <form action="{{ route('admin.logout') }}" method="POST">
                     @csrf
-                    <button type="submit" class="w-full flex items-center py-3 px-4 rounded-lg hover:bg-red-800 text-indigo-100 transition whitespace-nowrap">
-                        <i class="fas fa-sign-out-alt mr-3"></i> Chiqish
+                    <button type="submit" class="w-full flex items-center px-4 py-3 rounded-xl text-red-500 hover:bg-red-50 transition duration-200 font-bold">
+                        <i class="fas fa-sign-out-alt w-6"></i>
+                        <span class="ml-3" :class="!sidebarOpen && 'lg:hidden'">Chiqish</span>
                     </button>
                 </form>
-            </nav>
-        </div>
+            </div>
+        </aside>
 
         <!-- Main Content -->
-        <div class="flex-1 flex flex-col">
-            <header class="bg-white shadow-sm py-4 px-8 flex justify-between items-center">
-                <h2 class="text-xl font-semibold text-gray-800">@yield('title')</h2>
-                <div class="flex items-center">
-                    <span class="text-gray-600 mr-4">Admin</span>
-                    <img class="h-8 w-8 rounded-full border" src="https://ui-avatars.com/api/?name=Admin" alt="Admin">
+        <div class="flex-1 flex flex-col overflow-hidden">
+            <!-- Header -->
+            <header class="h-20 bg-white border-b border-slate-200 flex items-center justify-between px-8 shrink-0">
+                <button @click="sidebarOpen = !sidebarOpen" class="text-slate-500 hover:text-indigo-600 transition">
+                    <i class="fas fa-bars-staggered text-xl"></i>
+                </button>
+
+                <div class="flex items-center space-x-4">
+                    <div class="flex flex-col text-right hidden sm:block">
+                        <p class="text-sm font-bold text-slate-800">{{ auth()->user()->name }}</p>
+                        <p class="text-[10px] text-indigo-600 font-bold uppercase tracking-widest">Administrator</p>
+                    </div>
+                    <img src="https://ui-avatars.com/api/?name={{ auth()->user()->name }}&background=6366f1&color=fff" 
+                         alt="Avatar" class="w-10 h-10 rounded-xl shadow-lg shadow-indigo-100">
                 </div>
             </header>
 
-            <main class="p-8">
+            <!-- Page Content -->
+            <main class="flex-1 overflow-y-auto p-8">
                 @if(session('success'))
-                    <div class="bg-green-100 border-l-4 border-green-500 text-green-700 p-4 mb-6 rounded shadow-sm" role="alert">
-                        {{ session('success') }}
+                    <div x-data="{ show: true }" x-show="show" x-init="setTimeout(() => show = false, 3000)"
+                         class="mb-6 bg-emerald-50 border-emerald-500 text-emerald-700 px-6 py-4 rounded-2xl flex justify-between items-center shadow-sm">
+                        <div class="flex items-center">
+                            <i class="fas fa-check-circle mr-3"></i>
+                            <span class="font-semibold">{{ session('success') }}</span>
+                        </div>
+                        <button @click="show = false"><i class="fas fa-times"></i></button>
                     </div>
                 @endif
-
+                
                 @yield('content')
             </main>
         </div>
