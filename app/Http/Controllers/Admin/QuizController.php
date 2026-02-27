@@ -9,16 +9,20 @@ use Illuminate\Http\Request;
 
 class QuizController extends Controller
 {
-    public function index()
+    public function index(\Illuminate\Http\Request $request)
     {
-        $subjects = Subject::withCount('quizzes')
-            ->with(['quizzes' => function ($q) {
-                $q->orderByDesc('created_at');
-            }])
-            ->orderBy('name')
-            ->get();
+        $subjects = Subject::withCount('quizzes')->orderBy('name')->get();
+        $selectedSubject = null;
+        $quizzes = collect();
 
-        return view('admin.quizzes.index', compact('subjects'));
+        if ($request->subject_id) {
+            $selectedSubject = Subject::find($request->subject_id);
+            if ($selectedSubject) {
+                $quizzes = $selectedSubject->quizzes()->orderByDesc('created_at')->get();
+            }
+        }
+
+        return view('admin.quizzes.index', compact('subjects', 'selectedSubject', 'quizzes'));
     }
 
     public function create()
