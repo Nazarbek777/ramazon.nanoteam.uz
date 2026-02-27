@@ -55,7 +55,11 @@ class AdminPermissionController extends Controller
 
         try {
             $adminId = (int) $request->admin_id;
-            $permissions = $request->permissions ?? [];
+            // Filter out '0', empty strings, and non-string values
+            $permissions = array_values(array_filter(
+                $request->permissions ?? [],
+                fn($p) => is_string($p) && strlen($p) > 1
+            ));
 
             \Log::info('[Permissions] store called', [
                 'admin_id'    => $adminId,
@@ -122,11 +126,13 @@ class AdminPermissionController extends Controller
             'role'     => 'admin',
         ]);
 
-        // Give selected permissions
-        foreach ($request->permissions ?? [] as $page) {
-            if (array_key_exists($page, self::PAGES)) {
-                AdminPermission::create(['admin_id' => $admin->id, 'page' => $page]);
-            }
+        // Give selected permissions (filter out bad values)
+        $cleanPerms = array_filter(
+            $request->permissions ?? [],
+            fn($p) => is_string($p) && strlen($p) > 1 && array_key_exists($p, self::PAGES)
+        );
+        foreach ($cleanPerms as $page) {
+            AdminPermission::create(['admin_id' => $admin->id, 'page' => $page]);
         }
 
         return back()->with('success', "{$admin->name} muvaffaqiyatli admin sifatida yaratildi.");
