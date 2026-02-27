@@ -53,17 +53,25 @@ class AdminPermissionController extends Controller
             'permissions' => 'array',
         ]);
 
-        $admin = User::findOrFail($request->admin_id);
+        try {
+            $admin = User::findOrFail($request->admin_id);
 
-        // Sync permissions
-        $admin->permissions()->delete();
-        foreach ($request->permissions ?? [] as $page) {
-            if (array_key_exists($page, self::PAGES)) {
-                AdminPermission::create(['admin_id' => $admin->id, 'page' => $page]);
+            // Delete all existing permissions for this admin
+            AdminPermission::where('admin_id', $admin->id)->delete();
+
+            // Recreate selected ones
+            foreach ($request->permissions ?? [] as $page) {
+                if (array_key_exists($page, self::PAGES)) {
+                    AdminPermission::create(['admin_id' => $admin->id, 'page' => $page]);
+                }
             }
-        }
 
-        return back()->with('success', "{$admin->name} uchun ruxsatlar saqlandi.");
+            return redirect()->route('admin.permissions.index')
+                ->with('success', "{$admin->name} uchun ruxsatlar saqlandi. (" . count($request->permissions ?? []) . " ta)");
+        } catch (\Exception $e) {
+            return redirect()->route('admin.permissions.index')
+                ->with('error', "Xatolik: " . $e->getMessage());
+        }
     }
 
     public function makeAdmin(Request $request)
