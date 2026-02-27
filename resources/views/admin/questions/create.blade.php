@@ -10,6 +10,10 @@
 <div class="max-w-4xl mx-auto">
     <form action="{{ route('admin.questions.store') }}" method="POST" id="questionForm">
         @csrf
+        {{-- Hidden baza_id if coming from a baza page --}}
+        @if(request('baza_id'))
+        <input type="hidden" name="baza_id" value="{{ request('baza_id') }}">
+        @endif
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
             <!-- Left Side: Basic Info -->
             <div class="md:col-span-1 space-y-6">

@@ -1,16 +1,14 @@
 @extends('layouts.admin')
 
-@section('title', $subject->name . ' — Savollar')
+@section('title', $subject->name . ' — Bazalar')
 
 @section('content')
-{{-- Breadcrumb --}}
 <div class="flex items-center gap-2 text-sm text-gray-400 mb-5">
-    <a href="{{ route('admin.questions.index') }}" class="hover:text-indigo-600 transition">Savollar</a>
+    <a href="{{ route('admin.questions.index') }}" class="hover:text-indigo-600">Savollar</a>
     <i class="fas fa-chevron-right text-[10px]"></i>
     <span class="text-gray-700 font-semibold">{{ $subject->name }}</span>
 </div>
 
-{{-- Header --}}
 <div class="flex items-center justify-between mb-6">
     <div class="flex items-center gap-3">
         <div class="w-12 h-12 bg-indigo-50 rounded-xl flex items-center justify-center text-xl">
@@ -22,56 +20,34 @@
         </div>
         <div>
             <h3 class="text-xl font-bold text-gray-800">{{ $subject->name }}</h3>
-            <p class="text-sm text-gray-400">{{ $questions->count() }} ta savol</p>
+            <p class="text-sm text-gray-400">Savollar bazalarini tanlang</p>
         </div>
     </div>
-    @if(auth()->user()->hasPermission('questions.create'))
-    <a href="{{ route('admin.questions.create', ['subject_id' => $subject->id]) }}"
-       class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2.5 px-5 rounded-xl transition shadow flex items-center gap-2">
-        <i class="fas fa-plus"></i> Yangi savol qo'shish
-    </a>
-    @endif
 </div>
 
-{{-- Questions list --}}
-<div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-    @forelse($questions as $i => $question)
-    <div class="flex items-start justify-between px-5 py-4 border-b border-gray-50 last:border-0 hover:bg-gray-50/50 transition">
-        <div class="flex gap-3 flex-1 min-w-0">
-            <span class="text-xs font-bold text-gray-300 mt-0.5 w-6 shrink-0">{{ $i+1 }}</span>
-            <div class="flex-1 min-w-0">
-                <p class="text-sm font-medium text-gray-800 leading-snug">{{ $question->content }}</p>
-                <p class="text-xs text-gray-400 mt-1">{{ $question->options_count }} ta variant</p>
-            </div>
-        </div>
-        <div class="flex items-center gap-3 ml-4 shrink-0 mt-0.5">
-            @if(auth()->user()->hasPermission('questions.edit'))
-            <a href="{{ route('admin.questions.edit', $question) }}" class="text-indigo-400 hover:text-indigo-700 text-sm" title="Tahrirlash">
-                <i class="fas fa-edit"></i>
-            </a>
-            @endif
-            @if(auth()->user()->hasPermission('questions.delete'))
-            <form action="{{ route('admin.questions.destroy', $question) }}" method="POST" class="inline"
-                  onsubmit="return confirm('Savolni o\'chirilsinmi?')">
-                @csrf @method('DELETE')
-                <button type="submit" class="text-red-400 hover:text-red-600 text-sm" title="O'chirish">
-                    <i class="fas fa-trash"></i>
-                </button>
-            </form>
-            @endif
-        </div>
-    </div>
-    @empty
-    <div class="py-12 text-center text-gray-400">
-        <i class="fas fa-question-circle text-3xl mb-2 block text-gray-200"></i>
-        Bu fanda hali savol yaratilmagan.
-        @if(auth()->user()->hasPermission('questions.create'))
-        <div class="mt-3">
-            <a href="{{ route('admin.questions.create', ['subject_id' => $subject->id]) }}"
-               class="text-indigo-500 font-semibold hover:underline text-sm">+ Birinchi savolni yarating</a>
-        </div>
-        @endif
-    </div>
-    @endforelse
+@if($bazalar->isEmpty())
+<div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-10 text-center text-gray-400">
+    <i class="fas fa-database text-4xl block mb-3 text-gray-200"></i>
+    <p class="text-sm font-semibold">Bu fanda hali baza yaratilmagan.</p>
+    <p class="text-xs mt-1">Avval bazalarni yarating, keyin savol qo'shing.</p>
 </div>
+@else
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+    @foreach($bazalar as $baza)
+    <a href="{{ route('admin.questions.baza', [$subject, $baza]) }}"
+       class="bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-md hover:border-indigo-200 transition p-5 flex items-center gap-4 group"
+       style="{{ $baza->depth > 0 ? 'margin-left: ' . ($baza->depth * 16) . 'px' : '' }}">
+        <div class="w-11 h-11 rounded-xl flex items-center justify-center shrink-0
+             {{ $baza->depth == 0 ? 'bg-indigo-50 text-indigo-500' : 'bg-amber-50 text-amber-500' }}">
+            <i class="fas fa-{{ $baza->depth == 0 ? 'database' : 'folder-open' }}"></i>
+        </div>
+        <div class="flex-1 min-w-0">
+            <p class="font-bold text-gray-800 group-hover:text-indigo-600 transition text-sm truncate">{{ $baza->name }}</p>
+            <p class="text-xs text-gray-400 mt-0.5">{{ $baza->questions_count }} ta savol</p>
+        </div>
+        <i class="fas fa-chevron-right text-gray-300 group-hover:text-indigo-400 transition text-xs"></i>
+    </a>
+    @endforeach
+</div>
+@endif
 @endsection
