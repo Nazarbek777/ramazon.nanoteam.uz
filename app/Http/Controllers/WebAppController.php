@@ -247,7 +247,18 @@ class WebAppController extends Controller
             $userId = Auth::id() ?? ((\App\Models\User::first())->id ?? 1);
             $quiz->load(['subject']);
 
-            // 0) Check quiz schedule (starts_at / ends_at)
+            // 0a) Check if user is blocked
+            $currentUser = \App\Models\User::find($userId);
+            if ($currentUser && $currentUser->isBlocked()) {
+                return Inertia::render('QuizBlocked', [
+                    'quiz'    => $quiz,
+                    'type'    => 'blocked',
+                    'attempt' => null,
+                    'message' => 'Kechirasiz, sizning hisobingiz bloklangan. Admin bilan bog\'laning: @abdullayevna_jamoa',
+                ]);
+            }
+
+            // 0b) Check quiz schedule (starts_at / ends_at)
             $now = now();
             if ($quiz->starts_at && $quiz->starts_at > $now) {
                 return Inertia::render('QuizBlocked', [

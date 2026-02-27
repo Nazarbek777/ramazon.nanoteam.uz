@@ -16,6 +16,10 @@ return Application::configure(basePath: dirname(__DIR__))
             \App\Http\Middleware\HandleInertiaRequests::class,
         ]);
 
+        $middleware->alias([
+            'permission' => \App\Http\Middleware\PermissionMiddleware::class,
+        ]);
+
         $middleware->validateCsrfTokens(except: [
             'telegram/webhook',
         ]);

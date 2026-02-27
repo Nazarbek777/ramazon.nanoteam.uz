@@ -2,50 +2,64 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
 class User extends Authenticatable
 {
-    /** @use HasFactory<\Database\Factories\UserFactory> */
     use HasFactory, Notifiable;
 
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var list<string>
-     */
     protected $fillable = [
-        'name',
-        'email',
-        'password',
-        'role',
-        'telegram_id',
-        'phone_number',
+        'name', 'email', 'password', 'role',
+        'telegram_id', 'phone_number', 'is_blocked',
     ];
 
-    /**
-     * The attributes that should be hidden for serialization.
-     *
-     * @var list<string>
-     */
-    protected $hidden = [
-        'password',
-        'remember_token',
-    ];
+    protected $hidden = ['password', 'remember_token'];
 
-    /**
-     * Get the attributes that should be cast.
-     *
-     * @return array<string, string>
-     */
     protected function casts(): array
     {
         return [
             'email_verified_at' => 'datetime',
-            'password' => 'hashed',
+            'password'          => 'hashed',
+            'is_blocked'        => 'boolean',
         ];
+    }
+
+    // ─── Role helpers ───────────────────────────────
+    public function isSuperAdmin(): bool
+    {
+        return $this->role === 'super_admin';
+    }
+
+    public function isAdmin(): bool
+    {
+        return in_array($this->role, ['admin', 'super_admin']);
+    }
+
+    public function isBlocked(): bool
+    {
+        return (bool) $this->is_blocked;
+    }
+
+    /**
+     * Check if this admin has permission for a page.
+     * super_admin always has access.
+     */
+    public function hasPermission(string $page): bool
+    {
+        if ($this->isSuperAdmin()) return true;
+        return $this->permissions()->where('page', $page)->exists();
+    }
+
+    // ─── Relationships ───────────────────────────────
+    public function permissions()
+    {
+        return $this->hasMany(\App\Models\AdminPermission::class, 'admin_id');
+    }
+
+    public function attempts()
+    {
+        return $this->hasMany(\App\Models\QuizAttempt::class);
     }
 }
