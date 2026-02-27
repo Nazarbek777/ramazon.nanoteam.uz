@@ -358,19 +358,15 @@ class WebAppController extends Controller
             // Create attempt now
             $questions = $this->getQuestionsForQuiz($quiz);
 
-            $attempt = QuizAttempt::create([
-                'user_id' => $userId,
-                'quiz_id' => $quiz->id,
-                'started_at' => now(),
+            QuizAttempt::create([
+                'user_id'         => $userId,
+                'quiz_id'         => $quiz->id,
+                'started_at'      => now(),
                 'total_questions' => $questions->count(),
             ]);
 
-            return Inertia::render('QuizSession', [
-                'quiz' => $quiz,
-                'questions' => $questions,
-                'startedAt' => $attempt->started_at->toIso8601String(),
-                'attemptId' => $attempt->id,
-            ]);
+            // Redirect to GET route so reload doesn't cause 405
+            return redirect()->route('webapp.quiz.show', $quiz->id);
 
         } catch (\Exception $e) {
             \Log::error('Quiz Show Error: ' . $e->getMessage());
