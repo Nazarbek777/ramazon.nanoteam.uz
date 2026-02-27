@@ -34,8 +34,8 @@ Route::prefix('admin')->name('admin.')->group(function () {
     Route::post('/login', [App\Http\Controllers\Admin\AuthController::class, 'login'])->name('login.submit');
     Route::post('/logout', [App\Http\Controllers\Admin\AuthController::class, 'logout'])->name('logout');
 
-    // Dashboard redirect
-    Route::get('/', function() { return redirect()->route('admin.subjects.index'); })->name('dashboard')
+    // Dashboard (all admins, no permission check)
+    Route::get('/', [App\Http\Controllers\Admin\DashboardController::class, 'index'])->name('dashboard')
         ->middleware(\App\Http\Middleware\AdminMiddleware::class);
 
     // Protected Admin Routes

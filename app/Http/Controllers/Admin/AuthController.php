@@ -11,7 +11,7 @@ class AuthController extends Controller
     public function showLogin()
     {
         if (Auth::check() && Auth::user()->isAdmin()) {
-            return redirect()->route('admin.subjects.index');
+            return redirect()->route('admin.dashboard');
         }
         return view('admin.auth.login');
     }
@@ -27,7 +27,7 @@ class AuthController extends Controller
             $request->session()->regenerate();
 
             if (Auth::user()->isAdmin()) {
-                return redirect()->intended(route('admin.subjects.index'));
+                return redirect()->intended(route('admin.dashboard'));
             }
 
             Auth::logout();
