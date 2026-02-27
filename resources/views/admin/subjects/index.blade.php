@@ -1,65 +1,110 @@
 @extends('layouts.admin')
 
-@section('title', 'Fanlar ro\'yxati')
+@section('title', 'Fanlar')
 
 @section('content')
-<div class="flex justify-between items-center mb-6">
-    <h3 class="text-2xl font-bold text-gray-700">Mavjud Fanlar</h3>
-    <a href="{{ route('admin.subjects.create') }}" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-lg transition duration-200 shadow-md">
-        <i class="fas fa-plus mr-2"></i> Yangi fan qo'shish
+
+{{-- Header --}}
+<div class="flex items-center justify-between mb-6">
+    <div>
+        <h3 class="text-2xl font-bold text-gray-800">Fanlar</h3>
+        <p class="text-sm text-gray-400 mt-0.5">{{ $subjects->total() }} ta fan</p>
+    </div>
+    <a href="{{ route('admin.subjects.create') }}"
+       class="inline-flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2.5 px-5 rounded-xl transition shadow text-sm">
+        <i class="fas fa-plus"></i> Yangi fan
     </a>
 </div>
 
-<div class="bg-white rounded-xl shadow-sm overflow-hidden border">
-    <table class="min-w-full divide-y divide-gray-200">
-        <thead class="bg-gray-50">
-            <tr>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Icon</th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nomi</th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Sana</th>
-                <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Amallar</th>
-            </tr>
-        </thead>
-        <tbody class="bg-white divide-y divide-gray-200">
-            @forelse($subjects as $subject)
-            <tr class="hover:bg-gray-50 transition">
-                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ $subject->id }}</td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    <span class="w-10 h-10 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center">
-                        <i class="{{ $subject->icon ?? 'fas fa-book' }}"></i>
-                    </span>
-                </td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-900">{{ $subject->name }}</td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ $subject->created_at->format('d.m.Y') }}</td>
-                <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                    <a href="{{ route('admin.subjects.show', $subject) }}"
-                       class="inline-flex items-center gap-1 text-xs font-bold px-2.5 py-1 rounded-lg bg-amber-50 text-amber-600 hover:bg-amber-100 mr-2">
-                        <i class="fas fa-database"></i> Bazalar
-                    </a>
-                    <a href="{{ route('admin.subjects.edit', $subject) }}" class="text-indigo-600 hover:text-indigo-900 mr-3">
-                        <i class="fas fa-edit"></i>
-                    </a>
-                    <form action="{{ route('admin.subjects.destroy', $subject) }}" method="POST" class="inline">
-                        @csrf @method('DELETE')
-                        <button type="submit" class="text-red-500 hover:text-red-700" onclick="return confirm('Haqiqatan ham o\'chirmoqchimisiz?')">
-                            <i class="fas fa-trash"></i>
-                        </button>
-                    </form>
-                </td>
-            </tr>
-            @empty
-            <tr>
-                <td colspan="5" class="px-6 py-10 text-center text-gray-500 italic">
-                    Hech qanday fan topilmadi.
-                </td>
-            </tr>
-            @endforelse
-        </tbody>
-    </table>
-    
-    <div class="px-6 py-4 border-t">
-        {{ $subjects->links() }}
+{{-- Subject cards --}}
+@forelse($subjects as $subject)
+<div class="bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-md hover:border-indigo-100 transition mb-3 flex items-center px-5 py-4 gap-4">
+
+    {{-- Icon --}}
+    <div class="w-11 h-11 rounded-xl bg-indigo-50 flex items-center justify-center shrink-0">
+        @if($subject->icon && str_starts_with($subject->icon, 'fa'))
+            <i class="{{ $subject->icon }} text-indigo-500"></i>
+        @else
+            <span class="text-lg">{{ $subject->icon ?? '📚' }}</span>
+        @endif
+    </div>
+
+    {{-- Name --}}
+    <div class="flex-1 min-w-0">
+        <p class="font-bold text-gray-800 text-sm truncate">{{ $subject->name }}</p>
+        <p class="text-xs text-gray-400 mt-0.5">{{ $subject->created_at->format('d.m.Y') }}</p>
+    </div>
+
+    {{-- Actions --}}
+    <div class="flex items-center gap-2 shrink-0">
+        <a href="{{ route('admin.subjects.show', $subject) }}"
+           class="inline-flex items-center gap-1.5 text-xs font-bold px-3 py-2 rounded-xl bg-amber-50 text-amber-600 hover:bg-amber-100 transition">
+            <i class="fas fa-database text-xs"></i> Bazalar
+        </a>
+        <a href="{{ route('admin.subjects.edit', $subject) }}"
+           class="w-9 h-9 rounded-xl border border-gray-200 flex items-center justify-center text-indigo-400 hover:text-indigo-600 hover:border-indigo-200 hover:bg-indigo-50 transition" title="Tahrirlash">
+            <i class="fas fa-edit text-sm"></i>
+        </a>
+        <button onclick="openDeleteModal({{ $subject->id }}, '{{ addslashes($subject->name) }}')"
+                class="w-9 h-9 rounded-xl border border-gray-200 flex items-center justify-center text-red-400 hover:text-red-600 hover:border-red-200 hover:bg-red-50 transition" title="O'chirish">
+            <i class="fas fa-trash text-sm"></i>
+        </button>
     </div>
 </div>
+@empty
+<div class="bg-white rounded-2xl border border-dashed border-gray-200 py-14 text-center text-gray-400">
+    <i class="fas fa-book-open text-4xl block mb-3 text-gray-200"></i>
+    <p class="font-semibold text-sm">Hali fan qo'shilmagan</p>
+    <a href="{{ route('admin.subjects.create') }}" class="text-indigo-500 font-semibold hover:underline text-sm mt-2 inline-block">
+        + Yangi fan qo'shish
+    </a>
+</div>
+@endforelse
+
+{{-- Pagination --}}
+@if($subjects->hasPages())
+<div class="mt-4">{{ $subjects->links() }}</div>
+@endif
+
+{{-- Delete Modal --}}
+<div id="deleteModal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4">
+    <div class="absolute inset-0 bg-black/40 backdrop-blur-sm" onclick="closeDeleteModal()"></div>
+    <div class="relative bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6 z-10">
+        <div class="text-center mb-5">
+            <div class="w-14 h-14 bg-red-50 rounded-2xl flex items-center justify-center mx-auto mb-3">
+                <i class="fas fa-trash text-red-500 text-xl"></i>
+            </div>
+            <h4 class="text-lg font-bold text-gray-800">Fanni o'chirish</h4>
+            <p class="text-sm text-gray-500 mt-1">"<span id="deleteSubjectName" class="font-semibold text-gray-700"></span>" o'chirilsinmi?</p>
+            <p class="text-xs text-red-400 mt-2">Bu amal qaytarib bo'lmaydi.</p>
+        </div>
+        <form method="POST" id="deleteForm">
+            @csrf @method('DELETE')
+            <div class="flex gap-3">
+                <button type="button" onclick="closeDeleteModal()"
+                        class="flex-1 py-3 rounded-xl border border-gray-200 text-sm font-semibold text-gray-600 hover:bg-gray-50 transition">
+                    Bekor qilish
+                </button>
+                <button type="submit"
+                        class="flex-1 bg-red-500 hover:bg-red-600 text-white py-3 rounded-xl font-bold text-sm transition">
+                    Ha, o'chirish
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+function openDeleteModal(id, name) {
+    document.getElementById('deleteSubjectName').textContent = name;
+    document.getElementById('deleteForm').action = '{{ url("admin/subjects") }}/' + id;
+    document.getElementById('deleteModal').classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
+}
+function closeDeleteModal() {
+    document.getElementById('deleteModal').classList.add('hidden');
+    document.body.style.overflow = '';
+}
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeDeleteModal(); });
+</script>
 @endsection
