@@ -25,8 +25,7 @@ Route::post('/webapp/quiz/join', [App\Http\Controllers\WebAppController::class, 
 Route::post('/webapp/quiz/{quiz}/start', [App\Http\Controllers\WebAppController::class, 'startQuiz'])->name('webapp.quiz.start');
 Route::post('/webapp/quiz/{quiz}/submit', [App\Http\Controllers\WebAppController::class, 'submitQuiz'])->name('webapp.quiz.submit');
 Route::post('/telegram/webhook', [App\Http\Controllers\TelegramBotController::class, 'handle'])->name('telegram.webhook');
-Route::get('/debug/logs', [App\Http\Controllers\LogViewerController::class, 'index']);
-Route::get('/debug/logs/clear', [App\Http\Controllers\LogViewerController::class, 'clear']);
+
 
 // Admin Auth Routes
 Route::prefix('admin')->name('admin.')->group(function () {
