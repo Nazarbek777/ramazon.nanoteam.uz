@@ -7,9 +7,11 @@ use App\Models\Quiz;
 use App\Models\QuizAttempt;
 use App\Models\Question;
 use App\Models\Option;
+use App\Helpers\BotLogger;
 use Inertia\Inertia;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 
 class WebAppController extends Controller
 {

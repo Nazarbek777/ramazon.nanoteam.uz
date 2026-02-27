@@ -69,7 +69,16 @@ return [
             'driver' => 'daily',
             'path' => storage_path('logs/laravel.log'),
             'level' => env('LOG_LEVEL', 'debug'),
-            'days' => env('LOG_DAILY_DAYS', 14),
+            'days' => env('LOG_DAILY_DAYS', 5),
+            'replace_placeholders' => true,
+        ],
+
+        // Bot-specific 5-day rotating log
+        'bot' => [
+            'driver' => 'daily',
+            'path' => storage_path('logs/bot.log'),
+            'level' => 'debug',
+            'days' => 5,
             'replace_placeholders' => true,
         ],
 

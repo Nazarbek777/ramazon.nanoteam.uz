@@ -5,8 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\Subject;
 use App\Models\Quiz;
 use App\Models\User;
+use App\Helpers\BotLogger;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 
@@ -23,8 +23,8 @@ class TelegramBotController extends Controller
     {
         try {
             $update = $request->all();
-            Log::channel('single')->info('--- Telegram Update ---');
-            Log::channel('single')->info(json_encode($update, JSON_PRETTY_PRINT));
+            BotLogger::info('--- Telegram Update ---');
+            BotLogger::info(json_encode($update, JSON_PRETTY_PRINT));
 
             if (isset($update['message'])) {
                 $chatId = $update['message']['chat']['id'];
@@ -64,7 +64,8 @@ class TelegramBotController extends Controller
 
             return response()->json(['status' => 'success']);
         } catch (\Exception $e) {
-            Log::channel('single')->error('Telegram Error: ' . $e->getMessage());
+            $chatId = $update['message']['chat']['id'] ?? $update['callback_query']['from']['id'] ?? null;
+            BotLogger::error('Telegram Error: ' . $e->getMessage() . ' | File: ' . $e->getFile() . ':' . $e->getLine(), [], $chatId);
             return response()->json(['status' => 'error'], 500);
         }
     }
