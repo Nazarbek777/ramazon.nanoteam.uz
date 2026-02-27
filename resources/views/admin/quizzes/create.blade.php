@@ -4,6 +4,22 @@
 
 @section('content')
 <div class="max-w-xl mx-auto">
+
+    {{-- Step indicator --}}
+    <div class="flex items-center gap-3 mb-6">
+        <div class="flex items-center gap-2">
+            <div class="w-8 h-8 rounded-full bg-indigo-600 text-white flex items-center justify-center text-sm font-black">1</div>
+            <span class="text-sm font-bold text-gray-800">Test ma'lumotlari</span>
+        </div>
+        <div class="flex-1 h-0.5 bg-gray-200 rounded-full">
+            <div class="h-full w-0 bg-indigo-600 rounded-full"></div>
+        </div>
+        <div class="flex items-center gap-2 opacity-40">
+            <div class="w-8 h-8 rounded-full border-2 border-gray-300 text-gray-400 flex items-center justify-center text-sm font-black">2</div>
+            <span class="text-sm font-semibold text-gray-400">Bazalar tanlash</span>
+        </div>
+    </div>
+
     <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
         <div class="px-8 py-6">
             <h3 class="text-xl font-bold text-gray-800 mb-6">Yangi test</h3>

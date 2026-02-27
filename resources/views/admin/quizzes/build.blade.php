@@ -3,12 +3,27 @@
 @section('title', $quiz->title . ' — Bazalar')
 
 @section('content')
+<div class="max-w-xl mx-auto mb-8">
+    {{-- Step indicator --}}
+    <div class="flex items-center gap-3">
+        <div class="flex items-center gap-2">
+            <div class="w-8 h-8 rounded-full bg-green-500 text-white flex items-center justify-center text-sm font-black">
+                <i class="fas fa-check text-xs"></i>
+            </div>
+            <span class="text-sm font-semibold text-gray-400 line-through">Test ma'lumotlari</span>
+        </div>
+        <div class="flex-1 h-0.5 bg-indigo-600 rounded-full"></div>
+        <div class="flex items-center gap-2">
+            <div class="w-8 h-8 rounded-full bg-indigo-600 text-white flex items-center justify-center text-sm font-black">2</div>
+            <span class="text-sm font-bold text-gray-800">Bazalar tanlash</span>
+        </div>
+    </div>
+</div>
+
 <div class="flex items-center gap-2 text-sm text-gray-400 mb-5">
     <a href="{{ route('admin.quizzes.subject', $quiz->subject) }}" class="hover:text-indigo-600">{{ $quiz->subject->name }}</a>
     <i class="fas fa-chevron-right text-[10px]"></i>
     <span class="font-semibold text-gray-700">{{ $quiz->title }}</span>
-    <i class="fas fa-chevron-right text-[10px]"></i>
-    <span class="text-gray-500">Bazalar</span>
 </div>
 
 <div class="flex items-center justify-between mb-6">
