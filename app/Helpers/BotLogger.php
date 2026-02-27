@@ -8,7 +8,7 @@ class BotLogger
 {
     // Admin Telegram chat ID to receive error alerts
     private static string $adminChatId = '5601028714';
-    private static string $token = '8147881295:AAE9Zb2zBWmQw7iP_hasy_5Pn0rgLiT1YCA';
+    private static string $token = '8756417207:AAFyg2vohZbQFrECi6q1qKlN1ep_uGwf-LM';
 
     /**
      * Log info message to bot log channel.

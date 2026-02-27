@@ -95,7 +95,7 @@ class TelegramBotController extends Controller
     private function sendYoriqnoma($chatId, $withSubjectsButton = false)
     {
         $text = "📋 <b>YORIQNOMA</b>\n\n";
-        $text .= "🌟 Maktabgacha ta'lim tarbiyachilari uchun attestatsiya tayyorgarlik boti!\n\n";
+        $text .= "🌟 Maktabgacha ta'lim tarbiyachilari uchun test boti!\n\n";
         $text .= "✅ <b>Test yechib ko'rish — BEPUL!</b>\n\n";
         $text .= "📌 <b>Qanday foydalanish:</b>\n";
         $text .= "1️⃣ Fanlardan birini tanlang\n";
@@ -159,7 +159,7 @@ class TelegramBotController extends Controller
             return;
         }
 
-        $message = "📚 *Attestatsiya fanlarini tanlang:*\n\nQuyidagi fanlardan birini tanlang va testni boshlang:";
+        $message = "📚 *Fanlarni tanlang:*\n\nQuyidagi fanlardan birini tanlang va testni boshlang:";
 
         // Build inline keyboard with 2 columns
         $rows = [];

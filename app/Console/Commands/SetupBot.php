@@ -16,13 +16,13 @@ class SetupBot extends Command
         $this->info('Bot sozlamalari yuklanmoqda...');
 
         $this->call_api('setMyName', [
-            'name' => 'Attestatsiya Test Bot',
+            'name' => 'Abdullayevna Test Bot',
         ]);
         $this->info('✅ Nom belgilandi');
 
         $this->call_api('setMyDescription', [
             'description' =>
-                "🎓 Maktabgacha ta'lim tarbiyachilari uchun attestatsiya tayyorgarlik boti!\n\n" .
+                "🎓 Abdullayevna Test Bot — maktabgacha ta'lim tarbiyachilari uchun!\n\n" .
                 "✅ Test yechib ko'rish — BEPUL!\n" .
                 "📚 11 ta fan bo'yicha testlar mavjud\n" .
                 "📊 Natijalaringizni kuzating\n\n" .
@@ -33,7 +33,7 @@ class SetupBot extends Command
 
         $this->call_api('setMyShortDescription', [
             'short_description' =>
-                "🎓 Attestatsiya tayyorgarlik boti | Test yechish bepul! | @attestatsiya_jamoa",
+                "🎓 Abdullayevna Test Bot | Test yechish bepul! | @attestatsiya_jamoa",
         ]);
         $this->info('✅ About belgilandi');
 

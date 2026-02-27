@@ -24,7 +24,7 @@ const joinQuiz = () => {
             <div class="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -mr-16 -mt-16 blur-3xl"></div>
             <div class="relative z-10">
                 <h1 class="text-white text-2xl font-extrabold tracking-tight">Assalomu alaykum! 👋</h1>
-                <p class="text-indigo-100 mt-1 text-sm opacity-90">Attestatsiya fanini tanlang</p>
+                <p class="text-indigo-100 mt-1 text-sm opacity-90">Abdullayevna Test Bot</p>
             </div>
         </div>
 
