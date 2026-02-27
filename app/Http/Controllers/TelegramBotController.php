@@ -100,7 +100,6 @@ class TelegramBotController extends Controller
         $text .= "1️⃣ Fanlardan birini tanlang\n";
         $text .= "2️⃣ Testni boshlang\n";
         $text .= "3️⃣ Natijangizni ko'ring\n\n";
-        $text .= "⚠️ *Eslatma:* Har bir test faqat 1 marta yechiladi!\n\n";
         $text .= "📢 *Kanal:* @attestatsiya_jamoa\n";
         $text .= "👤 *Admin:* @abdullayevna_jamoa\n\n";
         $text .= "Kursga qo'shilmoqchi bo'lsangiz — adminimizga yozing! 👆";
