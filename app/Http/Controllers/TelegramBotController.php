@@ -16,7 +16,7 @@ class TelegramBotController extends Controller
 
     public function __construct()
     {
-        $this->token = '8147881295:AAE9Zb2zBWmQw7iP_hasy_5Pn0rgLiT1YCA';
+        $this->token = '8756417207:AAFyg2vohZbQFrECi6q1qKlN1ep_uGwf-LM';
     }
 
     public function handle(Request $request)
@@ -93,18 +93,18 @@ class TelegramBotController extends Controller
 
     private function sendYoriqnoma($chatId, $withSubjectsButton = false)
     {
-        $text = "📋 *YORIQNOMA*\n\n";
+        $text = "📋 <b>YORIQNOMA</b>\n\n";
         $text .= "🌟 Maktabgacha ta'lim tarbiyachilari uchun attestatsiya tayyorgarlik boti!\n\n";
-        $text .= "✅ *Test yechib ko'rish — BEPUL!*\n\n";
-        $text .= "📌 *Qanday foydalanish:*\n";
+        $text .= "✅ <b>Test yechib ko'rish — BEPUL!</b>\n\n";
+        $text .= "📌 <b>Qanday foydalanish:</b>\n";
         $text .= "1️⃣ Fanlardan birini tanlang\n";
         $text .= "2️⃣ Testni boshlang\n";
         $text .= "3️⃣ Natijangizni ko'ring\n\n";
-        $text .= "📢 *Kanal:* @attestatsiya_jamoa\n";
-        $text .= "👤 *Admin:* @abdullayevna_jamoa\n\n";
+        $text .= "📢 <b>Kanal:</b> @attestatsiya_jamoa\n";
+        $text .= "👤 <b>Admin:</b> @abdullayevna_jamoa\n\n";
         $text .= "Kursga qo'shilmoqchi bo'lsangiz — adminimizga yozing! 👆";
 
-        $extra = ['parse_mode' => 'Markdown'];
+        $extra = ['parse_mode' => 'HTML'];
 
         if ($withSubjectsButton) {
             $extra['reply_markup'] = json_encode([
