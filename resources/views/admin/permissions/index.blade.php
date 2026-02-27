@@ -44,7 +44,7 @@
                 <div>
                     <p class="text-xs font-black text-gray-500 uppercase tracking-wide mb-2">Ruxsatlar:</p>
                     @php
-                        $grouped = collect($pages)->groupBy(fn($v,$k) => explode('.', $k)[0]);
+                        $grouped = collect($pages)->groupBy(fn($v,$k) => explode('.', $k)[0], true);
                     @endphp
                     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                         @foreach($grouped as $section => $actions)
@@ -112,7 +112,7 @@
                 <input type="hidden" name="admin_id" value="{{ $admin->id }}">
                 <p class="text-xs font-black text-gray-500 uppercase tracking-wide mb-3">Amal ruxsatlari:</p>
                 @php
-                    $grouped = collect($pages)->groupBy(fn($v,$k) => explode('.', $k)[0]);
+                    $grouped = collect($pages)->groupBy(fn($v,$k) => explode('.', $k)[0], true);
                     $adminPerms = $admin->permissions->pluck('page');
                 @endphp
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 mb-4">
