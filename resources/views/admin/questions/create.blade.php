@@ -34,13 +34,9 @@
                         @endif
                     </div>
 
-                    <div class="mb-4">
-                        <label class="block text-sm font-bold text-gray-700 mb-2">Turi</label>
-                        <select name="type" class="w-full px-4 py-2 border rounded-lg">
-                            <option value="single">Yagona tanlov</option>
-                            <option value="multiple">Ko'p tanlov</option>
-                        </select>
-                    </div>
+
+                    <input type="hidden" name="type" value="single">
+
 
                     <div class="mb-0">
                         <label class="block text-sm font-bold text-gray-700 mb-2">Ball</label>

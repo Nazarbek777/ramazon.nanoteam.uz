@@ -66,7 +66,7 @@ class QuestionController extends Controller
             'subject_id' => 'required|exists:subjects,id',
             'baza_id'    => 'nullable|exists:bazalar,id',
             'content'    => 'required|string',
-            'type'       => 'required|in:single,multiple',
+            'type'       => 'nullable|in:single,multiple',
             'points'     => 'required|integer|min:1',
             'options'    => 'required|array|min:2',
             'options.*.content' => 'required|string',
@@ -80,7 +80,7 @@ class QuestionController extends Controller
                 'subject_id' => $request->subject_id,
                 'baza_id'    => $bazaId,
                 'content'    => $request->content,
-                'type'       => $request->type,
+                'type'       => $request->type ?? 'single',
                 'points'     => $request->points,
             ]);
 
