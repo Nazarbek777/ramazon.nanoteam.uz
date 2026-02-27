@@ -64,7 +64,14 @@
                 @if($quiz->ends_at)   &bull; <i class="fas fa-stop-circle text-red-400"></i> {{ $quiz->ends_at->format('d.m.Y H:i') }}     @endif
             </p>
         </div>
-        <div class="flex items-center gap-3 ml-4 shrink-0">
+        <div class="flex items-center gap-2 ml-4 shrink-0">
+            <a href="{{ route('admin.quizzes.build', $quiz) }}"
+               class="text-xs font-bold px-3 py-1.5 rounded-lg bg-indigo-50 text-indigo-600 hover:bg-indigo-100 flex items-center gap-1" title="Bazalar">
+                <i class="fas fa-database"></i>
+                @if($quiz->sources_count > 0)
+                    <span class="bg-indigo-500 text-white text-[10px] font-black rounded-full px-1.5 py-0.5 leading-none">{{ $quiz->sources_count }}</span>
+                @endif
+            </a>
             @if(auth()->user()->hasPermission('quizzes.edit'))
             <a href="{{ route('admin.quizzes.edit', $quiz) }}" class="text-indigo-400 hover:text-indigo-700 text-sm" title="Tahrirlash">
                 <i class="fas fa-edit"></i>

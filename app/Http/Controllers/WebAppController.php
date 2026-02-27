@@ -391,6 +391,22 @@ class WebAppController extends Controller
 
     private function getQuestionsForQuiz(Quiz $quiz)
     {
+        // 1) If quiz has configured sources (bazalar) — use them
+        $sources = $quiz->sources()->with('subject')->get();
+        if ($sources->isNotEmpty()) {
+            $questions = collect();
+            foreach ($sources as $source) {
+                $picked = Question::where('subject_id', $source->subject_id)
+                    ->with(['options' => fn($q) => $q->orderBy('id')])
+                    ->inRandomOrder()
+                    ->limit($source->count)
+                    ->get();
+                $questions = $questions->merge($picked);
+            }
+            return $questions->shuffle();
+        }
+
+        // 2) Legacy: random from subject
         if ($quiz->random_questions_count > 0) {
             $subjectIds = $this->getAllChildSubjectIds($quiz->subject_id);
             return Question::whereIn('subject_id', $subjectIds)
@@ -400,6 +416,7 @@ class WebAppController extends Controller
                 ->get();
         }
 
+        // 3) Manually assigned questions via quiz_questions pivot
         $quiz->load(['questions' => fn($q) => $q->orderBy('id'),
                      'questions.options' => fn($q) => $q->orderBy('id')]);
         $questions = $quiz->questions;

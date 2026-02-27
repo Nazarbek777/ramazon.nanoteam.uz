@@ -49,13 +49,16 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::delete('subjects/{subject}',   [SubjectController::class, 'destroy'])->name('subjects.destroy')->middleware('permission:subjects.delete');
 
         // Quizzes (granular)
-        Route::get('quizzes',                      [QuizController::class, 'index'])       ->name('quizzes.index')        ->middleware('permission:quizzes.view');
-        Route::get('quizzes/subject/{subject}',    [QuizController::class, 'showSubject']) ->name('quizzes.subject')      ->middleware('permission:quizzes.view');
-        Route::get('quizzes/create',               [QuizController::class, 'create'])      ->name('quizzes.create')       ->middleware('permission:quizzes.create');
-        Route::post('quizzes',                     [QuizController::class, 'store'])       ->name('quizzes.store')        ->middleware('permission:quizzes.create');
-        Route::get('quizzes/{quiz}/edit',          [QuizController::class, 'edit'])        ->name('quizzes.edit')         ->middleware('permission:quizzes.edit');
-        Route::put('quizzes/{quiz}',               [QuizController::class, 'update'])      ->name('quizzes.update')       ->middleware('permission:quizzes.edit');
-        Route::delete('quizzes/{quiz}',            [QuizController::class, 'destroy'])     ->name('quizzes.destroy')      ->middleware('permission:quizzes.delete');
+        Route::get('quizzes',                           [QuizController::class, 'index'])       ->name('quizzes.index')        ->middleware('permission:quizzes.view');
+        Route::get('quizzes/subject/{subject}',         [QuizController::class, 'showSubject']) ->name('quizzes.subject')      ->middleware('permission:quizzes.view');
+        Route::get('quizzes/create',                    [QuizController::class, 'create'])      ->name('quizzes.create')       ->middleware('permission:quizzes.create');
+        Route::post('quizzes',                          [QuizController::class, 'store'])       ->name('quizzes.store')        ->middleware('permission:quizzes.create');
+        Route::get('quizzes/{quiz}/build',              [QuizController::class, 'buildQuiz'])   ->name('quizzes.build')        ->middleware('permission:quizzes.edit');
+        Route::post('quizzes/{quiz}/sources',           [QuizController::class, 'storeSource']) ->name('quizzes.source.store') ->middleware('permission:quizzes.edit');
+        Route::delete('quizzes/{quiz}/sources/{source}',[QuizController::class, 'deleteSource'])->name('quizzes.source.delete')->middleware('permission:quizzes.edit');
+        Route::get('quizzes/{quiz}/edit',               [QuizController::class, 'edit'])        ->name('quizzes.edit')         ->middleware('permission:quizzes.edit');
+        Route::put('quizzes/{quiz}',                    [QuizController::class, 'update'])      ->name('quizzes.update')       ->middleware('permission:quizzes.edit');
+        Route::delete('quizzes/{quiz}',                 [QuizController::class, 'destroy'])     ->name('quizzes.destroy')      ->middleware('permission:quizzes.delete');
 
         // Questions (granular)
         Route::get('questions',                      [QuestionController::class, 'index'])       ->name('questions.index')        ->middleware('permission:questions.view');
