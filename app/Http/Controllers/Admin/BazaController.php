@@ -41,6 +41,14 @@ class BazaController extends Controller
         return back()->with('success', 'Baza o\'chirildi.');
     }
 
+    /** Update (rename) a baza */
+    public function update(Request $request, Subject $subject, Baza $baza)
+    {
+        $request->validate(['name' => 'required|string|max:255']);
+        $baza->update(['name' => $request->name]);
+        return back()->with('success', '"' . $request->name . '" bazasi yangilandi.');
+    }
+
     /** Move a question to a different baza */
     public function moveQuestion(Request $request, Subject $subject, Baza $baza)
     {

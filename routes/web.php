@@ -50,9 +50,10 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::delete('subjects/{subject}',   [SubjectController::class, 'destroy'])->name('subjects.destroy')->middleware('permission:subjects.delete');
 
         // Bazalar (question banks inside a subject)
-        Route::get('subjects/{subject}/bazalar',                     [App\Http\Controllers\Admin\BazaController::class, 'index'])       ->name('bazalar.index')       ->middleware('permission:questions.view');
-        Route::post('subjects/{subject}/bazalar',                    [App\Http\Controllers\Admin\BazaController::class, 'store'])       ->name('bazalar.store')       ->middleware('permission:questions.create');
-        Route::delete('subjects/{subject}/bazalar/{baza}',           [App\Http\Controllers\Admin\BazaController::class, 'destroy'])     ->name('bazalar.destroy')     ->middleware('permission:questions.delete');
+        Route::get('subjects/{subject}/bazalar',                      [App\Http\Controllers\Admin\BazaController::class, 'index'])       ->name('bazalar.index')       ->middleware('permission:questions.view');
+        Route::post('subjects/{subject}/bazalar',                     [App\Http\Controllers\Admin\BazaController::class, 'store'])       ->name('bazalar.store')       ->middleware('permission:questions.create');
+        Route::put('subjects/{subject}/bazalar/{baza}',               [App\Http\Controllers\Admin\BazaController::class, 'update'])      ->name('bazalar.update')      ->middleware('permission:questions.edit');
+        Route::delete('subjects/{subject}/bazalar/{baza}',            [App\Http\Controllers\Admin\BazaController::class, 'destroy'])     ->name('bazalar.destroy')     ->middleware('permission:questions.delete');
         Route::post('subjects/{subject}/bazalar/{baza}/move-question',[App\Http\Controllers\Admin\BazaController::class, 'moveQuestion'])->name('bazalar.moveQuestion')->middleware('permission:questions.edit');
 
         // Quizzes (granular)
