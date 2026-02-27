@@ -1,5 +1,6 @@
 <script setup>
 import { Head, router } from '@inertiajs/vue3';
+import AppLayout from '@/Layouts/AppLayout.vue';
 
 const props = defineProps({
     attempt: Object,
@@ -9,12 +10,11 @@ const props = defineProps({
 
 <template>
     <Head title="Javoblar tahlili" />
-    <div class="min-h-screen bg-slate-50 flex flex-col" style="font-family:'Outfit',sans-serif;">
-
+    <AppLayout>
         <!-- Header -->
         <div class="bg-indigo-600 px-5 pt-10 pb-6">
-            <button @click="router.visit('/webapp')" class="flex items-center gap-1.5 text-indigo-200 text-sm mb-4">
-                <i class="fas fa-arrow-left text-xs"></i> Orqaga
+            <button @click="router.visit('/webapp/history')" class="flex items-center gap-1.5 text-indigo-200 text-sm mb-4">
+                <i class="fas fa-arrow-left text-xs"></i> Tarixga qaytish
             </button>
             <h1 class="text-white text-lg font-extrabold">Javoblar tahlili</h1>
             <p class="text-indigo-200 text-xs mt-0.5">{{ quiz?.title }}</p>
@@ -70,5 +70,5 @@ const props = defineProps({
                 <p class="text-slate-400 text-sm">Javoblar topilmadi</p>
             </div>
         </div>
-    </div>
+    </AppLayout>
 </template>
