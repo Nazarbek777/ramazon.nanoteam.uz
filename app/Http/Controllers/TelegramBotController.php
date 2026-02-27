@@ -39,6 +39,22 @@ class TelegramBotController extends Controller
 
                 if ($text === '/start') {
                     $this->sendStartMessage($chatId, $update['message']['from']);
+                } elseif ($text === '/yoriqnoma' || $text === '📋 Yoriqnoma') {
+                    $this->sendYoriqnoma($chatId);
+                }
+            }
+
+            // Handle inline button callbacks
+            if (isset($update['callback_query'])) {
+                $callbackData = $update['callback_query']['data'] ?? '';
+                $chatId = $update['callback_query']['from']['id'];
+
+                if ($callbackData === 'yoriqnoma') {
+                    $this->sendYoriqnoma($chatId);
+                    // Answer callback to remove loading spinner
+                    $this->callTelegramApi("https://api.telegram.org/bot{$this->token}/answerCallbackQuery", [
+                        'callback_query_id' => $update['callback_query']['id'],
+                    ]);
                 }
             }
 
@@ -68,6 +84,23 @@ class TelegramBotController extends Controller
 
         $this->sendMessage($telegramId, "✅ Rahmat! Ma'lumotlaringiz saqlandi.");
         $this->sendSubjectsMenu($telegramId);
+    }
+
+    private function sendYoriqnoma($chatId)
+    {
+        $text = "📋 *YORIQNOMA*\n\n";
+        $text .= "Maktabgacha ta'lim tarbiyachilari attestatsiyasiga tayyorlanish uchun botdan foydalanishingiz mumkin.\n\n";
+        $text .= "📌 *Qanday foydalanish:*\n";
+        $text .= "1️⃣ Botda ro'yxatdan o'ting\n";
+        $text .= "2️⃣ Fanlardan birini tanlang\n";
+        $text .= "3️⃣ Testni boshlang va savollarni yeching\n";
+        $text .= "4️⃣ Natijangizni ko'ring\n\n";
+        $text .= "⚠️ *Eslatma:* Har bir test faqat bir marta yechiladi!\n\n";
+        $text .= "📢 *Kanalimiz:* @attestatsiya_jamoa\n";
+        $text .= "👤 *Admin:* @abdullayevna_jamoa\n\n";
+        $text .= "Kursga qo'shilmoqchi bo'lsangiz — admin bilan bog'laning! 👆";
+
+        $this->sendMessage($chatId, $text, ['parse_mode' => 'Markdown']);
     }
 
     private function sendStartMessage($chatId, $from)
@@ -131,9 +164,13 @@ class TelegramBotController extends Controller
             $row = [];
         }
 
-        // Add "Barcha testlar" button
+        // Add Yoriqnoma + Barcha testlar buttons
         $rows[] = [[
-            'text' => '📋 Barcha testlar',
+            'text' => '📌 Yoriqnoma',
+            'callback_data' => 'yoriqnoma'
+        ]];
+        $rows[] = [[
+            'text' => '📱 Barcha testlar',
             'web_app' => ['url' => $webAppBase]
         ]];
 
@@ -147,12 +184,12 @@ class TelegramBotController extends Controller
         ]);
     }
 
-    private function sendMessage($chatId, $text)
+    private function sendMessage($chatId, $text, $extra = [])
     {
-        return $this->callTelegramApi("https://api.telegram.org/bot{$this->token}/sendMessage", [
+        return $this->callTelegramApi("https://api.telegram.org/bot{$this->token}/sendMessage", array_merge([
             'chat_id' => $chatId,
             'text' => $text
-        ]);
+        ], $extra));
     }
 
     private function callTelegramApi($url, $params)
