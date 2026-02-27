@@ -308,8 +308,8 @@ class WebAppController extends Controller
                     ]);
                 }
 
-                // Time still left — resume the quiz
-                $questions = $this->getQuestionsForQuiz($quiz);
+                // Time still left — resume the quiz using SAVED question order
+                $questions = $this->getQuestionsInOrder($activeAttempt, $quiz);
 
                 return Inertia::render('QuizSession', [
                     'quiz' => $quiz,
@@ -355,14 +355,16 @@ class WebAppController extends Controller
                 return redirect()->route('webapp.quiz.show', $quiz->id);
             }
 
-            // Create attempt now
+            // Create attempt now — save question order so reload is consistent
             $questions = $this->getQuestionsForQuiz($quiz);
+            $questionIds = $questions->pluck('id')->toArray();
 
             QuizAttempt::create([
-                'user_id'         => $userId,
-                'quiz_id'         => $quiz->id,
-                'started_at'      => now(),
-                'total_questions' => $questions->count(),
+                'user_id'          => $userId,
+                'quiz_id'          => $quiz->id,
+                'started_at'       => now(),
+                'total_questions'  => $questions->count(),
+                'questions_order'  => $questionIds,
             ]);
 
             // Redirect to GET route so reload doesn't cause 405
@@ -403,6 +405,22 @@ class WebAppController extends Controller
         }
 
         return $ids;
+    }
+
+    private function getQuestionsInOrder(QuizAttempt $attempt, Quiz $quiz)
+    {
+        $order = $attempt->questions_order;
+
+        // No saved order (old attempts) — fall back to fresh load
+        if (empty($order)) {
+            return $this->getQuestionsForQuiz($quiz);
+        }
+
+        // Load questions in the exact saved order
+        $questions = Question::whereIn('id', $order)->with('options')->get()->keyBy('id');
+
+        // Return in saved order
+        return collect($order)->map(fn($id) => $questions->get($id))->filter()->values();
     }
 }
 
