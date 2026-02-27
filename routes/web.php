@@ -49,20 +49,22 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::delete('subjects/{subject}',   [SubjectController::class, 'destroy'])->name('subjects.destroy')->middleware('permission:subjects.delete');
 
         // Quizzes (granular)
-        Route::get('quizzes',         [QuizController::class, 'index'])  ->name('quizzes.index') ->middleware('permission:quizzes.view');
-        Route::get('quizzes/create',  [QuizController::class, 'create']) ->name('quizzes.create')->middleware('permission:quizzes.create');
-        Route::post('quizzes',        [QuizController::class, 'store'])  ->name('quizzes.store') ->middleware('permission:quizzes.create');
-        Route::get('quizzes/{quiz}/edit', [QuizController::class, 'edit'])  ->name('quizzes.edit')  ->middleware('permission:quizzes.edit');
-        Route::put('quizzes/{quiz}',      [QuizController::class, 'update'])->name('quizzes.update')->middleware('permission:quizzes.edit');
-        Route::delete('quizzes/{quiz}',   [QuizController::class, 'destroy'])->name('quizzes.destroy')->middleware('permission:quizzes.delete');
+        Route::get('quizzes',                      [QuizController::class, 'index'])       ->name('quizzes.index')        ->middleware('permission:quizzes.view');
+        Route::get('quizzes/subject/{subject}',    [QuizController::class, 'showSubject']) ->name('quizzes.subject')      ->middleware('permission:quizzes.view');
+        Route::get('quizzes/create',               [QuizController::class, 'create'])      ->name('quizzes.create')       ->middleware('permission:quizzes.create');
+        Route::post('quizzes',                     [QuizController::class, 'store'])       ->name('quizzes.store')        ->middleware('permission:quizzes.create');
+        Route::get('quizzes/{quiz}/edit',          [QuizController::class, 'edit'])        ->name('quizzes.edit')         ->middleware('permission:quizzes.edit');
+        Route::put('quizzes/{quiz}',               [QuizController::class, 'update'])      ->name('quizzes.update')       ->middleware('permission:quizzes.edit');
+        Route::delete('quizzes/{quiz}',            [QuizController::class, 'destroy'])     ->name('quizzes.destroy')      ->middleware('permission:quizzes.delete');
 
         // Questions (granular)
-        Route::get('questions',          [QuestionController::class, 'index'])  ->name('questions.index') ->middleware('permission:questions.view');
-        Route::get('questions/create',   [QuestionController::class, 'create']) ->name('questions.create')->middleware('permission:questions.create');
-        Route::post('questions',         [QuestionController::class, 'store'])  ->name('questions.store') ->middleware('permission:questions.create');
-        Route::get('questions/{question}/edit', [QuestionController::class, 'edit'])  ->name('questions.edit')  ->middleware('permission:questions.edit');
-        Route::put('questions/{question}',      [QuestionController::class, 'update'])->name('questions.update')->middleware('permission:questions.edit');
-        Route::delete('questions/{question}',   [QuestionController::class, 'destroy'])->name('questions.destroy')->middleware('permission:questions.delete');
+        Route::get('questions',                      [QuestionController::class, 'index'])       ->name('questions.index')        ->middleware('permission:questions.view');
+        Route::get('questions/subject/{subject}',   [QuestionController::class, 'showSubject']) ->name('questions.subject')      ->middleware('permission:questions.view');
+        Route::get('questions/create',               [QuestionController::class, 'create'])      ->name('questions.create')       ->middleware('permission:questions.create');
+        Route::post('questions',                     [QuestionController::class, 'store'])       ->name('questions.store')        ->middleware('permission:questions.create');
+        Route::get('questions/{question}/edit',      [QuestionController::class, 'edit'])        ->name('questions.edit')         ->middleware('permission:questions.edit');
+        Route::put('questions/{question}',           [QuestionController::class, 'update'])      ->name('questions.update')       ->middleware('permission:questions.edit');
+        Route::delete('questions/{question}',        [QuestionController::class, 'destroy'])     ->name('questions.destroy')      ->middleware('permission:questions.delete');
 
         // Broadcast
         Route::get('broadcast',      [App\Http\Controllers\Admin\BroadcastController::class, 'index'])->name('broadcast.index')->middleware('permission:broadcast.view');

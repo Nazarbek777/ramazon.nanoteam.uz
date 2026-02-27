@@ -11,12 +11,19 @@
                 @csrf
                 <div class="mb-5">
                     <label for="subject_id" class="block text-sm font-medium text-gray-700 mb-2">Fan</label>
-                    <select name="subject_id" id="subject_id" required 
-                            class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition">
-                        @foreach($subjects as $subject)
-                            <option value="{{ $subject->id }}">{{ $subject->name }}</option>
-                        @endforeach
-                    </select>
+                    @if(request('subject_id'))
+                        @php $preSubject = $subjects->find(request('subject_id')); @endphp
+                        <input type="text" value="{{ $preSubject?->name }}" disabled
+                               class="w-full px-4 py-2 border border-gray-200 bg-gray-50 rounded-lg text-gray-500 cursor-not-allowed">
+                        <input type="hidden" name="subject_id" value="{{ request('subject_id') }}">
+                    @else
+                        <select name="subject_id" id="subject_id" required
+                                class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition">
+                            @foreach($subjects as $subject)
+                                <option value="{{ $subject->id }}">{{ $subject->name }}</option>
+                            @endforeach
+                        </select>
+                    @endif
                 </div>
 
                 <div class="mb-5">

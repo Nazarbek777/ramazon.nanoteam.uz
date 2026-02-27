@@ -12,17 +12,13 @@ class QuizController extends Controller
     public function index(\Illuminate\Http\Request $request)
     {
         $subjects = Subject::withCount('quizzes')->orderBy('name')->get();
-        $selectedSubject = null;
-        $quizzes = collect();
+        return view('admin.quizzes.index', compact('subjects'));
+    }
 
-        if ($request->subject_id) {
-            $selectedSubject = Subject::find($request->subject_id);
-            if ($selectedSubject) {
-                $quizzes = $selectedSubject->quizzes()->orderByDesc('created_at')->get();
-            }
-        }
-
-        return view('admin.quizzes.index', compact('subjects', 'selectedSubject', 'quizzes'));
+    public function showSubject(Subject $subject)
+    {
+        $quizzes = $subject->quizzes()->orderByDesc('created_at')->get();
+        return view('admin.quizzes.subject', compact('subject', 'quizzes'));
     }
 
     public function create()

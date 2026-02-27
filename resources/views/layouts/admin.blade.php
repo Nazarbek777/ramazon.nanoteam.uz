@@ -50,6 +50,13 @@
             <nav class="flex-1 overflow-y-auto p-4 space-y-1">
                 <p class="text-[10px] uppercase font-bold text-slate-400 px-3 mb-2" :class="!sidebarOpen && 'hidden'">Asosiy</p>
 
+                {{-- Home/Dashboard --}}
+                <a href="{{ route('admin.dashboard') }}"
+                   class="sidebar-link group flex items-center px-4 py-3 rounded-xl transition duration-200 hover:bg-slate-50 {{ request()->routeIs('admin.dashboard') ? 'active' : '' }}">
+                    <i class="fas fa-home w-6 text-indigo-500"></i>
+                    <span class="ml-3 font-semibold" :class="!sidebarOpen && 'lg:hidden'">Bosh sahifa</span>
+                </a>
+
                 @if(auth()->user()->hasPermission('stats.view'))
                 <a href="{{ route('admin.stats.index') }}"
                    class="sidebar-link group flex items-center px-4 py-3 rounded-xl transition duration-200 hover:bg-slate-50 {{ request()->routeIs('admin.stats.*') ? 'active' : '' }}">
