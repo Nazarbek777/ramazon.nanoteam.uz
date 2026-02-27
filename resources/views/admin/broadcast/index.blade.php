@@ -26,7 +26,9 @@
                 <div class="mb-8">
                     <label for="editor" class="block text-sm font-bold text-gray-700 mb-2 ml-1">Xabar matni</label>
                     <div class="rounded-2xl overflow-hidden border border-gray-100 shadow-sm focus-within:ring-4 focus-within:ring-indigo-500/10 transition-all">
-                        <textarea name="message" id="editor"></textarea>
+                        <textarea name="message" id="editor" rows="8"
+                              class="w-full px-5 py-4 bg-gray-50 border border-gray-100 rounded-2xl focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none transition-all text-gray-700 text-sm resize-y"
+                              placeholder="Xabaringizni shu yerga yozing... (HTML ishlatish mumkin: &lt;b&gt;qalin&lt;/b&gt;, &lt;i&gt;kursiv&lt;/i&gt;)"></textarea>
                     </div>
                 </div>
 
@@ -88,15 +90,4 @@
 </div>
 @endsection
 
-@push('scripts')
-<script>
-    ClassicEditor
-        .create(document.querySelector('#editor'), {
-            toolbar: [ 'heading', '|', 'bold', 'italic', 'link', 'bulletedList', 'numberedList', 'blockQuote', 'undo', 'redo' ],
-            placeholder: 'Xabaringizni shu yerga yozing...'
-        })
-        .catch(error => {
-            console.error(error);
-        });
-</script>
 @endpush

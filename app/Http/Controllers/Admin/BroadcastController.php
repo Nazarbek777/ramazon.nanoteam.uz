@@ -37,6 +37,8 @@ class BroadcastController extends Controller
         $count = 0;
         $failed = 0;
 
+        BotLogger::info("Broadcast start: {$users->count()} users, message length: " . strlen($request->message));
+
         foreach ($users as $user) {
             try {
                 $result = $this->sendTelegramMessage(
@@ -48,6 +50,8 @@ class BroadcastController extends Controller
                 );
 
                 $decoded = json_decode($result, true);
+                BotLogger::info("Telegram response for {$user->telegram_id}: " . $result);
+
                 if ($decoded['ok'] ?? false) {
                     $count++;
                 } else {
