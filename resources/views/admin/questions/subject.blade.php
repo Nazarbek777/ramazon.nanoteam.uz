@@ -73,14 +73,10 @@
             </button>
             @endif
             @if(auth()->user()->hasPermission('questions.delete'))
-            <form method="POST" action="{{ route('admin.bazalar.destroy', [$subject, $baza]) }}"
-                  onsubmit="return confirm('\"{{ $baza->name }}\" bazasini o\'chirilsinmi?')">
-                @csrf @method('DELETE')
-                <button type="submit"
-                        class="w-8 h-8 rounded-lg text-red-400 hover:text-red-600 hover:bg-red-50 transition flex items-center justify-center text-xs" title="O'chirish">
-                    <i class="fas fa-trash"></i>
-                </button>
-            </form>
+            <button onclick="openDeleteModal({{ $baza->id }}, '{{ addslashes($baza->name) }}')"
+                    class="w-8 h-8 rounded-lg text-red-400 hover:text-red-600 hover:bg-red-50 transition flex items-center justify-center text-xs" title="O'chirish">
+                <i class="fas fa-trash"></i>
+            </button>
             @endif
         </div>
     </div>
@@ -151,6 +147,34 @@
     </div>
 </div>
 
+{{-- ═══════════════ DELETE MODAL ═══════════════ --}}
+<div id="deleteModal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4">
+    <div class="absolute inset-0 bg-black/40 backdrop-blur-sm" onclick="closeModal('deleteModal')"></div>
+    <div class="relative bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6 z-10">
+        <div class="text-center mb-5">
+            <div class="w-14 h-14 bg-red-50 rounded-2xl flex items-center justify-center mx-auto mb-3">
+                <i class="fas fa-trash text-red-500 text-xl"></i>
+            </div>
+            <h4 class="text-lg font-bold text-gray-800">Bazani o'chirish</h4>
+            <p class="text-sm text-gray-500 mt-1">"<span id="deleteBazaName" class="font-semibold text-gray-700"></span>" bazasi o'chirilsinmi?</p>
+            <p class="text-xs text-red-400 mt-2">Bu amal qaytarib bo'lmaydi.</p>
+        </div>
+        <form method="POST" id="deleteForm">
+            @csrf @method('DELETE')
+            <div class="flex gap-3">
+                <button type="button" onclick="closeModal('deleteModal')"
+                        class="flex-1 py-3 rounded-xl border border-gray-200 text-sm font-semibold text-gray-600 hover:bg-gray-50 transition">
+                    Bekor qilish
+                </button>
+                <button type="submit"
+                        class="flex-1 bg-red-500 hover:bg-red-600 text-white py-3 rounded-xl font-bold text-sm transition">
+                    Ha, o'chirish
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
 <script>
 function openModal(id) {
     document.getElementById(id).classList.remove('hidden');
@@ -168,10 +192,17 @@ function openEditModal(bazaId, bazaName) {
         '{{ url("admin/subjects/" . $subject->id . "/bazalar") }}/' + bazaId;
     openModal('editModal');
 }
+function openDeleteModal(bazaId, bazaName) {
+    document.getElementById('deleteBazaName').textContent = bazaName;
+    document.getElementById('deleteForm').action =
+        '{{ url("admin/subjects/" . $subject->id . "/bazalar") }}/' + bazaId;
+    openModal('deleteModal');
+}
 document.addEventListener('keydown', function(e) {
     if (e.key === 'Escape') {
         closeModal('addModal');
         closeModal('editModal');
+        closeModal('deleteModal');
     }
 });
 </script>

@@ -3,97 +3,127 @@
 @section('title', 'Yangi test yaratish')
 
 @section('content')
-<div class="max-w-2xl mx-auto">
-    <div class="bg-white rounded-xl shadow-md overflow-hidden border">
+<div class="max-w-xl mx-auto">
+    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
         <div class="px-8 py-6">
-            <h3 class="text-xl font-bold text-gray-800 mb-6">Test ma'lumotlarini kiriting</h3>
+            <h3 class="text-xl font-bold text-gray-800 mb-6">Yangi test</h3>
             <form action="{{ route('admin.quizzes.store') }}" method="POST">
                 @csrf
-                <div class="mb-5">
-                    <label for="subject_id" class="block text-sm font-medium text-gray-700 mb-2">Fan</label>
+
+                {{-- Fan --}}
+                <div class="mb-4">
+                    <label class="block text-sm font-semibold text-gray-600 mb-2">Fan</label>
                     @if(request('subject_id'))
                         @php $preSubject = $subjects->find(request('subject_id')); @endphp
                         <input type="text" value="{{ $preSubject?->name }}" disabled
-                               class="w-full px-4 py-2 border border-gray-200 bg-gray-50 rounded-lg text-gray-500 cursor-not-allowed">
+                               class="w-full px-4 py-2.5 border border-gray-200 bg-gray-50 rounded-xl text-gray-500 cursor-not-allowed text-sm">
                         <input type="hidden" name="subject_id" value="{{ request('subject_id') }}">
                     @else
-                        <select name="subject_id" id="subject_id" required
-                                class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition">
-                            @foreach($subjects as $subject)
-                                <option value="{{ $subject->id }}">{{ $subject->name }}</option>
+                        <select name="subject_id" required
+                                class="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400">
+                            @foreach($subjects as $s)
+                                <option value="{{ $s->id }}">{{ $s->name }}</option>
                             @endforeach
                         </select>
                     @endif
                 </div>
 
-                <div class="mb-5">
-                    <label for="title" class="block text-sm font-medium text-gray-700 mb-2">Test nomi</label>
-                    <input type="text" name="title" id="title" required 
-                           class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition"
-                           placeholder="Masalan: 1-chorak yakuniy testi">
+                {{-- Test nomi --}}
+                <div class="mb-4">
+                    <label class="block text-sm font-semibold text-gray-600 mb-2">Test nomi</label>
+                    <input type="text" name="title" required
+                           class="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400"
+                           placeholder="masalan: 1-chorak yakuniy testi">
                 </div>
 
-                <div class="grid grid-cols-2 gap-4 mb-5">
+                {{-- Vaqt + Ball --}}
+                <div class="grid grid-cols-2 gap-4 mb-4">
                     <div>
-                        <label for="time_limit" class="block text-sm font-medium text-gray-700 mb-2">Vaqt limiti (daqiqa)</label>
-                        <input type="number" name="time_limit" id="time_limit" value="30" min="1" required 
-                               class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition">
-                    </div>
-                    <div>
-                        <label for="pass_score" class="block text-sm font-medium text-gray-700 mb-2">O'tish bali (%)</label>
-                        <input type="number" name="pass_score" id="pass_score" value="70" min="1" max="100" required 
-                               class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition">
-                    </div>
-                </div>
-
-                <div class="mb-5">
-                    <label for="access_code" class="block text-sm font-medium text-gray-700 mb-2">Test ID (Access Code)</label>
-                    <input type="text" name="access_code" id="access_code" 
-                           class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition"
-                           placeholder="Masalan: MAT-2024">
-                    <p class="text-[10px] text-gray-400 mt-1 uppercase font-bold tracking-tighter">Foydalanuvchilar ushbu ID orqali testga kira olishadi</p>
-                </div>
-
-                <div class="grid grid-cols-2 gap-4 mb-5">
-                    <div>
-                        <label for="starts_at" class="block text-sm font-medium text-gray-700 mb-2">Boshlanish vaqti</label>
-                        <input type="datetime-local" name="starts_at" id="starts_at"
-                               class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none transition">
-                        <p class="text-[10px] text-gray-400 mt-1">Bo'sh qolsa — darhol ochiq</p>
+                        <label class="block text-sm font-semibold text-gray-600 mb-2">Vaqt (daqiqa)</label>
+                        <input type="number" name="time_limit" value="30" min="1" required
+                               class="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400">
                     </div>
                     <div>
-                        <label for="ends_at" class="block text-sm font-medium text-gray-700 mb-2">Tugash vaqti</label>
-                        <input type="datetime-local" name="ends_at" id="ends_at"
-                               class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none transition">
-                        <p class="text-[10px] text-gray-400 mt-1">Bo'sh qolsa — vaqtsiz</p>
+                        <label class="block text-sm font-semibold text-gray-600 mb-2">O'tish bali (%)</label>
+                        <input type="number" name="pass_score" value="70" min="1" max="100" required
+                               class="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400">
                     </div>
                 </div>
 
-                <div class="mb-8 p-6 bg-slate-50 rounded-2xl border border-slate-100">
-                    <label class="inline-flex items-center cursor-pointer mb-4">
-                        <input type="hidden" name="is_random" value="0">
-                        <input type="checkbox" name="is_random" value="1" checked id="is_random_checkbox" class="sr-only peer">
-                        <div class="relative w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-indigo-300 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-600"></div>
-                        <span class="ms-3 text-sm font-bold text-gray-700">Savollarni aralash ko'rsatish</span>
-                    </label>
-
-                    <div id="random_count_wrapper" class="mt-4">
-                        <label for="random_questions_count" class="block text-[10px] font-black uppercase text-indigo-400 tracking-widest mb-2">Bazadan tasodifiy savollar soni</label>
-                        <input type="number" name="random_questions_count" id="random_questions_count" 
-                               class="w-full px-4 py-2 border rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition bg-white"
-                               placeholder="Ixtiyoriy (bo'sh qolsa barchasi aralashadi)">
-                        <p class="text-[10px] text-slate-400 mt-2">Agar bu yerda raqam yozilsa, test har safar bazadan (va sub-fanlardan) shuncha tasodifiy savol tanlab oladi.</p>
+                {{-- Public / Private toggle --}}
+                <div class="mb-6 rounded-2xl border border-gray-100 bg-gray-50 p-4">
+                    <p class="text-sm font-semibold text-gray-700 mb-3">Ko'rinish</p>
+                    <div class="grid grid-cols-2 gap-3" id="visibilityToggle">
+                        <label class="cursor-pointer">
+                            <input type="radio" name="_visibility" value="public" class="sr-only peer" checked>
+                            <div class="rounded-xl border-2 border-gray-200 peer-checked:border-green-500 peer-checked:bg-green-50 p-3 text-center transition">
+                                <i class="fas fa-globe text-green-500 text-lg block mb-1"></i>
+                                <p class="text-xs font-bold text-gray-700">Ommaviy</p>
+                                <p class="text-[10px] text-gray-400 mt-0.5">Botda hammaga ko'rinadi</p>
+                            </div>
+                        </label>
+                        <label class="cursor-pointer">
+                            <input type="radio" name="_visibility" value="private" class="sr-only peer">
+                            <div class="rounded-xl border-2 border-gray-200 peer-checked:border-indigo-500 peer-checked:bg-indigo-50 p-3 text-center transition">
+                                <i class="fas fa-lock text-indigo-500 text-lg block mb-1"></i>
+                                <p class="text-xs font-bold text-gray-700">Yopiq (kod bilan)</p>
+                                <p class="text-[10px] text-gray-400 mt-0.5">Faqat ID bilganlar kiradi</p>
+                            </div>
+                        </label>
                     </div>
+
+                    {{-- Access code (shown only if private) --}}
+                    <div id="codeWrapper" class="mt-3 hidden">
+                        <label class="block text-xs font-bold text-gray-500 uppercase mb-1.5">Test ID (kirish kodi)</label>
+                        <input type="text" name="access_code" id="access_code"
+                               class="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400"
+                               placeholder="masalan: MAT-2024">
+                    </div>
+
+                    {{-- Hidden access_code when public --}}
+                    <input type="hidden" id="access_code_hidden" name="access_code" value="">
                 </div>
 
-                <div class="flex items-center justify-end space-x-4">
-                    <a href="{{ route('admin.quizzes.index') }}" class="text-gray-600 hover:text-gray-800 font-medium">Bekor qilish</a>
-                    <button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-8 rounded-lg shadow transition">
-                        Saqlash
+                {{-- Hidden defaults --}}
+                <input type="hidden" name="is_random" value="1">
+
+                <div class="flex gap-3">
+                    <a href="{{ route('admin.quizzes.index') }}"
+                       class="flex-1 text-center py-3 rounded-xl border border-gray-200 text-sm font-semibold text-gray-600 hover:bg-gray-50 transition">
+                        Bekor qilish
+                    </a>
+                    <button type="submit"
+                            class="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 rounded-xl shadow transition">
+                        Keyingi →
                     </button>
                 </div>
             </form>
         </div>
     </div>
 </div>
+
+<script>
+const radios = document.querySelectorAll('input[name="_visibility"]');
+const codeWrapper = document.getElementById('codeWrapper');
+const codeInput = document.getElementById('access_code');
+const codeHidden = document.getElementById('access_code_hidden');
+
+function toggle() {
+    const isPrivate = document.querySelector('input[name="_visibility"]:checked').value === 'private';
+    codeWrapper.classList.toggle('hidden', !isPrivate);
+    codeInput.required = isPrivate;
+    // Only one of them should be active
+    if (isPrivate) {
+        codeHidden.removeAttribute('name');
+        codeInput.name = 'access_code';
+    } else {
+        codeInput.name = '';
+        codeHidden.name = 'access_code';
+        codeHidden.value = '';
+    }
+}
+
+radios.forEach(r => r.addEventListener('change', toggle));
+toggle(); // init
+</script>
 @endsection
