@@ -381,13 +381,14 @@ class WebAppController extends Controller
         if ($quiz->random_questions_count > 0) {
             $subjectIds = $this->getAllChildSubjectIds($quiz->subject_id);
             return Question::whereIn('subject_id', $subjectIds)
-                ->with('options')
+                ->with(['options' => fn($q) => $q->orderBy('id')])
                 ->inRandomOrder()
                 ->limit($quiz->random_questions_count)
                 ->get();
         }
 
-        $quiz->load(['questions.options']);
+        $quiz->load(['questions' => fn($q) => $q->orderBy('id'),
+                     'questions.options' => fn($q) => $q->orderBy('id')]);
         $questions = $quiz->questions;
         if ($quiz->is_random) {
             $questions = $questions->shuffle();
@@ -416,8 +417,11 @@ class WebAppController extends Controller
             return $this->getQuestionsForQuiz($quiz);
         }
 
-        // Load questions in the exact saved order
-        $questions = Question::whereIn('id', $order)->with('options')->get()->keyBy('id');
+        // Load questions in the exact saved order, options always sorted by id
+        $questions = Question::whereIn('id', $order)
+            ->with(['options' => fn($q) => $q->orderBy('id')])
+            ->get()
+            ->keyBy('id');
 
         // Return in saved order
         return collect($order)->map(fn($id) => $questions->get($id))->filter()->values();
