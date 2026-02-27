@@ -10,7 +10,11 @@ const props = defineProps({
 });
 
 const currentQuestionIndex = ref(0);
-const answers = ref({});
+
+// Restore answers from localStorage on reload
+const storageKey = computed(() => `quiz_answers_${props.attemptId}`);
+const savedAnswers = localStorage.getItem(`quiz_answers_${props.attemptId}`);
+const answers = ref(savedAnswers ? JSON.parse(savedAnswers) : {});
 
 const calculateTimeLeft = () => {
     try {
@@ -68,6 +72,8 @@ const prevQuestion = () => {
 
 const selectOption = (optionId) => {
     answers.value[currentQuestion.value.id] = optionId;
+    // Persist to localStorage so reload doesn't lose answers
+    localStorage.setItem(storageKey.value, JSON.stringify(answers.value));
 };
 
 const submitQuiz = () => {
@@ -77,6 +83,7 @@ const submitQuiz = () => {
 };
 
 const performSubmit = () => {
+    localStorage.removeItem(storageKey.value); // clear saved answers
     router.post('/webapp/quiz/' + props.quiz.id + '/submit', {
         answers: answers.value,
         attempt_id: props.attemptId
