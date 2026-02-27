@@ -11,13 +11,14 @@ class QuizController extends Controller
 {
     public function index()
     {
-        $now = now();
-        // Active quizzes first (no ends_at or ends_at in future), then expired
-        $quizzes = Quiz::with('subject')
-            ->orderByRaw("CASE WHEN ends_at IS NULL OR ends_at > '$now' THEN 0 ELSE 1 END")
-            ->orderBy('created_at', 'desc')
-            ->paginate(20);
-        return view('admin.quizzes.index', compact('quizzes'));
+        $subjects = Subject::withCount('quizzes')
+            ->with(['quizzes' => function ($q) {
+                $q->orderByDesc('created_at');
+            }])
+            ->orderBy('name')
+            ->get();
+
+        return view('admin.quizzes.index', compact('subjects'));
     }
 
     public function create()

@@ -13,15 +13,14 @@ class QuestionController extends Controller
 {
     public function index(Request $request)
     {
-        $subjects = Subject::all();
-        $query = Question::with(['subject', 'options'])->latest();
+        $subjects = Subject::withCount('questions')
+            ->with(['questions' => function ($q) {
+                $q->withCount('options')->latest();
+            }])
+            ->orderBy('name')
+            ->get();
 
-        if ($request->has('subject_id') && $request->subject_id != '') {
-            $query->where('subject_id', $request->subject_id);
-        }
-
-        $questions = $query->paginate(15);
-        return view('admin.questions.index', compact('questions', 'subjects'));
+        return view('admin.questions.index', compact('subjects'));
     }
 
     public function create()

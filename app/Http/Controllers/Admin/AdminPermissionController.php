@@ -6,17 +6,35 @@ use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Models\AdminPermission;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
 
 class AdminPermissionController extends Controller
 {
-    // All available pages that can be permissioned
+    // Granular permissions: page.action
     public const PAGES = [
-        'subjects'   => 'Fanlar',
-        'quizzes'    => 'Testlar',
-        'questions'  => 'Savollar',
-        'stats'      => 'Statistika',
-        'broadcast'  => 'Xabar yuborish',
-        'users'      => 'Foydalanuvchilar',
+        'subjects.view'     => '👁 Fanlar — ko\'rish',
+        'subjects.create'   => '➕ Fanlar — qo\'shish',
+        'subjects.edit'     => '✏️ Fanlar — tahrirlash',
+        'subjects.delete'   => '🗑 Fanlar — o\'chirish',
+
+        'quizzes.view'      => '👁 Testlar — ko\'rish',
+        'quizzes.create'    => '➕ Testlar — qo\'shish',
+        'quizzes.edit'      => '✏️ Testlar — tahrirlash',
+        'quizzes.delete'    => '🗑 Testlar — o\'chirish',
+
+        'questions.view'    => '👁 Savollar — ko\'rish',
+        'questions.create'  => '➕ Savollar — qo\'shish',
+        'questions.edit'    => '✏️ Savollar — tahrirlash',
+        'questions.delete'  => '🗑 Savollar — o\'chirish',
+
+        'stats.view'        => '👁 Statistika — ko\'rish',
+
+        'broadcast.view'    => '👁 Broadcast — ko\'rish',
+        'broadcast.send'    => '📤 Broadcast — yuborish',
+
+        'users.view'        => '👁 Foydalanuvchilar — ko\'rish',
+        'users.block'       => '🚫 Foydalanuvchilar — bloklash',
+        'users.delete'      => '🗑 Foydalanuvchilar — o\'chirish',
     ];
 
     public function index()
@@ -61,5 +79,51 @@ class AdminPermissionController extends Controller
         $user->update(['role' => 'user']);
         $user->permissions()->delete();
         return back()->with('success', "{$user->name} admin huquqi olindi.");
+    }
+
+    public function createAdmin(Request $request)
+    {
+        $request->validate([
+            'name'     => 'required|string|max:100',
+            'email'    => 'required|email|unique:users,email',
+            'password' => 'required|string|min:6',
+        ]);
+
+        $admin = User::create([
+            'name'     => $request->name,
+            'email'    => $request->email,
+            'password' => Hash::make($request->password),
+            'role'     => 'admin',
+        ]);
+
+        // Give selected permissions
+        foreach ($request->permissions ?? [] as $page) {
+            if (array_key_exists($page, self::PAGES)) {
+                AdminPermission::create(['admin_id' => $admin->id, 'page' => $page]);
+            }
+        }
+
+        return back()->with('success', "{$admin->name} muvaffaqiyatli admin sifatida yaratildi.");
+    }
+
+    public function updateAdmin(Request $request, User $user)
+    {
+        $request->validate([
+            'name'     => 'required|string|max:100',
+            'email'    => 'required|email|unique:users,email,' . $user->id,
+            'password' => 'nullable|string|min:6',
+        ]);
+
+        $data = [
+            'name'  => $request->name,
+            'email' => $request->email,
+        ];
+        if ($request->password) {
+            $data['password'] = Hash::make($request->password);
+        }
+
+        $user->update($data);
+
+        return back()->with('success', "{$user->name} ma'lumotlari yangilandi.");
     }
 }

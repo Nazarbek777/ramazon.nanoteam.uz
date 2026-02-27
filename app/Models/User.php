@@ -43,13 +43,18 @@ class User extends Authenticatable
     }
 
     /**
-     * Check if this admin has permission for a page.
+     * Check if this admin has permission for a page/action.
      * super_admin always has access.
+     * $permission can be:
+     *   'subjects'        → any access to subjects
+     *   'subjects.create' → only create action
      */
-    public function hasPermission(string $page): bool
+    public function hasPermission(string $permission): bool
     {
         if ($this->isSuperAdmin()) return true;
-        return $this->permissions()->where('page', $page)->exists();
+        // Check exact permission OR wildcard page
+        $page = explode('.', $permission)[0];
+        return $this->permissions()->whereIn('page', [$permission, $page])->exists();
     }
 
     // ─── Relationships ───────────────────────────────

@@ -50,7 +50,7 @@
             <nav class="flex-1 overflow-y-auto p-4 space-y-1">
                 <p class="text-[10px] uppercase font-bold text-slate-400 px-3 mb-2" :class="!sidebarOpen && 'hidden'">Asosiy</p>
 
-                @if(auth()->user()->hasPermission('stats'))
+                @if(auth()->user()->hasPermission('stats.view'))
                 <a href="{{ route('admin.stats.index') }}"
                    class="sidebar-link group flex items-center px-4 py-3 rounded-xl transition duration-200 hover:bg-slate-50 {{ request()->routeIs('admin.stats.*') ? 'active' : '' }}">
                     <i class="fas fa-chart-line w-6 text-indigo-500"></i>
@@ -58,7 +58,7 @@
                 </a>
                 @endif
 
-                @if(auth()->user()->hasPermission('subjects'))
+                @if(auth()->user()->hasPermission('subjects.view'))
                 <a href="{{ route('admin.subjects.index') }}"
                    class="sidebar-link group flex items-center px-4 py-3 rounded-xl transition duration-200 hover:bg-slate-50 {{ request()->routeIs('admin.subjects.*') ? 'active' : '' }}">
                     <i class="fas fa-layer-group w-6 text-indigo-500"></i>
@@ -66,7 +66,7 @@
                 </a>
                 @endif
 
-                @if(auth()->user()->hasPermission('quizzes'))
+                @if(auth()->user()->hasPermission('quizzes.view'))
                 <a href="{{ route('admin.quizzes.index') }}"
                    class="sidebar-link group flex items-center px-4 py-3 rounded-xl transition duration-200 hover:bg-slate-50 {{ request()->routeIs('admin.quizzes.*') ? 'active' : '' }}">
                     <i class="fas fa-tasks w-6 text-indigo-500"></i>
@@ -74,7 +74,7 @@
                 </a>
                 @endif
 
-                @if(auth()->user()->hasPermission('questions'))
+                @if(auth()->user()->hasPermission('questions.view'))
                 <a href="{{ route('admin.questions.index') }}"
                    class="sidebar-link group flex items-center px-4 py-3 rounded-xl transition duration-200 hover:bg-slate-50 {{ request()->routeIs('admin.questions.*') ? 'active' : '' }}">
                     <i class="fas fa-question-circle w-6 text-indigo-500"></i>
@@ -82,7 +82,7 @@
                 </a>
                 @endif
 
-                @if(auth()->user()->hasPermission('broadcast'))
+                @if(auth()->user()->hasPermission('broadcast.view'))
                 <a href="{{ route('admin.broadcast.index') }}"
                    class="sidebar-link group flex items-center px-4 py-3 rounded-xl transition duration-200 hover:bg-slate-50 {{ request()->routeIs('admin.broadcast.*') ? 'active' : '' }}">
                     <i class="fas fa-bullhorn w-6 text-indigo-500"></i>
@@ -90,7 +90,7 @@
                 </a>
                 @endif
 
-                @if(auth()->user()->hasPermission('users'))
+                @if(auth()->user()->hasPermission('users.view'))
                 <a href="{{ route('admin.users.index') }}"
                    class="sidebar-link group flex items-center px-4 py-3 rounded-xl transition duration-200 hover:bg-slate-50 {{ request()->routeIs('admin.users.*') ? 'active' : '' }}">
                     <i class="fas fa-users w-6 text-indigo-500"></i>
