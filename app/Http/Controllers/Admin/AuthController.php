@@ -10,7 +10,7 @@ class AuthController extends Controller
 {
     public function showLogin()
     {
-        if (Auth::check() && Auth::user()->role === 'admin') {
+        if (Auth::check() && Auth::user()->isAdmin()) {
             return redirect()->route('admin.subjects.index');
         }
         return view('admin.auth.login');
@@ -19,14 +19,14 @@ class AuthController extends Controller
     public function login(Request $request)
     {
         $credentials = $request->validate([
-            'email' => 'required|email',
+            'email'    => 'required|email',
             'password' => 'required',
         ]);
 
         if (Auth::attempt($credentials)) {
             $request->session()->regenerate();
 
-            if (Auth::user()->role === 'admin') {
+            if (Auth::user()->isAdmin()) {
                 return redirect()->intended(route('admin.subjects.index'));
             }
 
