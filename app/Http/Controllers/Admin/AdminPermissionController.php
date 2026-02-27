@@ -54,23 +54,41 @@ class AdminPermissionController extends Controller
         ]);
 
         try {
-            $admin = User::findOrFail($request->admin_id);
+            $adminId = (int) $request->admin_id;
+            $permissions = $request->permissions ?? [];
 
-            // Delete all existing permissions for this admin
-            AdminPermission::where('admin_id', $admin->id)->delete();
+            \Log::info('[Permissions] store called', [
+                'admin_id'    => $adminId,
+                'permissions' => $permissions,
+            ]);
 
-            // Recreate selected ones
-            foreach ($request->permissions ?? [] as $page) {
-                if (array_key_exists($page, self::PAGES)) {
-                    AdminPermission::create(['admin_id' => $admin->id, 'page' => $page]);
+            // Delete all existing permissions for this admin (raw)
+            \DB::table('admin_permissions')->where('admin_id', $adminId)->delete();
+
+            // Insert new ones
+            $validPages = array_keys(self::PAGES);
+            foreach ($permissions as $page) {
+                if (in_array($page, $validPages)) {
+                    \DB::table('admin_permissions')->insert([
+                        'admin_id'   => $adminId,
+                        'page'       => $page,
+                        'created_at' => now(),
+                        'updated_at' => now(),
+                    ]);
                 }
             }
 
+            $saved = \DB::table('admin_permissions')->where('admin_id', $adminId)->count();
+            \Log::info('[Permissions] saved count', ['count' => $saved]);
+
+            $admin = User::findOrFail($adminId);
             return redirect()->route('admin.permissions.index')
-                ->with('success', "{$admin->name} uchun ruxsatlar saqlandi. (" . count($request->permissions ?? []) . " ta)");
+                ->with('success', "✅ {$admin->name} uchun {$saved} ta ruxsat saqlandi.");
+
         } catch (\Exception $e) {
+            \Log::error('[Permissions] store error: ' . $e->getMessage());
             return redirect()->route('admin.permissions.index')
-                ->with('error', "Xatolik: " . $e->getMessage());
+                ->with('error', "❌ Xatolik: " . $e->getMessage());
         }
     }
 
