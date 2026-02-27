@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\Baza;
 use App\Models\Subject;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
@@ -13,6 +14,29 @@ class SubjectController extends Controller
     {
         $subjects = Subject::latest()->paginate(10);
         return view('admin.subjects.index', compact('subjects'));
+    }
+
+    /** Subject detail page — manage bazalar */
+    public function show(Subject $subject)
+    {
+        $bazalar = $this->getBazaTree($subject->id);
+        return view('admin.subjects.show', compact('subject', 'bazalar'));
+    }
+
+    private function getBazaTree(int $subjectId, ?int $parentId = null, int $depth = 0): \Illuminate\Support\Collection
+    {
+        $items = Baza::where('subject_id', $subjectId)
+            ->where('parent_id', $parentId)
+            ->withCount('questions')
+            ->orderBy('name')
+            ->get();
+        $result = collect();
+        foreach ($items as $item) {
+            $item->depth = $depth;
+            $result->push($item);
+            $result = $result->merge($this->getBazaTree($subjectId, $item->id, $depth + 1));
+        }
+        return $result;
     }
 
     public function create()

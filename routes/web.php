@@ -41,17 +41,19 @@ Route::prefix('admin')->name('admin.')->group(function () {
     // Protected Admin Routes
     Route::middleware([\App\Http\Middleware\AdminMiddleware::class])->group(function () {
         // Subjects (granular)
-        Route::get('subjects',          [SubjectController::class, 'index'])  ->name('subjects.index') ->middleware('permission:subjects.view');
-        Route::get('subjects/create',   [SubjectController::class, 'create']) ->name('subjects.create')->middleware('permission:subjects.create');
-        Route::post('subjects',         [SubjectController::class, 'store'])  ->name('subjects.store') ->middleware('permission:subjects.create');
-        Route::get('subjects/{subject}/edit', [SubjectController::class, 'edit'])->name('subjects.edit')->middleware('permission:subjects.edit');
-        Route::put('subjects/{subject}',      [SubjectController::class, 'update'])->name('subjects.update')->middleware('permission:subjects.edit');
+        Route::get('subjects',                [SubjectController::class, 'index'])  ->name('subjects.index') ->middleware('permission:subjects.view');
+        Route::get('subjects/create',         [SubjectController::class, 'create']) ->name('subjects.create')->middleware('permission:subjects.create');
+        Route::post('subjects',               [SubjectController::class, 'store'])  ->name('subjects.store') ->middleware('permission:subjects.create');
+        Route::get('subjects/{subject}',      [SubjectController::class, 'show'])   ->name('subjects.show')  ->middleware('permission:subjects.view');
+        Route::get('subjects/{subject}/edit', [SubjectController::class, 'edit'])   ->name('subjects.edit')  ->middleware('permission:subjects.edit');
+        Route::put('subjects/{subject}',      [SubjectController::class, 'update']) ->name('subjects.update')->middleware('permission:subjects.edit');
         Route::delete('subjects/{subject}',   [SubjectController::class, 'destroy'])->name('subjects.destroy')->middleware('permission:subjects.delete');
 
         // Bazalar (question banks inside a subject)
-        Route::get('subjects/{subject}/bazalar',                     [App\Http\Controllers\Admin\BazaController::class, 'index'])  ->name('bazalar.index')  ->middleware('permission:questions.view');
-        Route::post('subjects/{subject}/bazalar',                    [App\Http\Controllers\Admin\BazaController::class, 'store'])  ->name('bazalar.store')  ->middleware('permission:questions.create');
-        Route::delete('subjects/{subject}/bazalar/{baza}',           [App\Http\Controllers\Admin\BazaController::class, 'destroy'])->name('bazalar.destroy')->middleware('permission:questions.delete');
+        Route::get('subjects/{subject}/bazalar',                     [App\Http\Controllers\Admin\BazaController::class, 'index'])       ->name('bazalar.index')       ->middleware('permission:questions.view');
+        Route::post('subjects/{subject}/bazalar',                    [App\Http\Controllers\Admin\BazaController::class, 'store'])       ->name('bazalar.store')       ->middleware('permission:questions.create');
+        Route::delete('subjects/{subject}/bazalar/{baza}',           [App\Http\Controllers\Admin\BazaController::class, 'destroy'])     ->name('bazalar.destroy')     ->middleware('permission:questions.delete');
+        Route::post('subjects/{subject}/bazalar/{baza}/move-question',[App\Http\Controllers\Admin\BazaController::class, 'moveQuestion'])->name('bazalar.moveQuestion')->middleware('permission:questions.edit');
 
         // Quizzes (granular)
         Route::get('quizzes',                           [QuizController::class, 'index'])       ->name('quizzes.index')        ->middleware('permission:quizzes.view');

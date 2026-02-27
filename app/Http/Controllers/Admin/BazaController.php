@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Baza;
+use App\Models\Question;
 use App\Models\Subject;
 use Illuminate\Http\Request;
 
@@ -38,6 +39,22 @@ class BazaController extends Controller
     {
         $baza->delete();
         return back()->with('success', 'Baza o\'chirildi.');
+    }
+
+    /** Move a question to a different baza */
+    public function moveQuestion(Request $request, Subject $subject, Baza $baza)
+    {
+        $request->validate([
+            'question_id' => 'required|exists:questions,id',
+            'target_baza_id' => 'required|exists:bazalar,id',
+        ]);
+
+        $question = Question::findOrFail($request->question_id);
+        $question->update([
+            'baza_id' => $request->target_baza_id,
+        ]);
+
+        return back()->with('success', 'Savol ko\'chirildi.');
     }
 
     /** Recursively get all bazalar for a subject with depth */

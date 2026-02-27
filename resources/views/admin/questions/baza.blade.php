@@ -27,12 +27,18 @@
             <p class="text-sm text-gray-400">{{ $questions->count() }} ta savol</p>
         </div>
     </div>
-    @if(auth()->user()->hasPermission('questions.create'))
-    <a href="{{ route('admin.questions.create', ['subject_id' => $subject->id, 'baza_id' => $baza->id]) }}"
-       class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2.5 px-5 rounded-xl transition shadow flex items-center gap-2">
-        <i class="fas fa-plus"></i> Savol qo'shish
-    </a>
-    @endif
+    <div class="flex gap-2">
+        <a href="{{ route('admin.subjects.show', $subject) }}"
+           class="px-4 py-2 rounded-xl border border-gray-200 text-sm font-semibold text-gray-600 hover:bg-gray-50">
+            <i class="fas fa-sitemap mr-1"></i> Bazalar
+        </a>
+        @if(auth()->user()->hasPermission('questions.create'))
+        <a href="{{ route('admin.questions.create', ['subject_id' => $subject->id, 'baza_id' => $baza->id]) }}"
+           class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2.5 px-5 rounded-xl transition shadow flex items-center gap-2">
+            <i class="fas fa-plus"></i> Savol qo'shish
+        </a>
+        @endif
+    </div>
 </div>
 
 @if(session('success'))
@@ -58,10 +64,18 @@
 </div>
 @endif
 
+{{-- All bazalar for move (load all bazalar in this subject except current) --}}
+@php
+    $allBazalar = \App\Models\Baza::where('subject_id', $subject->id)
+        ->where('id', '!=', $baza->id)
+        ->orderBy('name')
+        ->get();
+@endphp
+
 {{-- Questions list --}}
 <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
     @forelse($questions as $i => $question)
-    <div class="flex items-start justify-between px-5 py-4 border-b border-gray-50 last:border-0 hover:bg-gray-50/50 transition">
+    <div class="flex items-start justify-between px-5 py-4 border-b border-gray-50 last:border-0 hover:bg-gray-50/50 transition group">
         <div class="flex gap-3 flex-1 min-w-0">
             <span class="text-xs font-bold text-gray-300 mt-0.5 w-6 shrink-0">{{ $i+1 }}</span>
             <div class="flex-1 min-w-0">
@@ -69,9 +83,24 @@
                 <p class="text-xs text-gray-400 mt-1">{{ $question->options_count }} ta variant</p>
             </div>
         </div>
-        <div class="flex items-center gap-3 ml-4 shrink-0 mt-0.5">
+        <div class="flex items-center gap-2 ml-4 shrink-0 mt-0.5">
+            {{-- Move to another baza --}}
+            @if($allBazalar->isNotEmpty() && auth()->user()->hasPermission('questions.edit'))
+            <form method="POST" action="{{ route('admin.bazalar.moveQuestion', [$subject, $baza]) }}" class="flex items-center gap-1">
+                @csrf
+                <input type="hidden" name="question_id" value="{{ $question->id }}">
+                <select name="target_baza_id" onchange="this.form.submit()" title="Ko'chirish"
+                        class="text-xs border border-gray-200 rounded-lg px-2 py-1.5 text-gray-500 outline-none focus:border-indigo-400 cursor-pointer bg-white max-w-[130px]">
+                    <option value="">↪ Ko'chirish</option>
+                    @foreach($allBazalar as $targetBaza)
+                    <option value="{{ $targetBaza->id }}">{{ $targetBaza->name }}</option>
+                    @endforeach
+                </select>
+            </form>
+            @endif
+
             @if(auth()->user()->hasPermission('questions.edit'))
-            <a href="{{ route('admin.questions.edit', $question) }}" class="text-indigo-400 hover:text-indigo-700 text-sm">
+            <a href="{{ route('admin.questions.edit', $question) }}" class="text-indigo-400 hover:text-indigo-700 text-sm p-1" title="Tahrirlash">
                 <i class="fas fa-edit"></i>
             </a>
             @endif
@@ -79,7 +108,7 @@
             <form action="{{ route('admin.questions.destroy', $question) }}" method="POST" class="inline"
                   onsubmit="return confirm('Savolni o\'chirilsinmi?')">
                 @csrf @method('DELETE')
-                <button type="submit" class="text-red-400 hover:text-red-600 text-sm">
+                <button type="submit" class="text-red-400 hover:text-red-600 text-sm p-1" title="O'chirish">
                     <i class="fas fa-trash"></i>
                 </button>
             </form>
