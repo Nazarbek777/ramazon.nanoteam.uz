@@ -8,11 +8,16 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Question extends Model
 {
-    protected $fillable = ['subject_id', 'content', 'image', 'type', 'points'];
+    protected $fillable = ['subject_id', 'baza_id', 'content', 'image', 'type', 'points'];
 
     public function subject(): BelongsTo
     {
         return $this->belongsTo(Subject::class);
+    }
+
+    public function baza(): BelongsTo
+    {
+        return $this->belongsTo(Baza::class);
     }
 
     public function options(): HasMany

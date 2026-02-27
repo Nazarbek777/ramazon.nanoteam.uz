@@ -391,12 +391,13 @@ class WebAppController extends Controller
 
     private function getQuestionsForQuiz(Quiz $quiz)
     {
-        // 1) If quiz has configured sources (bazalar) — use them
-        $sources = $quiz->sources()->with('subject')->get();
+        // 1) If quiz has configured baza sources — use them
+        $sources = $quiz->sources()->with('baza')->get();
         if ($sources->isNotEmpty()) {
             $questions = collect();
             foreach ($sources as $source) {
-                $picked = Question::where('subject_id', $source->subject_id)
+                if (!$source->baza) continue;
+                $picked = Question::where('baza_id', $source->baza_id)
                     ->with(['options' => fn($q) => $q->orderBy('id')])
                     ->inRandomOrder()
                     ->limit($source->count)

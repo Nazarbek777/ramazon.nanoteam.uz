@@ -48,6 +48,11 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::put('subjects/{subject}',      [SubjectController::class, 'update'])->name('subjects.update')->middleware('permission:subjects.edit');
         Route::delete('subjects/{subject}',   [SubjectController::class, 'destroy'])->name('subjects.destroy')->middleware('permission:subjects.delete');
 
+        // Bazalar (question banks inside a subject)
+        Route::get('subjects/{subject}/bazalar',                     [App\Http\Controllers\Admin\BazaController::class, 'index'])  ->name('bazalar.index')  ->middleware('permission:questions.view');
+        Route::post('subjects/{subject}/bazalar',                    [App\Http\Controllers\Admin\BazaController::class, 'store'])  ->name('bazalar.store')  ->middleware('permission:questions.create');
+        Route::delete('subjects/{subject}/bazalar/{baza}',           [App\Http\Controllers\Admin\BazaController::class, 'destroy'])->name('bazalar.destroy')->middleware('permission:questions.delete');
+
         // Quizzes (granular)
         Route::get('quizzes',                           [QuizController::class, 'index'])       ->name('quizzes.index')        ->middleware('permission:quizzes.view');
         Route::get('quizzes/subject/{subject}',         [QuizController::class, 'showSubject']) ->name('quizzes.subject')      ->middleware('permission:quizzes.view');

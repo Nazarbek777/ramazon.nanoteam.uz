@@ -28,6 +28,7 @@ class DatabaseSeeder extends Seeder
 
         // Seed all subjects, quizzes and questions
         $this->call([
+            SuperAdminSeeder::class,
             SubjectsSeeder::class,
             DemoSeeder::class,
         ]);

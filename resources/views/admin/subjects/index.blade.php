@@ -33,6 +33,10 @@
                 <td class="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-900">{{ $subject->name }}</td>
                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ $subject->created_at->format('d.m.Y') }}</td>
                 <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                    <a href="{{ route('admin.bazalar.index', $subject) }}"
+                       class="inline-flex items-center gap-1 text-xs font-bold px-2.5 py-1 rounded-lg bg-amber-50 text-amber-600 hover:bg-amber-100 mr-2">
+                        <i class="fas fa-database"></i> Bazalar
+                    </a>
                     <a href="{{ route('admin.subjects.edit', $subject) }}" class="text-indigo-600 hover:text-indigo-900 mr-3">
                         <i class="fas fa-edit"></i>
                     </a>

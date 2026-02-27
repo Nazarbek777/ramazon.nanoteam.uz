@@ -81,60 +81,60 @@ class QuizController extends Controller
     }
 
     /**
-     * Quiz builder — shows subject's child subjects (bazalar) so admin
-     * can pick how many questions to pull from each.
+     * Quiz builder — load bazalar (question banks) for the quiz's subject.
      */
     public function buildQuiz(Quiz $quiz)
     {
-        $quiz->load(['subject.children', 'sources.subject']);
-
-        // All child subjects (bazalar) of this quiz's subject
-        $bazalar = $quiz->subject->children ?? collect();
-
-        // If parent subject has no children, show the subject itself as the only baza
-        if ($bazalar->isEmpty()) {
-            $bazalar = collect([$quiz->subject]);
-        }
-
-        // Add question counts to each baza
-        $bazalar->each(function ($baza) {
-            $baza->questions_count = $baza->questions()->count();
-        });
-
+        $quiz->load(['sources.baza']);
+        $bazalar = $this->getBazaTree($quiz->subject_id);
         return view('admin.quizzes.build', compact('quiz', 'bazalar'));
     }
 
-    /**
-     * Add a source (baza + count) to quiz.
-     */
+    /** Recursively get all bazalar for a subject */
+    private function getBazaTree(int $subjectId, ?int $parentId = null, int $depth = 0): \Illuminate\Support\Collection
+    {
+        $items = \App\Models\Baza::where('subject_id', $subjectId)
+            ->where('parent_id', $parentId)
+            ->withCount('questions')
+            ->orderBy('name')
+            ->get();
+
+        $result = collect();
+        foreach ($items as $item) {
+            $item->depth = $depth;
+            $result->push($item);
+            $result = $result->merge($this->getBazaTree($subjectId, $item->id, $depth + 1));
+        }
+        return $result;
+    }
+
+    /** Add a baza source to quiz */
     public function storeSource(Request $request, Quiz $quiz)
     {
         $request->validate([
-            'subject_id' => 'required|exists:subjects,id',
-            'count'      => 'required|integer|min:1',
+            'baza_id' => 'required|exists:bazalar,id',
+            'count'   => 'required|integer|min:1',
         ]);
 
-        // Check if baza has enough questions
-        $available = \App\Models\Question::where('subject_id', $request->subject_id)->count();
-        if ($request->count > $available) {
-            return back()->with('error', "Bu bazada faqat {$available} ta savol bor. {$request->count} ta so'raldingiz.");
+        $available = \App\Models\Question::where('baza_id', $request->baza_id)->count();
+        if ($request->count > $available && $available > 0) {
+            return back()->with('error', "Bu bazada faqat {$available} ta savol bor.");
         }
 
         QuizSource::updateOrCreate(
-            ['quiz_id' => $quiz->id, 'subject_id' => $request->subject_id],
+            ['quiz_id' => $quiz->id, 'baza_id' => $request->baza_id],
             ['count'   => $request->count]
         );
 
         return back()->with('success', 'Baza qo\'shildi.');
     }
 
-    /**
-     * Remove a source from quiz.
-     */
+    /** Remove a source from quiz */
     public function deleteSource(Quiz $quiz, QuizSource $source)
     {
         $source->delete();
         return back()->with('success', 'Baza o\'chirildi.');
     }
 }
+
 
