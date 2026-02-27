@@ -66,6 +66,22 @@
                     </div>
                 </div>
 
+                {{-- Boshlanish + Tugash --}}
+                <div class="grid grid-cols-2 gap-4 mb-4">
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-600 mb-2">Boshlanish vaqti</label>
+                        <input type="datetime-local" name="starts_at"
+                               class="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400">
+                        <p class="text-[10px] text-gray-400 mt-1">Bo'sh qolsa — darhol ochiq</p>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-600 mb-2">Tugash vaqti</label>
+                        <input type="datetime-local" name="ends_at"
+                               class="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400">
+                        <p class="text-[10px] text-gray-400 mt-1">Bo'sh qolsa — vaqtsiz</p>
+                    </div>
+                </div>
+
                 {{-- Public / Private toggle --}}
                 <div class="mb-6 rounded-2xl border border-gray-100 bg-gray-50 p-4">
                     <p class="text-sm font-semibold text-gray-700 mb-3">Ko'rinish</p>

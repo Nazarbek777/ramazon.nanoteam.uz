@@ -3,90 +3,98 @@
 @section('title', 'Testni tahrirlash')
 
 @section('content')
-<div class="max-w-2xl mx-auto">
-    <div class="bg-white rounded-xl shadow-md overflow-hidden border">
-        <div class="px-8 py-6">
-            <h3 class="text-xl font-bold text-gray-800 mb-6">Test ma'lumotlarini o'zgartirish</h3>
+<div class="max-w-xl mx-auto">
+
+    <div class="flex items-center gap-2 text-sm text-gray-400 mb-5">
+        <a href="{{ route('admin.quizzes.index') }}" class="hover:text-indigo-600 transition">Testlar</a>
+        <i class="fas fa-chevron-right text-[10px]"></i>
+        <span class="text-gray-700 font-semibold">Tahrirlash</span>
+    </div>
+
+    <div class="bg-white rounded-[2.5rem] shadow-sm border border-gray-100 overflow-hidden">
+        <div class="px-8 py-8">
+            <div class="flex items-center gap-4 mb-8">
+                <div class="w-12 h-12 bg-indigo-50 rounded-2xl flex items-center justify-center text-xl text-indigo-500">
+                    <i class="fas fa-edit"></i>
+                </div>
+                <div>
+                    <h3 class="text-xl font-bold text-gray-800">Testni tahrirlash</h3>
+                    <p class="text-xs text-gray-400 mt-0.5">Asosiy ma'lumotlarni o'zgartiring</p>
+                </div>
+            </div>
+
             <form action="{{ route('admin.quizzes.update', $quiz) }}" method="POST">
                 @csrf
                 @method('PUT')
-                <div class="mb-5">
-                    <label for="subject_id" class="block text-sm font-medium text-gray-700 mb-2">Fan</label>
-                    <select name="subject_id" id="subject_id" required 
-                            class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition">
-                        @foreach($subjects as $subject)
-                            <option value="{{ $subject->id }}" {{ $quiz->subject_id == $subject->id ? 'selected' : '' }}>
-                                {{ $subject->name }}
-                            </option>
+
+                {{-- Fan --}}
+                <div class="mb-4">
+                    <label class="block text-sm font-semibold text-gray-600 mb-2">Fan</label>
+                    <select name="subject_id" required
+                            class="w-full px-5 py-3.5 bg-gray-50 border border-gray-100 rounded-2xl text-sm outline-none focus:ring-4 focus:ring-indigo-500/5 focus:border-indigo-400 transition-all">
+                        @foreach($subjects as $s)
+                            <option value="{{ $s->id }}" {{ $quiz->subject_id == $s->id ? 'selected' : '' }}>{{ $s->name }}</option>
                         @endforeach
                     </select>
                 </div>
 
-                <div class="mb-5">
-                    <label for="title" class="block text-sm font-medium text-gray-700 mb-2">Test nomi</label>
-                    <input type="text" name="title" id="title" value="{{ $quiz->title }}" required 
-                           class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition">
+                {{-- Test nomi --}}
+                <div class="mb-4">
+                    <label class="block text-sm font-semibold text-gray-600 mb-2">Test nomi</label>
+                    <input type="text" name="title" value="{{ $quiz->title }}" required
+                           class="w-full px-5 py-3.5 bg-gray-50 border border-gray-100 rounded-2xl text-sm outline-none focus:ring-4 focus:ring-indigo-500/5 focus:border-indigo-400 transition-all"
+                           placeholder="Test nomi">
                 </div>
 
-                <div class="grid grid-cols-2 gap-4 mb-5">
+                {{-- Vaqt + Ball --}}
+                <div class="grid grid-cols-2 gap-4 mb-4">
                     <div>
-                        <label for="time_limit" class="block text-sm font-medium text-gray-700 mb-2">Vaqt limiti (daqiqa)</label>
-                        <input type="number" name="time_limit" id="time_limit" value="{{ $quiz->time_limit }}" min="1" required 
-                               class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition">
+                        <label class="block text-sm font-semibold text-gray-600 mb-2">Vaqt (daqiqa)</label>
+                        <input type="number" name="time_limit" value="{{ $quiz->time_limit }}" min="1" required
+                               class="w-full px-5 py-3.5 bg-gray-50 border border-gray-100 rounded-2xl text-sm outline-none focus:ring-4 focus:ring-indigo-500/5 focus:border-indigo-400 transition-all">
                     </div>
                     <div>
-                        <label for="pass_score" class="block text-sm font-medium text-gray-700 mb-2">O'tish bali (%)</label>
-                        <input type="number" name="pass_score" id="pass_score" value="{{ $quiz->pass_score }}" min="1" max="100" required 
-                               class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition">
+                        <label class="block text-sm font-semibold text-gray-600 mb-2">O'tish bali (%)</label>
+                        <input type="number" name="pass_score" value="{{ $quiz->pass_score }}" min="1" max="100" required
+                               class="w-full px-5 py-3.5 bg-gray-50 border border-gray-100 rounded-2xl text-sm outline-none focus:ring-4 focus:ring-indigo-500/5 focus:border-indigo-400 transition-all">
                     </div>
                 </div>
 
-                <div class="mb-5">
-                    <label for="access_code" class="block text-sm font-medium text-gray-700 mb-2">Test ID (Access Code)</label>
-                    <input type="text" name="access_code" id="access_code" value="{{ $quiz->access_code }}" 
-                           class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition"
-                           placeholder="Masalan: MAT-2024">
-                    <p class="text-[10px] text-gray-400 mt-1 uppercase font-bold tracking-tighter">Foydalanuvchilar ushbu ID orqali testga kira olishadi</p>
-                </div>
-
-                <div class="grid grid-cols-2 gap-4 mb-5">
+                {{-- Boshlanish + Tugash --}}
+                <div class="grid grid-cols-2 gap-4 mb-6">
                     <div>
-                        <label for="starts_at" class="block text-sm font-medium text-gray-700 mb-2">Boshlanish vaqti</label>
-                        <input type="datetime-local" name="starts_at" id="starts_at"
+                        <label class="block text-sm font-semibold text-gray-600 mb-2">Boshlanish vaqti</label>
+                        <input type="datetime-local" name="starts_at"
                                value="{{ $quiz->starts_at ? $quiz->starts_at->format('Y-m-d\TH:i') : '' }}"
-                               class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none transition">
+                               class="w-full px-5 py-3.5 bg-gray-50 border border-gray-100 rounded-2xl text-sm outline-none focus:ring-4 focus:ring-indigo-500/5 focus:border-indigo-400 transition-all">
                         <p class="text-[10px] text-gray-400 mt-1">Bo'sh qolsa — darhol ochiq</p>
                     </div>
                     <div>
-                        <label for="ends_at" class="block text-sm font-medium text-gray-700 mb-2">Tugash vaqti</label>
-                        <input type="datetime-local" name="ends_at" id="ends_at"
+                        <label class="block text-sm font-semibold text-gray-600 mb-2">Tugash vaqti</label>
+                        <input type="datetime-local" name="ends_at"
                                value="{{ $quiz->ends_at ? $quiz->ends_at->format('Y-m-d\TH:i') : '' }}"
-                               class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none transition">
+                               class="w-full px-5 py-3.5 bg-gray-50 border border-gray-100 rounded-2xl text-sm outline-none focus:ring-4 focus:ring-indigo-500/5 focus:border-indigo-400 transition-all">
                         <p class="text-[10px] text-gray-400 mt-1">Bo'sh qolsa — vaqtsiz</p>
                     </div>
                 </div>
 
-                <div class="mb-8 p-6 bg-slate-50 rounded-2xl border border-slate-100">
-                    <label class="inline-flex items-center cursor-pointer mb-4">
-                        <input type="hidden" name="is_random" value="0">
-                        <input type="checkbox" name="is_random" value="1" {{ $quiz->is_random ? 'checked' : '' }} id="is_random_checkbox" class="sr-only peer">
-                        <div class="relative w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-indigo-300 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-600"></div>
-                        <span class="ms-3 text-sm font-bold text-gray-700">Savollarni aralash ko'rsatish</span>
-                    </label>
-
-                    <div id="random_count_wrapper" class="mt-4">
-                        <label for="random_questions_count" class="block text-[10px] font-black uppercase text-indigo-400 tracking-widest mb-2">Bazadan tasodifiy savollar soni</label>
-                        <input type="number" name="random_questions_count" id="random_questions_count" value="{{ $quiz->random_questions_count }}"
-                               class="w-full px-4 py-2 border rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition bg-white"
-                               placeholder="Ixtiyoriy (bo'sh qolsa barchasi aralashadi)">
-                        <p class="text-[10px] text-slate-400 mt-2">Agar bu yerda raqam yozilsa, test har safar bazadan (va sub-fanlardan) shuncha tasodifiy savol tanlab oladi.</p>
-                    </div>
+                {{-- Access code --}}
+                <div class="mb-8 p-6 bg-indigo-50/50 rounded-[2rem] border border-indigo-100/50">
+                    <label class="block text-xs font-black uppercase tracking-widest text-indigo-400 mb-3 ml-1">Kirish kodi (Access ID)</label>
+                    <input type="text" name="access_code" value="{{ $quiz->access_code }}"
+                           class="w-full px-6 py-4 bg-white border border-indigo-100 rounded-2xl text-base font-mono outline-none focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-400 transition-all"
+                           placeholder="Bo'sh qolsa — ommaviy">
+                    <p class="text-[10px] text-indigo-300 mt-2 ml-1 font-bold uppercase tracking-tighter">Faqat ID orqali kirish mumkin bo'ladi</p>
                 </div>
 
-                <div class="flex items-center justify-end space-x-4">
-                    <a href="{{ route('admin.quizzes.index') }}" class="text-gray-600 hover:text-gray-800 font-medium">Bekor qilish</a>
-                    <button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-8 rounded-lg shadow transition">
-                        Saqlash
+                <div class="flex gap-4">
+                    <a href="{{ url()->previous() }}"
+                       class="flex-1 text-center py-4 rounded-2xl border border-gray-100 text-sm font-bold text-gray-400 hover:bg-gray-50 transition-all">
+                        Bekor qilish
+                    </a>
+                    <button type="submit"
+                            class="flex-[2] bg-indigo-600 hover:bg-indigo-700 text-white font-black py-4 rounded-2xl shadow-lg shadow-indigo-100 transition-all">
+                        O'zgarishlarni saqlash
                     </button>
                 </div>
             </form>
