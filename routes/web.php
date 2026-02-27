@@ -19,6 +19,7 @@ Route::get('/webapp', [App\Http\Controllers\WebAppController::class, 'index'])->
 Route::get('/webapp/subject/{subject}', [App\Http\Controllers\WebAppController::class, 'showSubject'])->name('webapp.subject.show');
 Route::get('/webapp/history', [App\Http\Controllers\WebAppController::class, 'history'])->name('webapp.history');
 Route::get('/webapp/profile', [App\Http\Controllers\WebAppController::class, 'profile'])->name('webapp.profile');
+Route::get('/webapp/attempt/{attempt}', [App\Http\Controllers\WebAppController::class, 'attemptDetail'])->name('webapp.attempt.detail');
 Route::get('/webapp/quiz/{quiz}', [App\Http\Controllers\WebAppController::class, 'showQuiz'])->name('webapp.quiz.show');
 Route::post('/webapp/quiz/join', [App\Http\Controllers\WebAppController::class, 'joinByCode'])->name('webapp.quiz.join');
 Route::post('/webapp/quiz/{quiz}/start', [App\Http\Controllers\WebAppController::class, 'startQuiz'])->name('webapp.quiz.start');

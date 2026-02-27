@@ -111,13 +111,32 @@ class WebAppController extends Controller
         if ($userId) {
             $attempts = QuizAttempt::where('user_id', $userId)
                 ->whereNotNull('completed_at')
-                ->with('quiz')
+                ->with(['quiz.subject'])
                 ->orderByDesc('completed_at')
                 ->get();
         }
 
+        $bySubject = $attempts->groupBy(function($a) {
+            return optional(optional($a->quiz)->subject)->name ?? 'Boshqa';
+        })->map(fn($g) => $g->values());
+
         return Inertia::render('History', [
             'attempts' => $attempts,
+            'bySubject' => $bySubject,
+        ]);
+    }
+
+    public function attemptDetail(QuizAttempt $attempt)
+    {
+        $attempt->load([
+            'quiz.subject',
+            'answers.question.options',
+            'answers.option',
+        ]);
+
+        return Inertia::render('AttemptDetail', [
+            'attempt' => $attempt,
+            'quiz' => $attempt->quiz,
         ]);
     }
 
@@ -162,6 +181,62 @@ class WebAppController extends Controller
         }
 
         return redirect()->route('webapp.quiz.show', $quiz->id);
+    }
+
+    public function submitQuiz(Request $request, Quiz $quiz)
+    {
+        try {
+            $userId = Auth::id() ?? ((\App\Models\User::first())->id ?? 1);
+            $answersInput = $request->input('answers', []);
+            $attemptId = $request->input('attempt_id');
+
+            $attempt = QuizAttempt::where('id', $attemptId)
+                ->where('user_id', $userId)
+                ->whereNull('completed_at')
+                ->firstOrFail();
+
+            $questionIds = array_keys($answersInput);
+            $questions = Question::whereIn('id', $questionIds)->with('options')->get()->keyBy('id');
+
+            $correctCount = 0;
+            foreach ($answersInput as $questionId => $optionId) {
+                $question = $questions->get($questionId);
+                if (!$question) continue;
+
+                $isCorrect = $question->options
+                    ->where('id', $optionId)
+                    ->where('is_correct', true)
+                    ->isNotEmpty();
+
+                if ($isCorrect) $correctCount++;
+
+                \App\Models\AttemptAnswer::create([
+                    'quiz_attempt_id' => $attempt->id,
+                    'question_id'     => $questionId,
+                    'option_id'       => $optionId,
+                    'is_correct'      => $isCorrect,
+                ]);
+            }
+
+            $total = $attempt->total_questions ?: max(count($answersInput), 1);
+            $score = $total > 0 ? round(($correctCount / $total) * 100) : 0;
+
+            $attempt->update([
+                'correct_answers'  => $correctCount,
+                'score'            => $score,
+                'completed_at'     => now(),
+                'total_questions'  => $total,
+            ]);
+
+            return Inertia::render('Result', [
+                'attempt' => $attempt->fresh(),
+                'quiz'    => $quiz,
+            ]);
+
+        } catch (\Exception $e) {
+            \Log::error('Submit error: ' . $e->getMessage());
+            return redirect()->route('webapp.index')->with('error', 'Xatolik: ' . $e->getMessage());
+        }
     }
 
     public function showQuiz(Quiz $quiz)
@@ -333,40 +408,5 @@ class WebAppController extends Controller
 
         return $ids;
     }
-
-    public function submitQuiz(Request $request, Quiz $quiz)
-    {
-        $answers = $request->input('answers', []);
-        $attemptId = $request->input('attempt_id');
-        $correctCount = 0;
-        $totalQuestions = count($answers);
-
-        foreach ($answers as $questionId => $optionId) {
-            $isCorrect = Option::where('id', $optionId)
-                ->where('question_id', $questionId)
-                ->where('is_correct', true)
-                ->exists();
-
-            if ($isCorrect) {
-                $correctCount++;
-            }
-        }
-
-        $score = ($totalQuestions > 0) ? round(($correctCount / $totalQuestions) * 100) : 0;
-
-        $attempt = QuizAttempt::find($attemptId);
-        if ($attempt) {
-            $attempt->update([
-                'score' => $score,
-                'total_questions' => $totalQuestions,
-                'correct_answers' => $correctCount,
-                'completed_at' => now(),
-            ]);
-        }
-
-        return Inertia::render('Result', [
-            'attempt' => $attempt->load('quiz'),
-            'quiz' => $quiz
-        ]);
-    }
 }
+
