@@ -9,6 +9,7 @@ use App\Models\Subject;
 use App\Models\Option;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 
 class QuestionController extends Controller
 {
@@ -66,6 +67,7 @@ class QuestionController extends Controller
             'subject_id' => 'required|exists:subjects,id',
             'baza_id'    => 'nullable|exists:bazalar,id',
             'content'    => 'required|string',
+            'image'      => 'nullable|image|max:5120', // 5MB max
             'type'       => 'nullable|in:single,multiple',
             'points'     => 'required|integer|min:1',
             'options'    => 'required|array|min:2',
@@ -75,11 +77,18 @@ class QuestionController extends Controller
 
         $bazaId = $request->baza_id ?: null;
 
-        DB::transaction(function () use ($request, $bazaId) {
+        // Handle image upload
+        $imagePath = null;
+        if ($request->hasFile('image')) {
+            $imagePath = $request->file('image')->store('questions', 'public');
+        }
+
+        DB::transaction(function () use ($request, $bazaId, $imagePath) {
             $question = Question::create([
                 'subject_id' => $request->subject_id,
                 'baza_id'    => $bazaId,
                 'content'    => $request->content,
+                'image'      => $imagePath,
                 'type'       => $request->type ?? 'single',
                 'points'     => $request->points,
             ]);
@@ -114,22 +123,34 @@ class QuestionController extends Controller
     public function update(Request $request, Question $question)
     {
         $request->validate([
-            'subject_id' => 'required|exists:subjects,id',
-            'content' => 'required|string',
-            'type' => 'required|in:single,multiple',
-            'points' => 'required|integer|min:1',
-            'options' => 'required|array|min:2',
+            'subject_id'    => 'required|exists:subjects,id',
+            'content'       => 'required|string',
+            'image'         => 'nullable|image|max:5120',
+            'remove_image'  => 'nullable|boolean',
+            'type'          => 'required|in:single,multiple',
+            'points'        => 'required|integer|min:1',
+            'options'       => 'required|array|min:2',
             'options.*.content' => 'required|string',
             'correct_option' => 'required',
         ]);
 
         DB::transaction(function () use ($request, $question) {
-            $question->update([
+            $imageData = [];
+            if ($request->hasFile('image')) {
+                // Delete old image
+                if ($question->image) Storage::disk('public')->delete($question->image);
+                $imageData['image'] = $request->file('image')->store('questions', 'public');
+            } elseif ($request->boolean('remove_image') && $question->image) {
+                Storage::disk('public')->delete($question->image);
+                $imageData['image'] = null;
+            }
+
+            $question->update(array_merge([
                 'subject_id' => $request->subject_id,
-                'content' => $request->content,
-                'type' => $request->type,
-                'points' => $request->points,
-            ]);
+                'content'    => $request->content,
+                'type'       => $request->type,
+                'points'     => $request->points,
+            ], $imageData));
 
             // Simple way: delete old options and create new ones
             $question->options()->delete();

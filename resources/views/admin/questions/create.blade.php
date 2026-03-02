@@ -8,7 +8,7 @@
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
 
 <div class="max-w-4xl mx-auto">
-    <form action="{{ route('admin.questions.store') }}" method="POST" id="questionForm">
+    <form action="{{ route('admin.questions.store') }}" method="POST" id="questionForm" enctype="multipart/form-data">
         @csrf
         {{-- Hidden baza_id if coming from a baza page --}}
         @if(request('baza_id'))
@@ -59,6 +59,28 @@
                     <div id="preview" class="mt-4 p-4 bg-gray-50 border rounded-lg min-h-[50px] text-gray-800"></div>
                 </div>
 
+                {{-- Image upload --}}
+                <div class="bg-white p-6 rounded-xl shadow-sm border">
+                    <label class="block text-sm font-bold text-gray-700 mb-3">
+                        <i class="fas fa-image text-indigo-400 mr-1"></i> Rasm (ixtiyoriy)
+                    </label>
+                    <div id="imageDropArea"
+                         onclick="document.getElementById('imageInput').click()"
+                         class="border-2 border-dashed border-gray-200 rounded-xl p-6 text-center cursor-pointer hover:border-indigo-400 hover:bg-indigo-50/30 transition-all group">
+                        <input type="file" name="image" id="imageInput" accept="image/*" class="hidden">
+                        <div id="imagePlaceholder">
+                            <i class="fas fa-cloud-upload-alt text-3xl text-gray-300 group-hover:text-indigo-400 transition mb-2 block"></i>
+                            <p class="text-xs text-gray-400 font-semibold">Rasm yuklash uchun bosing</p>
+                            <p class="text-[10px] text-gray-300 mt-1">PNG, JPG, WEBP — maks. 5MB</p>
+                        </div>
+                        <img id="imagePreview" src="" alt="preview" class="hidden max-h-48 mx-auto rounded-lg object-contain">
+                    </div>
+                    <button type="button" id="removeImageBtn"
+                            class="hidden mt-2 text-[10px] font-bold text-red-400 hover:text-red-600 transition flex items-center gap-1 mx-auto">
+                        <i class="fas fa-times"></i> Rasmni olib tashlash
+                    </button>
+                </div>
+
                 <div class="bg-white p-6 rounded-xl shadow-sm border">
                     <label class="block text-sm font-bold text-gray-700 mb-4">Javob variantlari</label>
                     <div id="optionsContainer" class="space-y-4">
@@ -81,6 +103,7 @@
 </div>
 
 <script>
+    // ─── LaTeX Preview ───────────────────────────
     document.addEventListener('DOMContentLoaded', function() {
         const textarea = document.getElementById('questionContent');
         const preview = document.getElementById('preview');
@@ -95,6 +118,33 @@
                 }
             });
         });
+    });
+
+    // ─── Image Upload Preview ─────────────────────
+    const imageInput    = document.getElementById('imageInput');
+    const imagePreview  = document.getElementById('imagePreview');
+    const imagePlaceholder = document.getElementById('imagePlaceholder');
+    const removeImageBtn   = document.getElementById('removeImageBtn');
+
+    imageInput.addEventListener('change', function () {
+        const file = this.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = e => {
+            imagePreview.src = e.target.result;
+            imagePreview.classList.remove('hidden');
+            imagePlaceholder.classList.add('hidden');
+            removeImageBtn.classList.remove('hidden');
+        };
+        reader.readAsDataURL(file);
+    });
+
+    removeImageBtn.addEventListener('click', function () {
+        imageInput.value = '';
+        imagePreview.src = '';
+        imagePreview.classList.add('hidden');
+        imagePlaceholder.classList.remove('hidden');
+        removeImageBtn.classList.add('hidden');
     });
 </script>
 @endsection
