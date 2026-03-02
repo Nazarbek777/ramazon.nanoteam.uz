@@ -66,6 +66,15 @@
                     </div>
                 </div>
 
+                {{-- Savollar soni --}}
+                <div class="mb-4">
+                    <label class="block text-sm font-semibold text-gray-600 mb-2">Savollar soni</label>
+                    <input type="number" name="random_questions_count" value="20" min="1"
+                           class="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400"
+                           placeholder="masalan: 20">
+                    <p class="text-[10px] text-gray-400 mt-1">Bazalardan tasodifiy tanlanadigan savollar soni</p>
+                </div>
+
                 {{-- Boshlanish + Tugash --}}
                 <div class="grid grid-cols-2 gap-4 mb-4">
                     <div>
