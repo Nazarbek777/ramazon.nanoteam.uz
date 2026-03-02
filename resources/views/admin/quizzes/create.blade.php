@@ -52,8 +52,8 @@
                            placeholder="masalan: 1-chorak yakuniy testi">
                 </div>
 
-                {{-- Vaqt + Ball --}}
-                <div class="grid grid-cols-2 gap-4 mb-4">
+                {{-- Vaqt + Ball + Savollar soni --}}
+                <div class="grid grid-cols-3 gap-4 mb-4">
                     <div>
                         <label class="block text-sm font-semibold text-gray-600 mb-2">Vaqt (daqiqa)</label>
                         <input type="number" name="time_limit" value="30" min="1" required
@@ -64,15 +64,11 @@
                         <input type="number" name="pass_score" value="70" min="1" max="100" required
                                class="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400">
                     </div>
-                </div>
-
-                {{-- Savollar soni --}}
-                <div class="mb-4">
-                    <label class="block text-sm font-semibold text-gray-600 mb-2">Savollar soni</label>
-                    <input type="number" name="random_questions_count" value="40" min="1"
-                           class="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400"
-                           placeholder="masalan: 20">
-                    <p class="text-[10px] text-gray-400 mt-1">Bazalardan tasodifiy tanlanadigan savollar soni</p>
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-600 mb-2">Savollar soni</label>
+                        <input type="number" name="random_questions_count" value="40" min="1"
+                               class="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400">
+                    </div>
                 </div>
 
                 {{-- Boshlanish + Tugash --}}

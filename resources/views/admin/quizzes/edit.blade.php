@@ -47,7 +47,7 @@
                 </div>
 
                 {{-- Vaqt + Ball --}}
-                <div class="grid grid-cols-2 gap-4 mb-4">
+                <div class="grid grid-cols-3 gap-4 mb-4">
                     <div>
                         <label class="block text-sm font-semibold text-gray-600 mb-2">Vaqt (daqiqa)</label>
                         <input type="number" name="time_limit" value="{{ $quiz->time_limit }}" min="1" required
@@ -56,6 +56,11 @@
                     <div>
                         <label class="block text-sm font-semibold text-gray-600 mb-2">O'tish bali (%)</label>
                         <input type="number" name="pass_score" value="{{ $quiz->pass_score }}" min="1" max="100" required
+                               class="w-full px-5 py-3.5 bg-gray-50 border border-gray-100 rounded-2xl text-sm outline-none focus:ring-4 focus:ring-indigo-500/5 focus:border-indigo-400 transition-all">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-600 mb-2">Savollar soni</label>
+                        <input type="number" name="random_questions_count" value="{{ $quiz->random_questions_count ?? 40 }}" min="1"
                                class="w-full px-5 py-3.5 bg-gray-50 border border-gray-100 rounded-2xl text-sm outline-none focus:ring-4 focus:ring-indigo-500/5 focus:border-indigo-400 transition-all">
                     </div>
                 </div>
