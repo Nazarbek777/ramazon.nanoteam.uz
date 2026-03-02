@@ -138,6 +138,13 @@ const performSubmit = () => {
                     <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Savol</span>
                     <span class="ml-auto text-[10px] text-slate-400 font-medium">{{ answeredCount }}/{{ questions.length }} javob</span>
                 </div>
+
+                <!-- Question image (if exists) -->
+                <img v-if="currentQuestion.image_url"
+                     :src="currentQuestion.image_url"
+                     alt="savol rasmi"
+                     class="w-full max-h-52 object-contain rounded-xl bg-slate-50 mb-3 border border-slate-100">
+
                 <p class="text-sm font-bold text-slate-800 leading-relaxed">{{ currentQuestion.content }}</p>
             </div>
 

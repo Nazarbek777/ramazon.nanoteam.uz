@@ -12,6 +12,7 @@ use Inertia\Inertia;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 
 class WebAppController extends Controller
 {
@@ -404,17 +405,19 @@ class WebAppController extends Controller
                     ->get();
                 $questions = $questions->merge($picked);
             }
-            return $questions->shuffle();
+            return $this->mapQuestions($questions->shuffle());
         }
 
         // 2) Legacy: random from subject
         if ($quiz->random_questions_count > 0) {
             $subjectIds = $this->getAllChildSubjectIds($quiz->subject_id);
-            return Question::whereIn('subject_id', $subjectIds)
-                ->with(['options' => fn($q) => $q->orderBy('id')])
-                ->inRandomOrder()
-                ->limit($quiz->random_questions_count)
-                ->get();
+            return $this->mapQuestions(
+                Question::whereIn('subject_id', $subjectIds)
+                    ->with(['options' => fn($q) => $q->orderBy('id')])
+                    ->inRandomOrder()
+                    ->limit($quiz->random_questions_count)
+                    ->get()
+            );
         }
 
         // 3) Manually assigned questions via quiz_questions pivot
@@ -424,7 +427,7 @@ class WebAppController extends Controller
         if ($quiz->is_random) {
             $questions = $questions->shuffle();
         }
-        return $questions;
+        return $this->mapQuestions($questions);
     }
 
     private function getAllChildSubjectIds($subjectId)
@@ -455,7 +458,17 @@ class WebAppController extends Controller
             ->keyBy('id');
 
         // Return in saved order
-        return collect($order)->map(fn($id) => $questions->get($id))->filter()->values();
+        $ordered = collect($order)->map(fn($id) => $questions->get($id))->filter()->values();
+        return $this->mapQuestions($ordered);
+    }
+
+    /** Add image_url to every question so Vue can display it */
+    private function mapQuestions($questions)
+    {
+        return $questions->map(function ($q) {
+            $q->image_url = $q->image ? Storage::url($q->image) : null;
+            return $q;
+        })->values();
     }
 }
 
