@@ -409,7 +409,11 @@ class WebAppController extends Controller
                     ->get();
                 $questions = $questions->merge($picked);
             }
-            return $this->mapQuestions($questions->shuffle());
+            $shuffled = $questions->shuffle();
+            if ($quiz->random_questions_count > 0) {
+                $shuffled = $shuffled->take($quiz->random_questions_count);
+            }
+            return $this->mapQuestions($shuffled);
         }
 
         // 2) Legacy: random from subject
