@@ -97,7 +97,7 @@ const performSubmit = () => {
     <div class="min-h-screen bg-slate-50 flex flex-col select-none" style="font-family: 'Outfit', sans-serif;">
 
         <!-- Compact Top Bar -->
-        <div class="bg-indigo-600 px-4 pt-3 pb-4 relative">
+        <div class="bg-indigo-600 px-4 pt-3 pb-4 relative shadow-lg">
             <div class="flex items-center justify-between mb-3">
                 <button @click="router.visit('/webapp')" class="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center text-white text-sm">
                     <i class="fas fa-arrow-left"></i>
@@ -110,12 +110,30 @@ const performSubmit = () => {
                 </div>
             </div>
 
+            <!-- Question Navigation Bar -->
+            <div class="mb-3">
+                <div class="flex items-center gap-2 overflow-x-auto pb-1 no-scrollbar">
+                    <button v-for="(q, i) in questions" :key="q.id"
+                            @click="currentQuestionIndex = i"
+                            class="w-8 h-8 rounded-lg border-2 flex items-center justify-center text-[10px] font-black transition-all shrink-0"
+                            :class="[
+                                currentQuestionIndex === i 
+                                    ? 'border-white bg-white text-indigo-600 shadow-md' 
+                                    : answers[q.id] 
+                                        ? 'border-emerald-400 bg-emerald-400 text-white' 
+                                        : 'border-white/20 bg-white/10 text-white/60'
+                            ]">
+                        {{ i + 1 }}
+                    </button>
+                </div>
+            </div>
+
             <!-- Progress Bar -->
             <div class="flex items-center gap-2">
-                <div class="flex-1 h-1.5 bg-white/20 rounded-full overflow-hidden">
+                <div class="flex-1 h-1 bg-white/20 rounded-full overflow-hidden">
                     <div class="h-full bg-emerald-400 rounded-full transition-all duration-500" :style="{ width: progress + '%' }"></div>
                 </div>
-                <span class="text-white/80 text-[10px] font-bold whitespace-nowrap">{{ currentQuestionIndex + 1 }}/{{ questions.length }}</span>
+                <span class="text-white/60 text-[8px] font-bold whitespace-nowrap uppercase tracking-tighter">{{ answeredCount }}/{{ questions.length }} JAVOB</span>
             </div>
         </div>
 
@@ -146,24 +164,6 @@ const performSubmit = () => {
                      class="w-full max-h-52 object-contain rounded-xl bg-slate-50 mb-3 border border-slate-100">
 
                 <p class="text-sm font-bold text-slate-800 leading-relaxed">{{ currentQuestion.content }}</p>
-            </div>
-
-            <!-- Question Navigation Bar -->
-            <div class="mb-4 flex-shrink-0">
-                <div class="flex items-center gap-2 overflow-x-auto pb-2 custom-scroll no-scrollbar">
-                    <button v-for="(q, i) in questions" :key="q.id"
-                            @click="currentQuestionIndex = i"
-                            class="w-9 h-9 rounded-xl border-2 flex items-center justify-center text-xs font-black transition-all shrink-0"
-                            :class="[
-                                currentQuestionIndex === i 
-                                    ? 'border-indigo-500 bg-indigo-600 text-white shadow-md shadow-indigo-200' 
-                                    : answers[q.id] 
-                                        ? 'border-emerald-100 bg-emerald-500 text-white' 
-                                        : 'border-slate-100 bg-white text-slate-400'
-                            ]">
-                        {{ i + 1 }}
-                    </button>
-                </div>
             </div>
 
             <!-- Options -->

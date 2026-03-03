@@ -59,9 +59,15 @@ const props = defineProps({
                                  : 'bg-slate-50 text-slate-500'">
                         <i v-if="option.is_correct" class="fas fa-check text-emerald-500 flex-shrink-0 text-[10px]"></i>
                         <i v-else-if="option.id === answer.option_id && !answer.is_correct" class="fas fa-times text-rose-500 flex-shrink-0 text-[10px]"></i>
-                        <div v-else class="w-2 h-2 rounded-full bg-slate-300 flex-shrink-0"></div>
-                        {{ option.content }}
+                        <div v-else class="w-2 h-2 rounded-full bg-slate-200 flex-shrink-0"></div>
+                        <span>{{ option.content }}</span>
                     </div>
+                </div>
+
+                <!-- Unanswered indicator -->
+                <div v-if="!answer.option_id" class="mt-3 p-2 bg-slate-50 rounded-lg border border-slate-100 flex items-center gap-2 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                    <i class="fas fa-exclamation-circle"></i>
+                    Belgilanmagan
                 </div>
             </div>
 

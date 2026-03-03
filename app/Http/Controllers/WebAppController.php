@@ -135,23 +135,45 @@ class WebAppController extends Controller
 
     public function attemptDetail(QuizAttempt $attempt)
     {
-        $attempt->load([
-            'quiz.subject',
-            'answers.question.options',
-            'answers.option',
-        ]);
+        $attempt->load(['quiz.subject', 'answers.option']);
 
-        // Sort answers based on the original questions_order
         $order = $attempt->questions_order;
-        if (!empty($order)) {
-            $orderMap = array_flip($order);
-            $sortedAnswers = $attempt->answers->sortBy(function ($answer) use ($orderMap) {
-                return $orderMap[$answer->question_id] ?? 999;
-            })->values();
-            
-            // Override the relation with sorted collection
-            $attempt->setRelation('answers', $sortedAnswers);
+        if (empty($order)) {
+            return Inertia::render('AttemptDetail', [
+                'attempt' => $attempt,
+                'quiz' => $attempt->quiz,
+            ]);
         }
+
+        // Fetch all questions in this attempt
+        $questions = Question::whereIn('id', $order)
+            ->with(['options' => fn($q) => $q->orderBy('id')])
+            ->get()
+            ->keyBy('id');
+
+        // Map through the original order to ensure ALL questions are present
+        $allAnswers = collect($order)->map(function ($questionId) use ($attempt, $questions) {
+            $existingAnswer = $attempt->answers->where('question_id', $questionId)->first();
+            
+            if ($existingAnswer) {
+                return $existingAnswer;
+            }
+
+            // Create a "virtual" answer for unanswered questions
+            return new \App\Models\AttemptAnswer([
+                'quiz_attempt_id' => $attempt->id,
+                'question_id'     => $questionId,
+                'option_id'       => null,
+                'is_correct'      => false,
+            ]);
+        });
+
+        // Attach the question models to the virtual/existing answers
+        $allAnswers->each(function($answer) use ($questions) {
+            $answer->setRelation('question', $questions->get($answer->question_id));
+        });
+
+        $attempt->setRelation('answers', $allAnswers);
 
         return Inertia::render('AttemptDetail', [
             'attempt' => $attempt,
