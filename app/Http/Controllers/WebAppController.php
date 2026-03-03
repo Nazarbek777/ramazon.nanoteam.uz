@@ -141,6 +141,18 @@ class WebAppController extends Controller
             'answers.option',
         ]);
 
+        // Sort answers based on the original questions_order
+        $order = $attempt->questions_order;
+        if (!empty($order)) {
+            $orderMap = array_flip($order);
+            $sortedAnswers = $attempt->answers->sortBy(function ($answer) use ($orderMap) {
+                return $orderMap[$answer->question_id] ?? 999;
+            })->values();
+            
+            // Override the relation with sorted collection
+            $attempt->setRelation('answers', $sortedAnswers);
+        }
+
         return Inertia::render('AttemptDetail', [
             'attempt' => $attempt,
             'quiz' => $attempt->quiz,

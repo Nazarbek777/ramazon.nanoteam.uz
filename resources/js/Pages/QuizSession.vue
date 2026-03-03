@@ -148,6 +148,24 @@ const performSubmit = () => {
                 <p class="text-sm font-bold text-slate-800 leading-relaxed">{{ currentQuestion.content }}</p>
             </div>
 
+            <!-- Question Navigation Bar -->
+            <div class="mb-4 flex-shrink-0">
+                <div class="flex items-center gap-2 overflow-x-auto pb-2 custom-scroll no-scrollbar">
+                    <button v-for="(q, i) in questions" :key="q.id"
+                            @click="currentQuestionIndex = i"
+                            class="w-9 h-9 rounded-xl border-2 flex items-center justify-center text-xs font-black transition-all shrink-0"
+                            :class="[
+                                currentQuestionIndex === i 
+                                    ? 'border-indigo-500 bg-indigo-600 text-white shadow-md shadow-indigo-200' 
+                                    : answers[q.id] 
+                                        ? 'border-emerald-100 bg-emerald-500 text-white' 
+                                        : 'border-slate-100 bg-white text-slate-400'
+                            ]">
+                        {{ i + 1 }}
+                    </button>
+                </div>
+            </div>
+
             <!-- Options -->
             <div class="flex-1 overflow-y-auto space-y-2 mb-3 custom-scroll">
                 <div v-for="(option, index) in currentQuestion.options" :key="option.id"
