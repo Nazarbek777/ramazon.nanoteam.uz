@@ -29,11 +29,11 @@
                 </div>
 
                 <div class="mb-8">
-                    <label for="icon" class="block text-sm font-medium text-gray-700 mb-2">Icon (FontAwesome class)</label>
-                    <input type="text" name="icon" id="icon" value="{{ $subject->icon }}"
-                           class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition"
-                           placeholder="fas fa-calculator">
-                    <p class="text-gray-400 text-xs mt-2">Masalan: fas fa-square-root-alt, fas fa-flask</p>
+                    <label class="flex items-center space-x-3 cursor-pointer p-4 bg-gray-50 rounded-xl border border-gray-100 transition hover:bg-gray-100">
+                        <input type="checkbox" name="is_active" value="1" {{ $subject->is_active ? 'checked' : '' }} class="w-5 h-5 text-indigo-600 rounded focus:ring-indigo-500 border-gray-300">
+                        <span class="text-sm font-semibold text-gray-700">Botda ko'rinsin</span>
+                    </label>
+                    <p class="text-gray-400 text-[10px] mt-2 ml-8">Agar belgilansa, bu fan va uning testlari botda ko'rinadi.</p>
                 </div>
 
                 <div class="flex items-center justify-end space-x-4">

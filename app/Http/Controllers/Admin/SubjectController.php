@@ -51,9 +51,11 @@ class SubjectController extends Controller
             'name' => 'required|string|max:255',
             'icon' => 'nullable|string|max:255',
             'parent_id' => 'nullable|exists:subjects,id',
+            'is_active' => 'nullable|boolean',
         ]);
 
         $validated['slug'] = Str::slug($validated['name']);
+        $validated['is_active'] = $request->has('is_active');
 
         Subject::create($validated);
 
@@ -72,9 +74,11 @@ class SubjectController extends Controller
             'name' => 'required|string|max:255',
             'icon' => 'nullable|string|max:255',
             'parent_id' => 'nullable|exists:subjects,id',
+            'is_active' => 'nullable|boolean',
         ]);
 
         $validated['slug'] = Str::slug($validated['name']);
+        $validated['is_active'] = $request->has('is_active');
 
         $subject->update($validated);
 

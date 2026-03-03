@@ -15,7 +15,9 @@ class QuestionController extends Controller
 {
     public function index(Request $request)
     {
-        $subjects = Subject::withCount('questions')->orderBy('name')->get();
+        $subjects = Subject::withCount(['questions' => function($q) {
+            $q->whereNotNull('baza_id');
+        }])->orderBy('name')->get();
         return view('admin.questions.index', compact('subjects'));
     }
 

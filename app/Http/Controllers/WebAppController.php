@@ -19,7 +19,9 @@ class WebAppController extends Controller
     public function index()
     {
         $userId = Auth::id();
-        $subjects = Subject::with('quizzes')->get();
+        $subjects = Subject::where('is_active', true)->with(['quizzes' => function($q) {
+            $q->whereNull('access_code');
+        }])->get();
 
         // Get user's attempt statuses for all quizzes
         $quizStatuses = [];
@@ -68,7 +70,9 @@ class WebAppController extends Controller
     public function showSubject(Subject $subject)
     {
         $userId = Auth::id();
-        $subject->load('quizzes');
+        $subject->load(['quizzes' => function($q) {
+            $q->whereNull('access_code');
+        }]);
 
         $quizStatuses = [];
         if ($userId) {
