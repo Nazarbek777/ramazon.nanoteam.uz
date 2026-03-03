@@ -92,6 +92,9 @@
                     <p class="text-[10px] text-indigo-300 mt-2 ml-1 font-bold uppercase tracking-tighter">Faqat ID orqali kirish mumkin bo'ladi</p>
                 </div>
 
+                {{-- Hidden defaults --}}
+                <input type="hidden" name="is_random" value="{{ $quiz->is_random }}">
+
                 <div class="flex gap-4">
                     <a href="{{ url()->previous() }}"
                        class="flex-1 text-center py-4 rounded-2xl border border-gray-100 text-sm font-bold text-gray-400 hover:bg-gray-50 transition-all">

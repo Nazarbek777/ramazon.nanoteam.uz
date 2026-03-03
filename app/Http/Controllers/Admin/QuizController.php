@@ -63,11 +63,13 @@ class QuizController extends Controller
             'access_code' => 'nullable|string|max:50|unique:quizzes,access_code,' . $quiz->id,
             'time_limit' => 'required|integer|min:1',
             'pass_score' => 'required|integer|min:1|max:100',
-            'is_random' => 'required|boolean',
+            'is_random' => 'nullable|boolean',
             'random_questions_count' => 'nullable|integer|min:1',
             'starts_at' => 'nullable|date',
             'ends_at' => 'nullable|date|after_or_equal:starts_at',
         ]);
+
+        $validated['is_random'] = $request->input('is_random', 1);
 
         $quiz->update($validated);
 
@@ -116,11 +118,7 @@ class QuizController extends Controller
             'count'   => 'required|integer|min:1',
         ]);
 
-        $available = \App\Models\Question::where('baza_id', $request->baza_id)->count();
-        if ($request->count > $available && $available > 0) {
-            return back()->with('error', "Bu bazada faqat {$available} ta savol bor.");
-        }
-
+        // Allow any count, even if more than available (will pick all available)
         QuizSource::updateOrCreate(
             ['quiz_id' => $quiz->id, 'baza_id' => $request->baza_id],
             ['count'   => $request->count]

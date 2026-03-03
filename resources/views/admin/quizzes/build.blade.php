@@ -33,11 +33,43 @@
             <p class="font-bold text-gray-800 truncate">{{ $quiz->title }}</p>
             <p class="text-xs text-gray-400 mt-0.5">{{ $quiz->subject->name }} · {{ $quiz->time_limit }} daqiqa</p>
         </div>
-        @if($quiz->sources->isNotEmpty())
         <div class="text-right shrink-0">
-            <p class="text-lg font-black text-indigo-700">{{ $quiz->sources->sum('count') }}</p>
-            <p class="text-[10px] text-indigo-400 font-bold uppercase">ta savol</p>
+            <p class="text-[10px] text-gray-400 font-bold uppercase mb-1">Maqsad</p>
+            <p class="text-lg font-black text-gray-800 leading-none">{{ $quiz->random_questions_count ?? 0 }}</p>
         </div>
+    </div>
+
+    {{-- Sources total status --}}
+    @php 
+        $totalDefined = $quiz->sources->sum('count'); 
+        $isInsufficient = $totalDefined < ($quiz->random_questions_count ?? 0);
+    @endphp
+
+    <div class="mb-6 p-5 rounded-2xl border {{ $isInsufficient ? 'bg-amber-50 border-amber-200' : 'bg-green-50 border-green-200' }} transition-all">
+        <div class="flex items-center justify-between mb-3">
+            <h4 class="text-sm font-bold {{ $isInsufficient ? 'text-amber-800' : 'text-green-800' }}">
+                Tanlangan savollar yig'indisi:
+            </h4>
+            <span class="text-lg font-black {{ $isInsufficient ? 'text-amber-600' : 'text-green-600' }}">
+                {{ $totalDefined }}
+            </span>
+        </div>
+        
+        <div class="w-full bg-gray-200/50 rounded-full h-2 mb-2">
+            <div class="h-2 rounded-full {{ $isInsufficient ? 'bg-amber-400' : 'bg-green-500' }} transition-all" 
+                 style="width: {{ min(100, ($totalDefined / ($quiz->random_questions_count ?: 1)) * 100) }}%"></div>
+        </div>
+
+        @if($isInsufficient)
+            <p class="text-[11px] text-amber-600 font-medium flex items-center gap-1">
+                <i class="fas fa-exclamation-triangle"></i> 
+                Hali {{ ($quiz->random_questions_count ?? 0) - $totalDefined }} ta savol qo'shishingiz kerak
+            </p>
+        @else
+            <p class="text-[11px] text-green-600 font-medium flex items-center gap-1">
+                <i class="fas fa-check-circle"></i> 
+                Savollar soni yetarli
+            </p>
         @endif
     </div>
 
@@ -71,7 +103,7 @@
         @php $source = $quiz->sources->where('baza_id', $baza->id)->first(); @endphp
 
         <div class="bg-white rounded-2xl border {{ $source ? 'border-indigo-200' : 'border-gray-100' }} shadow-sm px-4 py-3.5 flex items-center gap-3
-                    {{ $baza->questions_count == 0 ? 'opacity-50' : '' }}">
+                    {{ $baza->questions_count == 0 && !$source ? 'opacity-50' : '' }}">
 
             {{-- Status dot --}}
             <div class="w-2 h-2 rounded-full shrink-0 {{ $source ? 'bg-indigo-500' : 'bg-gray-200' }}"></div>
@@ -79,7 +111,7 @@
             {{-- Name + count --}}
             <div class="flex-1 min-w-0">
                 <p class="text-sm font-bold text-gray-800 truncate">{{ $baza->name }}</p>
-                <p class="text-xs text-gray-400">{{ $baza->questions_count }} ta savol</p>
+                <p class="text-xs text-gray-400">{{ $baza->questions_count }} ta savol bor</p>
             </div>
 
             {{-- Action --}}
@@ -95,32 +127,40 @@
                     </button>
                 </form>
             </div>
-            @elseif($baza->questions_count > 0)
+            @else
             <form method="POST" action="{{ route('admin.quizzes.source.store', $quiz) }}" class="flex items-center gap-2 shrink-0">
                 @csrf
                 <input type="hidden" name="baza_id" value="{{ $baza->id }}">
                 <input type="number" name="count"
-                       value="{{ min(10, $baza->questions_count) }}"
-                       min="1" max="{{ $baza->questions_count }}" required
+                       value="{{ min(20, max(1, $quiz->random_questions_count - $totalDefined)) }}"
+                       min="1" required
                        class="w-16 text-center px-2 py-1.5 border border-gray-200 rounded-lg text-sm outline-none focus:border-indigo-400">
                 <button type="submit"
                         class="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-lg transition whitespace-nowrap">
                     + Qo'shish
                 </button>
             </form>
-            @else
-            <span class="text-xs text-gray-300 font-semibold shrink-0">Savol yo'q</span>
             @endif
         </div>
         @endforeach
     </div>
 
     {{-- Done button --}}
-    <a href="{{ route('admin.quizzes.subject', $quiz->subject) }}"
-       class="w-full flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3.5 rounded-2xl transition shadow text-sm">
-        <i class="fas fa-check"></i>
-        Tayyor — testni saqlash
-    </a>
+    <div class="space-y-3">
+        @if($isInsufficient)
+            <div class="p-3 rounded-xl bg-amber-50 border border-amber-100 text-[11px] text-amber-700 text-center">
+                <i class="fas fa-info-circle mr-1"></i>
+                Testni boshlash uchun jami {{ $quiz->random_questions_count }} ta savol belgilashingiz kerak.
+            </div>
+        @endif
+        
+        <a href="{{ route('admin.quizzes.subject', $quiz->subject) }}"
+           class="w-full flex items-center justify-center gap-2 font-bold py-3.5 rounded-2xl transition shadow text-sm
+                  {{ $isInsufficient ? 'bg-gray-100 text-gray-400 cursor-not-allowed pointer-events-none' : 'bg-indigo-600 hover:bg-indigo-700 text-white' }}">
+            <i class="fas fa-check"></i>
+            Tayyor — testni saqlash
+        </a>
+    </div>
     @endif
 </div>
 @endsection
