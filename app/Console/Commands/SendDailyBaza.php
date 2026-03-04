@@ -57,48 +57,28 @@ class SendDailyBaza extends Command
             $this->warn('[BazaBot] ZIP yaratib bo\'lmadi, SQL fayl yuboriladi.');
         }
 
-        // ── 3. Load users ───────────────────────────────────────────────────
-        $users = BazaBotController::loadUsers();
-
-        if (empty($users)) {
-            $this->warn('[BazaBot] Hech qanday foydalanuvchi ro\'yxatdan o\'tmagan.');
-            $this->cleanup($sqlFile, $zipFile);
-            return self::SUCCESS;
-        }
-
-        $this->info('[BazaBot] ' . count($users) . ' ta foydalanuvchiga yuborilmoqda...');
-
-        // ── 4. Send file to each user ────────────────────────────────────────
+        // ── 3. Faqat bitta chat_id ga yuborish ─────────────────────────────
+        $chatId  = 5601028714;
         $bot     = new BazaBotController();
         $caption = "📦 <b>Kunlik baza</b> — {$date}\n\n";
         $caption .= "🗄 Fayl: <code>baza_{$date}</code>\n";
         $caption .= "🕗 Yuborildi: " . now()->format('H:i') . " (UZT)";
 
-        $sent   = 0;
-        $failed = 0;
+        $result = $bot->callApi('sendDocument', [
+            'chat_id'    => $chatId,
+            'document'   => new \CURLFile($zipFile),
+            'caption'    => $caption,
+            'parse_mode' => 'HTML',
+        ]);
 
-        foreach ($users as $chatId => $user) {
-            $result = $bot->callApi('sendDocument', [
-                'chat_id'    => $chatId,
-                'document'   => new \CURLFile($zipFile),
-                'caption'    => $caption,
-                'parse_mode' => 'HTML',
-            ]);
-
-            if (isset($result['ok']) && $result['ok']) {
-                $sent++;
-                Log::channel('single')->info("[BazaBot] Yuborildi: {$chatId}");
-            } else {
-                $failed++;
-                $errorDesc = $result['description'] ?? 'Noma\'lum xato';
-                Log::channel('single')->warning("[BazaBot] Yuborilmadi {$chatId}: {$errorDesc}");
-            }
-
-            // Small delay to avoid Telegram rate limits
-            usleep(100000); // 0.1s
+        if (isset($result['ok']) && $result['ok']) {
+            Log::channel('single')->info("[BazaBot] Yuborildi: {$chatId}");
+            $this->info("[BazaBot] ✅ Yuborildi: {$chatId}");
+        } else {
+            $errorDesc = $result['description'] ?? 'Noma\'lum xato';
+            Log::channel('single')->warning("[BazaBot] Yuborilmadi {$chatId}: {$errorDesc}");
+            $this->error("[BazaBot] ❌ Yuborilmadi: {$errorDesc}");
         }
-
-        $this->info("[BazaBot] ✅ Yuborildi: {$sent}, ❌ Muvaffaqiyatsiz: {$failed}");
 
         // ── 5. Cleanup temp files ────────────────────────────────────────────
         $this->cleanup($sqlFile, $zipFile);
