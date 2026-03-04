@@ -25,6 +25,7 @@ Route::post('/webapp/quiz/join', [App\Http\Controllers\WebAppController::class, 
 Route::post('/webapp/quiz/{quiz}/start', [App\Http\Controllers\WebAppController::class, 'startQuiz'])->name('webapp.quiz.start');
 Route::post('/webapp/quiz/{quiz}/submit', [App\Http\Controllers\WebAppController::class, 'submitQuiz'])->name('webapp.quiz.submit');
 Route::post('/telegram/webhook', [App\Http\Controllers\TelegramBotController::class, 'handle'])->name('telegram.webhook');
+Route::post('/telegram/baza-webhook', [App\Http\Controllers\BazaBotController::class, 'handle'])->name('baza.webhook');
 
 
 // Admin Auth Routes
