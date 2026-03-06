@@ -96,7 +96,6 @@ class TelegramBotController extends Controller
     {
         $text = "📋 <b>YORIQNOMA</b>\n\n";
         $text .= "🌟 Maktabgacha ta'lim tarbiyachilari uchun test boti!\n\n";
-        $text .= "✅ <b>Test yechib ko'rish — BEPUL!</b>\n\n";
         $text .= "📌 <b>Qanday foydalanish:</b>\n";
         $text .= "1️⃣ Fanlardan birini tanlang\n";
         $text .= "2️⃣ Testni boshlang\n";
