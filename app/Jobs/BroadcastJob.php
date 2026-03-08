@@ -27,6 +27,12 @@ class BroadcastJob implements ShouldQueue
     public function handle()
     {
         try {
+            \Illuminate\Support\Facades\Log::info("BroadcastJob handling", [
+                'user' => $this->telegramId,
+                'is_copy' => !empty($this->data['message_link']),
+                'data' => $this->data
+            ]);
+
             if (!empty($this->data['message_link'])) {
                 $result = $this->copyTelegramMessage();
             } else {
@@ -36,6 +42,14 @@ class BroadcastJob implements ShouldQueue
             $decoded = json_decode($result, true);
             if (!($decoded['ok'] ?? false)) {
                 BotLogger::warning("BroadcastJob failed for {$this->telegramId}: " . ($decoded['description'] ?? 'unknown'));
+                \Illuminate\Support\Facades\Log::warning("Telegram API Error details", [
+                    'user' => $this->telegramId,
+                    'response' => $decoded,
+                    'params' => [
+                        'from_chat_id' => $this->data['from_chat_id'] ?? null,
+                        'message_id' => $this->data['message_id'] ?? null
+                    ]
+                ]);
             }
         } catch (\Exception $e) {
             BotLogger::error("BroadcastJob exception for {$this->telegramId}: " . $e->getMessage());

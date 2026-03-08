@@ -47,31 +47,39 @@ class BroadcastController extends Controller
             'message_link' => $request->message_link,
         ];
 
-        Log::info("Broadcast initiation", ['is_copy' => $isCopy, 'link' => $request->message_link]);
+        Log::info("Broadcast initiation debug", [
+            'is_copy' => $isCopy,
+            'image_path' => $imagePath,
+            'link' => $request->message_link,
+            'message_length' => strlen($request->message ?? '')
+        ]);
 
         if ($isCopy) {
             $link = $request->message_link;
+            Log::info("Attempting to parse Telegram link", ['link' => $link]);
             // More robust regex for Telegram links
             if (preg_match('/t\.me\/(?:c\/)?([^\/]+)\/(\d+)/', $link, $matches)) {
-                $fromChatId = $matches[1];
+                $fromChatIdRaw = $matches[1];
                 $messageId = $matches[2];
 
-                if (is_numeric($fromChatId)) {
+                if (is_numeric($fromChatIdRaw)) {
                     // Numerical ID for private channels must start with -100
-                    if (!str_starts_with($fromChatId, '-100')) {
-                        $fromChatId = '-100' . $fromChatId;
-                    }
+                    $fromChatId = (str_starts_with($fromChatIdRaw, '-100')) ? $fromChatIdRaw : ('-100' . $fromChatIdRaw);
                 } else {
-                    $fromChatId = '@' . $fromChatId;
+                    $fromChatId = '@' . $fromChatIdRaw;
                 }
 
                 $broadcastData['from_chat_id'] = $fromChatId;
                 $broadcastData['message_id'] = $messageId;
 
-                Log::info("Parsed Telegram link", ['from_chat_id' => $fromChatId, 'message_id' => $messageId]);
+                Log::info("Successfully parsed Telegram link", [
+                    'raw_chat' => $fromChatIdRaw,
+                    'final_chat' => $fromChatId,
+                    'message_id' => $messageId
+                ]);
             } else {
-                Log::error("Failed to parse Telegram link", ['link' => $link]);
-                return redirect()->back()->with('error', 'Telegram xabar linki noto\'g\'ri formatda.');
+                Log::error("Regex failed for Telegram link", ['link' => $link]);
+                return redirect()->back()->with('error', 'Telegram xabar linki noto\'g\'ri formatda (Regex failed).');
             }
         }
 
