@@ -57,8 +57,12 @@ class BroadcastController extends Controller
         if ($isCopy) {
             $link = $request->message_link;
             Log::info("Attempting to parse Telegram link", ['link' => $link]);
-            // More robust regex for Telegram links
-            if (preg_match('/t\.me\/(?:c\/)?([^\/]+)\/(\d+)/', $link, $matches)) {
+
+            // Clean link (remove query params)
+            $cleanLink = preg_replace('/\?.*/', '', $link);
+
+            // Regex for: t.me/username/123 or t.me/c/123/456
+            if (preg_match('/t\.me\/(?:c\/)?([^\/]+)\/(\d+)/', $cleanLink, $matches)) {
                 $fromChatIdRaw = $matches[1];
                 $messageId = $matches[2];
 
@@ -66,7 +70,8 @@ class BroadcastController extends Controller
                     // Numerical ID for private channels must start with -100
                     $fromChatId = (str_starts_with($fromChatIdRaw, '-100')) ? $fromChatIdRaw : ('-100' . $fromChatIdRaw);
                 } else {
-                    $fromChatId = '@' . $fromChatIdRaw;
+                    // Public username (ensure it starts with @)
+                    $fromChatId = str_starts_with($fromChatIdRaw, '@') ? $fromChatIdRaw : ('@' . $fromChatIdRaw);
                 }
 
                 $broadcastData['from_chat_id'] = $fromChatId;

@@ -41,7 +41,19 @@ class BroadcastJob implements ShouldQueue
 
             $decoded = json_decode($result, true);
             if (!($decoded['ok'] ?? false)) {
-                BotLogger::warning("BroadcastJob failed for {$this->telegramId}: " . ($decoded['description'] ?? 'unknown'));
+                $description = $decoded['description'] ?? 'unknown';
+
+                if (str_contains($description, 'message to copy not found')) {
+                    $warningMsg = "BroadcastJob error for {$this->telegramId}: Bot lacks permission to access source channel/message. Please ensure the bot is an ADMINISTRATOR in the source channel.";
+                    BotLogger::warning($warningMsg);
+                    \Illuminate\Support\Facades\Log::warning($warningMsg, [
+                        'from_chat_id' => $this->data['from_chat_id'] ?? null,
+                        'message_id' => $this->data['message_id'] ?? null
+                    ]);
+                } else {
+                    BotLogger::warning("BroadcastJob failed for {$this->telegramId}: " . $description);
+                }
+
                 \Illuminate\Support\Facades\Log::warning("Telegram API Error details", [
                     'user' => $this->telegramId,
                     'response' => $decoded,
