@@ -5,8 +5,10 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Helpers\BotLogger;
 use App\Models\User;
+use App\Jobs\BroadcastJob;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Log;
 
 class BroadcastController extends Controller
 {
@@ -35,67 +37,49 @@ class BroadcastController extends Controller
         }
 
         $users = User::whereNotNull('telegram_id')->get();
-        $count = 0;
-        $failed = 0;
 
         $isCopy = !empty($request->message_link);
-        $fromChatId = null;
-        $messageId = null;
+        $broadcastData = [
+            'message' => $request->message,
+            'button_text' => $request->button_text,
+            'button_url' => $request->button_url,
+            'image_path' => $imagePath,
+            'message_link' => $request->message_link,
+        ];
+
+        Log::info("Broadcast initiation", ['is_copy' => $isCopy, 'link' => $request->message_link]);
 
         if ($isCopy) {
-            // Parse Telegram link: https://t.me/channel_name/123 or https://t.me/c/12345/678
             $link = $request->message_link;
+            // More robust regex for Telegram links
             if (preg_match('/t\.me\/(?:c\/)?([^\/]+)\/(\d+)/', $link, $matches)) {
                 $fromChatId = $matches[1];
                 $messageId = $matches[2];
-                // If it's a private channel (numerical ID), Telegram API expects -100 prefix
-                if (is_numeric($fromChatId) && !str_starts_with($fromChatId, '-100')) {
-                    $fromChatId = '-100' . $fromChatId;
-                } else if (!is_numeric($fromChatId)) {
+
+                if (is_numeric($fromChatId)) {
+                    // Numerical ID for private channels must start with -100
+                    if (!str_starts_with($fromChatId, '-100')) {
+                        $fromChatId = '-100' . $fromChatId;
+                    }
+                } else {
                     $fromChatId = '@' . $fromChatId;
                 }
+
+                $broadcastData['from_chat_id'] = $fromChatId;
+                $broadcastData['message_id'] = $messageId;
+
+                Log::info("Parsed Telegram link", ['from_chat_id' => $fromChatId, 'message_id' => $messageId]);
             } else {
-                return redirect()->back()->with('error', 'Telegram xabar linki noto\'g\'ri.');
+                Log::error("Failed to parse Telegram link", ['link' => $link]);
+                return redirect()->back()->with('error', 'Telegram xabar linki noto\'g\'ri formatda.');
             }
         }
 
         foreach ($users as $user) {
-            try {
-                if ($isCopy) {
-                    $result = $this->copyTelegramMessage($user->telegram_id, $fromChatId, $messageId);
-                } else {
-                    $result = $this->sendTelegramMessage(
-                        $user->telegram_id,
-                        $request->message,
-                        $imagePath ? Storage::disk('public')->path($imagePath) : null,
-                        $request->button_text,
-                        $request->button_url
-                    );
-                }
-
-                $decoded = json_decode($result, true);
-                BotLogger::info("Telegram response for {$user->telegram_id}: " . $result);
-
-                if ($decoded['ok'] ?? false) {
-                    $count++;
-                } else {
-                    $failed++;
-                    BotLogger::warning("Broadcast failed for {$user->telegram_id}: " . ($decoded['description'] ?? 'unknown'));
-                }
-            } catch (\Exception $e) {
-                $failed++;
-                BotLogger::error("Broadcast exception for {$user->telegram_id}: " . $e->getMessage());
-            }
+            BroadcastJob::dispatch($user->telegram_id, $broadcastData);
         }
 
-        // Clean up stored image
-        if ($imagePath) {
-            Storage::disk('public')->delete($imagePath);
-        }
-
-        $msg = "✅ Yuborildi: {$count} ta";
-        if ($failed > 0)
-            $msg .= " | ❌ Xato: {$failed} ta";
+        $msg = "✅ Broadcast navbatga qo'shildi ({$users->count()} ta foydalanuvchi).";
         return redirect()->back()->with('success', $msg);
     }
 
