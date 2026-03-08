@@ -21,10 +21,11 @@ class BroadcastController extends Controller
     public function send(Request $request)
     {
         $request->validate([
-            'message'     => 'required|string',
-            'image'       => 'nullable|image|max:5120',
+            'message' => 'required_without:message_link|string|nullable',
+            'message_link' => 'required_without:message|string|nullable',
+            'image' => 'nullable|image|max:5120',
             'button_text' => 'nullable|string|max:50',
-            'button_url'  => 'nullable|url',
+            'button_url' => 'nullable|url',
         ]);
 
         // Store image if provided
@@ -37,17 +38,40 @@ class BroadcastController extends Controller
         $count = 0;
         $failed = 0;
 
-        BotLogger::info("Broadcast start: {$users->count()} users, message length: " . strlen($request->message));
+        $isCopy = !empty($request->message_link);
+        $fromChatId = null;
+        $messageId = null;
+
+        if ($isCopy) {
+            // Parse Telegram link: https://t.me/channel_name/123 or https://t.me/c/12345/678
+            $link = $request->message_link;
+            if (preg_match('/t\.me\/(?:c\/)?([^\/]+)\/(\d+)/', $link, $matches)) {
+                $fromChatId = $matches[1];
+                $messageId = $matches[2];
+                // If it's a private channel (numerical ID), Telegram API expects -100 prefix
+                if (is_numeric($fromChatId) && !str_starts_with($fromChatId, '-100')) {
+                    $fromChatId = '-100' . $fromChatId;
+                } else if (!is_numeric($fromChatId)) {
+                    $fromChatId = '@' . $fromChatId;
+                }
+            } else {
+                return redirect()->back()->with('error', 'Telegram xabar linki noto\'g\'ri.');
+            }
+        }
 
         foreach ($users as $user) {
             try {
-                $result = $this->sendTelegramMessage(
-                    $user->telegram_id,
-                    $request->message,
-                    $imagePath ? Storage::disk('public')->path($imagePath) : null,
-                    $request->button_text,
-                    $request->button_url
-                );
+                if ($isCopy) {
+                    $result = $this->copyTelegramMessage($user->telegram_id, $fromChatId, $messageId);
+                } else {
+                    $result = $this->sendTelegramMessage(
+                        $user->telegram_id,
+                        $request->message,
+                        $imagePath ? Storage::disk('public')->path($imagePath) : null,
+                        $request->button_text,
+                        $request->button_url
+                    );
+                }
 
                 $decoded = json_decode($result, true);
                 BotLogger::info("Telegram response for {$user->telegram_id}: " . $result);
@@ -70,22 +94,36 @@ class BroadcastController extends Controller
         }
 
         $msg = "✅ Yuborildi: {$count} ta";
-        if ($failed > 0) $msg .= " | ❌ Xato: {$failed} ta";
+        if ($failed > 0)
+            $msg .= " | ❌ Xato: {$failed} ta";
         return redirect()->back()->with('success', $msg);
+    }
+
+    private function copyTelegramMessage(string $chatId, string $fromChatId, string $messageId): string
+    {
+        $url = "https://api.telegram.org/bot{$this->token}/copyMessage";
+
+        $params = [
+            'chat_id' => $chatId,
+            'from_chat_id' => $fromChatId,
+            'message_id' => $messageId,
+        ];
+
+        return $this->executeCurl($url, $params);
     }
 
     private function sendTelegramMessage(string $chatId, string $text, ?string $imagePath = null, ?string $buttonText = null, ?string $buttonUrl = null): string
     {
         $method = $imagePath ? 'sendPhoto' : 'sendMessage';
-        $url    = "https://api.telegram.org/bot{$this->token}/{$method}";
+        $url = "https://api.telegram.org/bot{$this->token}/{$method}";
 
         $params = [
-            'chat_id'    => $chatId,
+            'chat_id' => $chatId,
             'parse_mode' => 'HTML',
         ];
 
         if ($imagePath) {
-            $params['photo']   = new \CURLFile($imagePath);
+            $params['photo'] = new \CURLFile($imagePath);
             $params['caption'] = $text;
         } else {
             $params['text'] = $text;
@@ -97,10 +135,15 @@ class BroadcastController extends Controller
             ]);
         }
 
+        return $this->executeCurl($url, $params);
+    }
+
+    private function executeCurl(string $url, array $params): string
+    {
         $ch = curl_init();
         curl_setopt($ch, CURLOPT_URL, $url);
         curl_setopt($ch, CURLOPT_POST, 1);
-        curl_setopt($ch, CURLOPT_POSTFIELDS, $params); // array = multipart auto
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $params);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
         curl_setopt($ch, CURLOPT_TIMEOUT, 15);
