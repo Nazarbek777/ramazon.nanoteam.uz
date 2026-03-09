@@ -50,7 +50,10 @@ do
     if is_youtube "$VIDEO_SOURCE"; then
         # YouTube direct URL fetching
         echo "yt-dlp orqali URL olinmoqda..." >> "$PROJECT_ROOT/storage/logs/stream.log"
-        DIRECT_URL=$($YT_DLP -g -f "best[height<=720]" "$VIDEO_SOURCE" 2>> "$PROJECT_ROOT/storage/logs/stream.log")
+        # Bypassing bot detection with player-client arguments
+        DIRECT_URL=$($YT_DLP -g --no-check-certificate --prefer-free-formats \
+            --extractor-args "youtube:player-client=web_creator,web_embedded,web,mweb" \
+            -f "best[height<=720]" "$VIDEO_SOURCE" 2>> "$PROJECT_ROOT/storage/logs/stream.log")
         if [ $? -ne 0 ] || [ -z "$DIRECT_URL" ]; then
             echo "Xato: Yutub URLni olib bo'lmadi. 10 soniyadan keyin qayta urunish..."
             echo "$(date): yt-dlp xatoga uchradi yoki URL bo'sh qoldi." >> "$PROJECT_ROOT/storage/logs/stream.log"
