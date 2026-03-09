@@ -50,9 +50,10 @@ do
     if is_youtube "$VIDEO_SOURCE"; then
         # YouTube direct URL fetching
         echo "yt-dlp orqali URL olinmoqda..." >> "$PROJECT_ROOT/storage/logs/stream.log"
-        # Bypassing bot detection with player-client arguments
+        # Aggressive bypass: iOS/Android clients + Mobile User-Agent + JS Runtime
         DIRECT_URL=$($YT_DLP -g --no-check-certificate --prefer-free-formats \
-            --extractor-args "youtube:player-client=web_creator,web_embedded,web,mweb" \
+            --user-agent "Mozilla/5.0 (iPhone; CPU iPhone OS 16_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.5 Mobile/15E148 Safari/604.1" \
+            --extractor-args "youtube:player-client=ios,android,web_creator,web_embedded,web,mweb" \
             -f "best[height<=720]" "$VIDEO_SOURCE" 2>> "$PROJECT_ROOT/storage/logs/stream.log")
         if [ $? -ne 0 ] || [ -z "$DIRECT_URL" ]; then
             echo "Xato: Yutub URLni olib bo'lmadi. 10 soniyadan keyin qayta urunish..."
