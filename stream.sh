@@ -10,7 +10,7 @@ PROJECT_ROOT="$SCRIPT_DIR"
 
 # Binaries - Try to find them in PATH first, fallback to common locations
 FFMPEG=$(which ffmpeg || echo "/usr/bin/ffmpeg")
-YT_DLP=$(which yt-dlp || echo "$HOME/.local/bin/yt-dlp")
+YT_DLP=$(which yt-dlp || which /usr/local/bin/yt-dlp || which /usr/bin/yt-dlp || echo "$HOME/.local/bin/yt-dlp")
 
 # Arguments
 VIDEO_SOURCE="$1"
@@ -49,9 +49,11 @@ do
 
     if is_youtube "$VIDEO_SOURCE"; then
         # YouTube direct URL fetching
-        DIRECT_URL=$($YT_DLP -g -f "best[height<=720]" "$VIDEO_SOURCE" 2>/dev/null)
+        echo "yt-dlp orqali URL olinmoqda..." >> "$PROJECT_ROOT/storage/logs/stream.log"
+        DIRECT_URL=$($YT_DLP -g -f "best[height<=720]" "$VIDEO_SOURCE" 2>> "$PROJECT_ROOT/storage/logs/stream.log")
         if [ $? -ne 0 ] || [ -z "$DIRECT_URL" ]; then
             echo "Xato: Yutub URLni olib bo'lmadi. 10 soniyadan keyin qayta urunish..."
+            echo "$(date): yt-dlp xatoga uchradi yoki URL bo'sh qoldi." >> "$PROJECT_ROOT/storage/logs/stream.log"
             sleep 10
             continue
         fi
