@@ -74,11 +74,11 @@ do
             JS_RUNTIME_ARG="--js-runtimes node:$NODE"
         fi
 
-        # Note: ios/android clients often don't support cookies well in yt-dlp
-        # Using a more compatible set of clients and avoiding problematic flags
+        # Aggressive bypass: Prioritizing TV and Web clients which work better with cookies
+        # TV client (ios/android tv) often bypasses the 152 "bot" error
         DIRECT_URL=$($YT_DLP -g $COOKIES_ARG --no-cache-dir --no-check-certificate --prefer-free-formats $JS_RUNTIME_ARG \
             --user-agent "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36" \
-            --extractor-args "youtube:player-client=web,mweb,tv,web_creator" \
+            --extractor-args "youtube:player-client=tv,web,mweb,web_creator" \
             -f "best[height<=720]" "$VIDEO_SOURCE" 2>> "$PROJECT_ROOT/storage/logs/stream.log")
         if [ $? -ne 0 ] || [ -z "$DIRECT_URL" ]; then
             echo "Xato: Yutub URLni olib bo'lmadi. 10 soniyadan keyin qayta urunish..."
