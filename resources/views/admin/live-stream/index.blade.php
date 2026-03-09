@@ -37,16 +37,34 @@
 
         <div class="bg-white rounded-[32px] shadow-xl shadow-indigo-100/20 border border-white overflow-hidden mb-8">
             <div class="p-8">
-                <form id="settings-form" action="{{ route('admin.live-stream.update') }}" method="POST">
+                <form id="settings-form" action="{{ route('admin.live-stream.update') }}" method="POST" enctype="multipart/form-data">
                     @csrf
                     <div class="mb-6">
-                        <label for="video_url" class="block text-sm font-bold text-gray-700 mb-2 ml-1">YouTube Video
-                            Linki</label>
+                        <label for="video_url" class="block text-sm font-bold text-gray-700 mb-2 ml-1">Video Manbasi (URL yoki Serverdagi Yo'l)</label>
                         <input type="text" name="video_url" id="video_url" value="{{ $stream->video_url ?? '' }}"
                             class="w-full px-5 py-4 bg-gray-50 border border-gray-100 rounded-2xl focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none transition-all text-gray-700 placeholder:text-gray-300"
-                            placeholder="Masalan: https://www.youtube.com/watch?v=..." required>
-                        <p class="text-[11px] text-gray-400 mt-2 ml-1 italic">Tizim videoni avtomatik loop rejimida efirga
-                            uzatadi.</p>
+                            placeholder="Masalan: https://youtube.com/... yoki /home/.../video.mp4">
+                        <p class="text-[11px] text-gray-400 mt-2 ml-1 italic">YouTube linki yoki serverdagi videoning mutloq yo'li.</p>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                        <div>
+                            <label for="video_file" class="block text-sm font-bold text-gray-700 mb-2 ml-1">Yangi video yuklash</label>
+                            <input type="file" name="video_file" id="video_file"
+                                class="w-full px-5 py-3 bg-gray-50 border border-gray-100 rounded-2xl focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none transition-all text-gray-700 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100">
+                        </div>
+                        <div>
+                            <label for="local_video_select" class="block text-sm font-bold text-gray-700 mb-2 ml-1">Serverdagi videolardan tanlash</label>
+                            <select id="local_video_select" onchange="document.getElementById('video_url').value = this.value"
+                                class="w-full px-5 py-4 bg-gray-50 border border-gray-100 rounded-2xl focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none transition-all text-gray-700">
+                                <option value="">-- Tanlang --</option>
+                                @foreach($localVideos as $video)
+                                    <option value="{{ $video['path'] }}" {{ ($stream && $stream->video_url == $video['path']) ? 'selected' : '' }}>
+                                        {{ $video['name'] }} ({{ $video['size'] }})
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
                     </div>
 
                     <div class="mb-6">

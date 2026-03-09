@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Process;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\File;
 
 class LiveStreamController extends Controller
 {
@@ -26,19 +28,49 @@ class LiveStreamController extends Controller
             }
         }
 
-        return view('admin.live-stream.index', compact('stream'));
+        // Scan for local video files
+        $videoPath = storage_path('app/public/videos');
+        if (!File::exists($videoPath)) {
+            File::makeDirectory($videoPath, 0755, true);
+        }
+
+        $localVideos = [];
+        $files = File::files($videoPath);
+        foreach ($files as $file) {
+            $extension = strtolower($file->getExtension());
+            if (in_array($extension, ['mp4', 'mkv', 'avi', 'mov'])) {
+                $localVideos[] = [
+                    'name' => $file->getFilename(),
+                    'path' => $file->getRealPath(),
+                    'size' => round($file->getSize() / (1024 * 1024), 2) . ' MB'
+                ];
+            }
+        }
+
+        return view('admin.live-stream.index', compact('stream', 'localVideos'));
     }
 
     public function update(Request $request)
     {
         $request->validate([
-            'video_url' => 'required|url',
+            'video_url' => 'nullable|string',
+            'video_file' => 'nullable|file|mimes:mp4,mkv,avi,mov|max:102400', // 100MB max for UI upload
             'stream_url' => 'required|string',
             'stream_key' => 'required|string',
         ]);
 
+        $videoUrl = $request->video_url;
+
+        // Handle file upload
+        if ($request->hasFile('video_file')) {
+            $file = $request->file('video_file');
+            $fileName = time() . '_' . $file->getClientOriginalName();
+            $file->move(storage_path('app/public/videos'), $fileName);
+            $videoUrl = storage_path('app/public/videos/' . $fileName);
+        }
+
         $data = [
-            'video_url' => $request->video_url,
+            'video_url' => $videoUrl,
             'stream_url' => $request->stream_url,
             'stream_key' => $request->stream_key,
             'updated_at' => now(),
