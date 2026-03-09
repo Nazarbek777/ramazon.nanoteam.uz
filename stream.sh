@@ -50,8 +50,21 @@ do
     if is_youtube "$VIDEO_SOURCE"; then
         # YouTube direct URL fetching
         echo "yt-dlp orqali URL olinmoqda..." >> "$PROJECT_ROOT/storage/logs/stream.log"
-        # Aggressive bypass: iOS/Android clients + Mobile User-Agent + JS Runtime
-        DIRECT_URL=$($YT_DLP -g --no-check-certificate --prefer-free-formats \
+        
+        # Optional cookies (search in multiple locations)
+        COOKIES_ARG=""
+        if [ -f "$PROJECT_ROOT/youtube_cookies.txt" ]; then
+            COOKIES_ARG="--cookies $PROJECT_ROOT/youtube_cookies.txt"
+        elif [ -f "$PROJECT_ROOT/public/www.youtube.com_cookies.txt" ]; then
+            COOKIES_ARG="--cookies $PROJECT_ROOT/public/www.youtube.com_cookies.txt"
+        fi
+
+        if [ ! -z "$COOKIES_ARG" ]; then
+            echo "Cookies faylidan foydalanilmoqda: $COOKIES_ARG" >> "$PROJECT_ROOT/storage/logs/stream.log"
+        fi
+
+        # Aggressive bypass: iOS/Android clients + Mobile User-Agent + JS Runtime + Optional Cookies
+        DIRECT_URL=$($YT_DLP -g $COOKIES_ARG --no-check-certificate --prefer-free-formats \
             --user-agent "Mozilla/5.0 (iPhone; CPU iPhone OS 16_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.5 Mobile/15E148 Safari/604.1" \
             --extractor-args "youtube:player-client=ios,android,web_creator,web_embedded,web,mweb" \
             -f "best[height<=720]" "$VIDEO_SOURCE" 2>> "$PROJECT_ROOT/storage/logs/stream.log")
