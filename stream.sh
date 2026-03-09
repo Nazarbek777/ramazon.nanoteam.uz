@@ -54,7 +54,9 @@ do
         
         # Optional cookies (search in multiple locations)
         COOKIES_ARG=""
-        if [ -f "$PROJECT_ROOT/youtube_cookies.txt" ]; then
+        if [ -f "$PROJECT_ROOT/storage/youtube_cookies.txt" ]; then
+            COOKIES_ARG="--cookies $PROJECT_ROOT/storage/youtube_cookies.txt"
+        elif [ -f "$PROJECT_ROOT/youtube_cookies.txt" ]; then
             COOKIES_ARG="--cookies $PROJECT_ROOT/youtube_cookies.txt"
         elif [ -f "$PROJECT_ROOT/public/www.youtube.com_cookies.txt" ]; then
             COOKIES_ARG="--cookies $PROJECT_ROOT/public/www.youtube.com_cookies.txt"
@@ -72,7 +74,7 @@ do
         fi
 
         # Note: ios/android clients often don't support cookies well in yt-dlp
-        DIRECT_URL=$($YT_DLP -g $COOKIES_ARG --no-write-cookies --no-cache-dir --no-check-certificate --prefer-free-formats $JS_RUNTIME_ARG \
+        DIRECT_URL=$($YT_DLP -g $COOKIES_ARG --no-cache-dir --no-check-certificate --prefer-free-formats $JS_RUNTIME_ARG \
             --user-agent "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36" \
             --extractor-args "youtube:player-client=web,mweb,web_creator,web_embedded" \
             -f "best[height<=720]" "$VIDEO_SOURCE" 2>> "$PROJECT_ROOT/storage/logs/stream.log")
