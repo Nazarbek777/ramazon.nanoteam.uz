@@ -11,6 +11,7 @@ PROJECT_ROOT="$SCRIPT_DIR"
 # Binaries - Try to find them in PATH first, fallback to common locations
 FFMPEG=$(which ffmpeg || echo "/usr/bin/ffmpeg")
 YT_DLP=$(which yt-dlp || which /usr/local/bin/yt-dlp || which /usr/bin/yt-dlp || echo "$HOME/.local/bin/yt-dlp")
+NODE=$(which node || which /usr/bin/node || which /usr/local/bin/node || echo "node")
 
 # Arguments
 VIDEO_SOURCE="$1"
@@ -63,10 +64,17 @@ do
             echo "Cookies faylidan foydalanilmoqda: $COOKIES_ARG" >> "$PROJECT_ROOT/storage/logs/stream.log"
         fi
 
-        # Aggressive bypass: iOS/Android clients + Mobile User-Agent + JS Runtime + Optional Cookies
-        DIRECT_URL=$($YT_DLP -g $COOKIES_ARG --no-check-certificate --prefer-free-formats \
-            --user-agent "Mozilla/5.0 (iPhone; CPU iPhone OS 16_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.5 Mobile/15E148 Safari/604.1" \
-            --extractor-args "youtube:player-client=ios,android,web_creator,web_embedded,web,mweb" \
+        # Aggressive bypass: web/mweb clients + Mobile User-Agent + JS Runtime + Optional Cookies
+        # Using explicit node runtime if found
+        JS_RUNTIME_ARG=""
+        if [ "$NODE" != "node" ]; then
+            JS_RUNTIME_ARG="--js-runtimes node:$NODE"
+        fi
+
+        # Note: ios/android clients often don't support cookies well in yt-dlp
+        DIRECT_URL=$($YT_DLP -g $COOKIES_ARG --no-write-cookies --no-cache-dir --no-check-certificate --prefer-free-formats $JS_RUNTIME_ARG \
+            --user-agent "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36" \
+            --extractor-args "youtube:player-client=web,mweb,web_creator,web_embedded" \
             -f "best[height<=720]" "$VIDEO_SOURCE" 2>> "$PROJECT_ROOT/storage/logs/stream.log")
         if [ $? -ne 0 ] || [ -z "$DIRECT_URL" ]; then
             echo "Xato: Yutub URLni olib bo'lmadi. 10 soniyadan keyin qayta urunish..."
