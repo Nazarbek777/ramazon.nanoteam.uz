@@ -5,8 +5,10 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Helpers\BotLogger;
 use App\Models\User;
+use App\Jobs\BroadcastJob;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Log;
 
 class BroadcastController extends Controller
 {
@@ -21,10 +23,11 @@ class BroadcastController extends Controller
     public function send(Request $request)
     {
         $request->validate([
-            'message'     => 'required|string',
-            'image'       => 'nullable|image|max:5120',
+            'message' => 'required_without:message_link|string|nullable',
+            'message_link' => 'required_without:message|string|nullable',
+            'image' => 'nullable|image|max:5120',
             'button_text' => 'nullable|string|max:50',
-            'button_url'  => 'nullable|url',
+            'button_url' => 'nullable|url',
         ]);
 
         // Store image if provided
@@ -34,58 +37,90 @@ class BroadcastController extends Controller
         }
 
         $users = User::whereNotNull('telegram_id')->get();
-        $count = 0;
-        $failed = 0;
 
-        BotLogger::info("Broadcast start: {$users->count()} users, message length: " . strlen($request->message));
+        $isCopy = !empty($request->message_link);
+        $broadcastData = [
+            'message' => $request->message,
+            'button_text' => $request->button_text,
+            'button_url' => $request->button_url,
+            'image_path' => $imagePath,
+            'message_link' => $request->message_link,
+        ];
 
-        foreach ($users as $user) {
-            try {
-                $result = $this->sendTelegramMessage(
-                    $user->telegram_id,
-                    $request->message,
-                    $imagePath ? Storage::disk('public')->path($imagePath) : null,
-                    $request->button_text,
-                    $request->button_url
-                );
+        Log::info("Broadcast initiation debug", [
+            'is_copy' => $isCopy,
+            'image_path' => $imagePath,
+            'link' => $request->message_link,
+            'message_length' => strlen($request->message ?? '')
+        ]);
 
-                $decoded = json_decode($result, true);
-                BotLogger::info("Telegram response for {$user->telegram_id}: " . $result);
+        if ($isCopy) {
+            $link = $request->message_link;
+            Log::info("Attempting to parse Telegram link", ['link' => $link]);
 
-                if ($decoded['ok'] ?? false) {
-                    $count++;
+            // Clean link (remove query params)
+            $cleanLink = preg_replace('/\?.*/', '', $link);
+
+            // Regex for: t.me/username/123 or t.me/c/123/456
+            if (preg_match('/t\.me\/(?:c\/)?([^\/]+)\/(\d+)/', $cleanLink, $matches)) {
+                $fromChatIdRaw = $matches[1];
+                $messageId = $matches[2];
+
+                if (is_numeric($fromChatIdRaw)) {
+                    // Numerical ID for private channels must start with -100
+                    $fromChatId = (str_starts_with($fromChatIdRaw, '-100')) ? $fromChatIdRaw : ('-100' . $fromChatIdRaw);
                 } else {
-                    $failed++;
-                    BotLogger::warning("Broadcast failed for {$user->telegram_id}: " . ($decoded['description'] ?? 'unknown'));
+                    // Public username (ensure it starts with @)
+                    $fromChatId = str_starts_with($fromChatIdRaw, '@') ? $fromChatIdRaw : ('@' . $fromChatIdRaw);
                 }
-            } catch (\Exception $e) {
-                $failed++;
-                BotLogger::error("Broadcast exception for {$user->telegram_id}: " . $e->getMessage());
+
+                $broadcastData['from_chat_id'] = $fromChatId;
+                $broadcastData['message_id'] = $messageId;
+
+                Log::info("Successfully parsed Telegram link", [
+                    'raw_chat' => $fromChatIdRaw,
+                    'final_chat' => $fromChatId,
+                    'message_id' => $messageId
+                ]);
+            } else {
+                Log::error("Regex failed for Telegram link", ['link' => $link]);
+                return redirect()->back()->with('error', 'Telegram xabar linki noto\'g\'ri formatda (Regex failed).');
             }
         }
 
-        // Clean up stored image
-        if ($imagePath) {
-            Storage::disk('public')->delete($imagePath);
+        foreach ($users as $user) {
+            BroadcastJob::dispatch($user->telegram_id, $broadcastData);
         }
 
-        $msg = "✅ Yuborildi: {$count} ta";
-        if ($failed > 0) $msg .= " | ❌ Xato: {$failed} ta";
+        $msg = "✅ Broadcast navbatga qo'shildi ({$users->count()} ta foydalanuvchi).";
         return redirect()->back()->with('success', $msg);
+    }
+
+    private function copyTelegramMessage(string $chatId, string $fromChatId, string $messageId): string
+    {
+        $url = "https://api.telegram.org/bot{$this->token}/copyMessage";
+
+        $params = [
+            'chat_id' => $chatId,
+            'from_chat_id' => $fromChatId,
+            'message_id' => $messageId,
+        ];
+
+        return $this->executeCurl($url, $params);
     }
 
     private function sendTelegramMessage(string $chatId, string $text, ?string $imagePath = null, ?string $buttonText = null, ?string $buttonUrl = null): string
     {
         $method = $imagePath ? 'sendPhoto' : 'sendMessage';
-        $url    = "https://api.telegram.org/bot{$this->token}/{$method}";
+        $url = "https://api.telegram.org/bot{$this->token}/{$method}";
 
         $params = [
-            'chat_id'    => $chatId,
+            'chat_id' => $chatId,
             'parse_mode' => 'HTML',
         ];
 
         if ($imagePath) {
-            $params['photo']   = new \CURLFile($imagePath);
+            $params['photo'] = new \CURLFile($imagePath);
             $params['caption'] = $text;
         } else {
             $params['text'] = $text;
@@ -97,10 +132,15 @@ class BroadcastController extends Controller
             ]);
         }
 
+        return $this->executeCurl($url, $params);
+    }
+
+    private function executeCurl(string $url, array $params): string
+    {
         $ch = curl_init();
         curl_setopt($ch, CURLOPT_URL, $url);
         curl_setopt($ch, CURLOPT_POST, 1);
-        curl_setopt($ch, CURLOPT_POSTFIELDS, $params); // array = multipart auto
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $params);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
         curl_setopt($ch, CURLOPT_TIMEOUT, 15);
