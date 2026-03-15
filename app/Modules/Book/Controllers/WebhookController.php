@@ -28,7 +28,7 @@ class WebhookController
     {
         $update = $request->all();
 
-        Log::info('[BookBot] Update', ['id' => $update['update_id'] ?? '-']);
+        Log::info('[BookBot] RAW UPDATE', $update);
 
         try {
             if (isset($update['message'])) {
@@ -52,6 +52,8 @@ class WebhookController
         $from = $msg['from'] ?? [];
         $userId = $from['id'] ?? $chatId;
 
+        Log::info("[BookBot] onMessage", ['chat_id' => $chatId, 'text' => $text, 'u_id' => $userId]);
+
         if (isset($msg['contact'])) {
             $this->onContact($chatId, $msg['contact'], $from, $msg['message_id'] ?? 0);
             return;
@@ -63,23 +65,28 @@ class WebhookController
         }
 
         // Barcha tugmalar uchun kanalga a'zolikni tekshirish
-        if (!$this->isJoinedAll($userId)) {
+        $isJoined = $this->isJoinedAll($userId);
+        Log::info("[BookBot] Membership", ['u_id' => $userId, 'is_joined' => $isJoined]);
+
+        if (!$isJoined) {
             $this->askJoinChannel($chatId);
             return;
         }
 
-        if (str_contains($text, '🏆 Reyting')) {
+        Log::info("[BookBot] onMessage", ['chat_id' => $chatId, 'text' => $text, 'u_id' => $userId]);
+
+        if (str_contains($text, 'Reyting')) {
             $this->onLeaderboard($chatId);
-        } elseif (str_contains($text, '👤 Profil')) {
+        } elseif (str_contains($text, 'Profil')) {
             $this->onProfile($chatId, $from);
-        } elseif (str_contains($text, 'Taklif qilish')) {
+        } elseif (str_contains($text, 'Taklif')) {
             $this->onReferral($chatId, $from);
-        } elseif (str_contains($text, 'Sovrinlar')) {
+        } elseif (str_contains($text, 'Sovrin')) {
             $this->sendAfisha($chatId);
         } elseif (str_contains($text, 'riqnoma')) {
             $this->sendYoriqnoma($chatId);
         } else {
-            Log::info('[BookBot] Unmatched message text', ['text' => $text]);
+            Log::info('[BookBot] Unmatched', ['text' => $text]);
         }
     }
 
