@@ -73,7 +73,7 @@ class TelegramBotController extends Controller
     private function handleContact($message)
     {
         $contact = $message['contact'];
-        $telegramId = $contact['user_id'];
+        $telegramId = $contact['user_id'] ?? $message['from']['id'];
         $phoneNumber = $contact['phone_number'];
         $firstName = $contact['first_name'] ?? 'User';
 
