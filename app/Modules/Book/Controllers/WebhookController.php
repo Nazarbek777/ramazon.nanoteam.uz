@@ -76,14 +76,19 @@ class WebhookController
         Log::info("[BookBot] onMessage", ['chat_id' => $chatId, 'text' => $text, 'u_id' => $userId]);
 
         if (str_contains($text, 'Reyting')) {
+            Log::info("[BookBot] Route: Reyting");
             $this->onLeaderboard($chatId);
         } elseif (str_contains($text, 'Profil')) {
+            Log::info("[BookBot] Route: Profil");
             $this->onProfile($chatId, $from);
         } elseif (str_contains($text, 'Taklif')) {
+            Log::info("[BookBot] Route: Taklif");
             $this->onReferral($chatId, $from);
         } elseif (str_contains($text, 'Sovrin')) {
+            Log::info("[BookBot] Route: Sovrin");
             $this->sendAfisha($chatId);
         } elseif (str_contains($text, 'riqnoma')) {
+            Log::info("[BookBot] Route: Yoriqnoma");
             $this->sendYoriqnoma($chatId);
         } else {
             Log::info('[BookBot] Unmatched', ['text' => $text]);

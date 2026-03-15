@@ -151,9 +151,12 @@ class TelegramService
      */
     protected function request(string $method, array $params = []): array
     {
+        Log::info("[Telegram] Request: " . $method, ['params' => $params]);
         try {
             $response = Http::post("{$this->apiUrl}/{$method}", $params);
-            return $response->json() ?? [];
+            $json = $response->json() ?? [];
+            Log::info("[Telegram] Response: " . $method, ['json' => $json]);
+            return $json;
         } catch (\Exception $e) {
             Log::error("Telegram API error [{$method}]: " . $e->getMessage());
             return ['ok' => false, 'description' => $e->getMessage()];
