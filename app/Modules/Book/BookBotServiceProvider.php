@@ -14,7 +14,7 @@ class BookBotServiceProvider extends ServiceProvider
             $config = new Configuration(
                 container: $app,
             );
-            return new Nutgram(\App\Modules\Book\Controllers\BotController::TOKEN, $config);
+            return new Nutgram(\App\Modules\Book\BotManager::TOKEN, $config);
         });
     }
 
