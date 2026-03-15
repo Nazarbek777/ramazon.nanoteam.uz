@@ -41,17 +41,19 @@ class BotController
         // This assumes the user's telegram_id is available after getOrCreateUser.
         $referralLink = "https://t.me/" . $bot->getMe()->username . "?start=" . $user->telegram_id;
 
-        $bot->sendMessage("Do'stlaringizni taklif qiling va har bir do'stingiz uchun 1 ballga ega bo'ling! \n\nSizning havolangiz: \n`{$referralLink}`", [
-            'parse_mode' => 'Markdown'
-        ]);
+        $bot->sendMessage(
+            text: "Do'stlaringizni taklif qiling va har bir do'stingiz uchun 1 ballga ega bo'ling! \n\nSizning havolangiz: \n`{$referralLink}`",
+            parse_mode: 'Markdown'
+        );
 
         $this->showMenu($bot);
     }
 
     public function showMenu(Nutgram $bot): void
     {
-        $bot->sendMessage("Tanlang:", [
-            'reply_markup' => InlineKeyboardMarkup::make()
+        $bot->sendMessage(
+            text: "Tanlang:",
+            reply_markup: InlineKeyboardMarkup::make()
                 ->addRow(
                     InlineKeyboardButton::make('📚 Kitoblar', callback_data: 'books'),
                     InlineKeyboardButton::make('🏆 Reyting', callback_data: 'leaderboard')
@@ -60,7 +62,7 @@ class BotController
                     InlineKeyboardButton::make('👤 Profil', callback_data: 'profile'),
                     InlineKeyboardButton::make('🔗 Taklif qilish', callback_data: 'referral')
                 )
-        ]);
+        );
     }
 
     public function profile(Nutgram $bot): void
@@ -80,9 +82,7 @@ class BotController
         $text .= "👥 Taklif qilinganlar: *" . $user->referrals()->count() . "*\n\n";
         $text .= "🔗 Sizning referral havolangiz:\n`{$referralLink}`";
 
-        $bot->sendMessage($text, [
-            'parse_mode' => 'Markdown'
-        ]);
+        $bot->sendMessage(text: $text, parse_mode: 'Markdown');
     }
 
     public function leaderboard(Nutgram $bot): void
@@ -95,9 +95,7 @@ class BotController
             $text .= ($index + 1) . ". {$name} - *{$leader->points}* ball\n";
         }
 
-        $bot->sendMessage($text, [
-            'parse_mode' => 'Markdown'
-        ]);
+        $bot->sendMessage(text: $text, parse_mode: 'Markdown');
     }
 
     public function books(Nutgram $bot): void
@@ -105,11 +103,11 @@ class BotController
         $books = \App\Modules\Book\Models\Book::all();
 
         if ($books->isEmpty()) {
-            $bot->sendMessage("Hozircha kitoblar ro'yxati bo'sh. Tez kunda yangi kitoblar qo'shiladi!");
+            $bot->sendMessage(text: "Hozircha kitoblar ro'yxati bo'sh. Tez kunda yangi kitoblar qo'shiladi!");
             return;
         }
 
-        $bot->sendMessage("📚 *Mavjud kitoblar ro'yxati:*", ['parse_mode' => 'Markdown']);
+        $bot->sendMessage(text: "📚 *Mavjud kitoblar ro'yxati:*", parse_mode: 'Markdown');
 
         foreach ($books as $book) {
             $text = "📖 *{$book->title}*\n";
@@ -117,11 +115,12 @@ class BotController
             $text .= "💰 Narxi: {$book->price} so'm\n";
             $text .= "📦 Qoldiq: {$book->stock} dona\n";
 
-            $bot->sendMessage($text, [
-                'parse_mode' => 'Markdown',
-                'reply_markup' => InlineKeyboardMarkup::make()
+            $bot->sendMessage(
+                text: $text,
+                parse_mode: 'Markdown',
+                reply_markup: InlineKeyboardMarkup::make()
                     ->addRow(InlineKeyboardButton::make("Sotib olish", callback_data: "buy_{$book->id}"))
-            ]);
+            );
         }
     }
 }
