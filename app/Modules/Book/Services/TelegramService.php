@@ -71,6 +71,33 @@ class TelegramService
     }
 
     /**
+     * Check if a user is a member of a channel.
+     */
+    public function getChatMember(string $chatId, int $userId): array
+    {
+        return $this->request('getChatMember', [
+            'chat_id' => $chatId,
+            'user_id' => $userId,
+        ]);
+    }
+
+    /**
+     * Check if user is a member of the channel (not 'left' or 'kicked').
+     */
+    public function isUserInChannel(string $channelUsername, int $userId): bool
+    {
+        $result = $this->getChatMember($channelUsername, $userId);
+
+        if (!($result['ok'] ?? false)) {
+            return false;
+        }
+
+        $status = $result['result']['status'] ?? 'left';
+
+        return in_array($status, ['member', 'administrator', 'creator']);
+    }
+
+    /**
      * Delete webhook.
      */
     public function deleteWebhook(): array
