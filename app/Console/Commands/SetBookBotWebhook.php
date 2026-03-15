@@ -26,8 +26,18 @@ class SetBookBotWebhook extends Command
             $this->info("✅ Webhook muvaffaqiyatli sozlandi: {$url}");
 
             // Bot sozlamalarini o'rnatish
-            $telegram->setMyDescription("Bayramona kitoblar tanlovi boti.\n\nTaklif va kamchiliklar uchun: @NazarbekRashidov");
-            $telegram->setMyShortDescription("Bayramona kitoblar tanlovi boti. Takliflar: @NazarbekRashidov");
+            $description = "📚 «Nur kitoblar» doʻkonining bayramona sovgʻali tanloviga xush kelibsiz!\n\n" .
+                "🎁 Ushbu bot orqali siz:\n" .
+                "✅ Tanlovda roʻyxatdan oʻtishingiz;\n" .
+                "✅ Doʻstlaringizni taklif qilib ball toʻplashingiz;\n" .
+                "✅ Qurʼoni Karim va qimmatbaho kitoblar yutib olishingiz mumkin.\n\n" .
+                "🚀 Ishtirok eting va bilimingizni boyiting!\n\n" .
+                "👨‍💻 Taklif va kamchiliklar uchun: @NazarbekRashidov";
+
+            $shortDescription = "📚 «Nur kitoblar» tanlov boti. Doʻstlarni taklif qiling va qimmatli kitoblarni yutib oling! 🎁";
+
+            $telegram->setMyDescription($description);
+            $telegram->setMyShortDescription($shortDescription);
 
             $this->info("ℹ️ Bot tavsifi (Description) va 'Haqida' (About) qismi yangilandi.");
         } else {
