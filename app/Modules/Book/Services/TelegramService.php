@@ -147,6 +147,22 @@ class TelegramService
     }
 
     /**
+     * Set the bot's description (shown before starting the bot).
+     */
+    public function setMyDescription(string $description): array
+    {
+        return $this->request('setMyDescription', ['description' => $description]);
+    }
+
+    /**
+     * Set the bot's short description (About text).
+     */
+    public function setMyShortDescription(string $shortDescription): array
+    {
+        return $this->request('setMyShortDescription', ['short_description' => $shortDescription]);
+    }
+
+    /**
      * Make a request to the Telegram Bot API.
      */
     protected function request(string $method, array $params = []): array

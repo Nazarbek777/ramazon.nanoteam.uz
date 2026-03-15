@@ -24,6 +24,12 @@ class SetBookBotWebhook extends Command
 
         if ($result['ok'] ?? false) {
             $this->info("✅ Webhook muvaffaqiyatli sozlandi: {$url}");
+
+            // Bot sozlamalarini o'rnatish
+            $telegram->setMyDescription("Bayramona kitoblar tanlovi boti.\n\nTaklif va kamchiliklar uchun: @NazarbekRashidov");
+            $telegram->setMyShortDescription("Bayramona kitoblar tanlovi boti. Takliflar: @NazarbekRashidov");
+
+            $this->info("ℹ️ Bot tavsifi (Description) va 'Haqida' (About) qismi yangilandi.");
         } else {
             $this->error('❌ Webhook sozlashda xato: ' . ($result['description'] ?? 'Unknown error'));
         }
