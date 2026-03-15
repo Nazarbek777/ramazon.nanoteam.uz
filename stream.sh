@@ -87,6 +87,10 @@ do
             continue
         fi
         INPUT_URL="$DIRECT_URL"
+    elif [[ "$VIDEO_SOURCE" == http* ]]; then
+        # Direct URL (Dropbox, S3, or any other direct video link)
+        echo "To'g'ridan-to'g'ri havola orqali o'qilmoqda: $VIDEO_SOURCE" >> "$PROJECT_ROOT/storage/logs/stream.log"
+        INPUT_URL="$VIDEO_SOURCE"
     else
         # Local file
         if [ ! -f "$VIDEO_SOURCE" ]; then

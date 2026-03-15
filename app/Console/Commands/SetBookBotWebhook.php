@@ -3,15 +3,14 @@
 namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
-use SergiX44\Nutgram\Nutgram;
-use App\Modules\Book\Controllers\BotController;
+use App\Modules\Book\Services\TelegramService;
 
 class SetBookBotWebhook extends Command
 {
     protected $signature = 'book-bot:set-webhook {url}';
     protected $description = 'Set the Telegram Bot Webhook URL';
 
-    public function handle(Nutgram $bot): void
+    public function handle(): void
     {
         $url = $this->argument('url');
 
@@ -20,12 +19,13 @@ class SetBookBotWebhook extends Command
             return;
         }
 
-        $result = $bot->setWebhook($url);
+        $telegram = new TelegramService();
+        $result = $telegram->setWebhook($url);
 
-        if ($result) {
-            $this->info("Webhook successfully set to: $url");
+        if ($result['ok'] ?? false) {
+            $this->info("✅ Webhook muvaffaqiyatli sozlandi: {$url}");
         } else {
-            $this->error('Failed to set webhook.');
+            $this->error('❌ Webhook sozlashda xato: ' . ($result['description'] ?? 'Unknown error'));
         }
     }
 }
