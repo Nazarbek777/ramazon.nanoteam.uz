@@ -240,7 +240,16 @@ class WebhookController
         $username = $botInfo['result']['username'] ?? 'bot';
         $link = "https://t.me/{$username}?start={$user->telegram_id}";
 
-        $this->telegram->sendMessage($chatId, "🔗 *Sizning havolangiz:*\n`{$link}`\n\nDoʻstlaringizga yuboring!");
+        $text = "🔗 *Sizning havolangiz:*\n\n";
+        $text .= "Quyidagi xabarni doʻstlaringizga yuboring:\n\n";
+        $text .= "👇👇👇\n\n";
+        $text .= "📚 Kitob yutishni xohlaysizmi?\n";
+        $text .= "\"Nur kitoblar\" doʻkonining bayramona tanlovida qatnashing!\n";
+        $text .= "🎁 Qurʼoni Karim va boshqa qimmatli kitoblar sovg'a!\n\n";
+        $text .= "👉 {$link}\n\n";
+        $text .= "⚡️ Botga kirib /start bosing!";
+
+        $this->telegram->sendMessage($chatId, $text);
     }
 
     // ── ASOSIY KEYBOARD (pastdan chiqadigan) ─────────────
