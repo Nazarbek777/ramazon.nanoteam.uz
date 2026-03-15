@@ -50,24 +50,40 @@ class WebhookController
         $chatId = $msg['chat']['id'];
         $text = trim($msg['text'] ?? '');
         $from = $msg['from'] ?? [];
+        $userId = $from['id'] ?? $chatId;
 
-        // Kontakt (telefon raqam) kelsa
         if (isset($msg['contact'])) {
             $this->onContact($chatId, $msg['contact'], $from, $msg['message_id'] ?? 0);
             return;
         }
 
-        // Komandalar
         if (str_starts_with($text, '/start')) {
             $this->onStart($chatId, $text, $from);
-        } elseif ($text === '🏆 Reyting') {
-            $this->onLeaderboard($chatId);
-        } elseif ($text === '👤 Profil') {
-            $this->onProfile($chatId, $from);
-        } elseif ($text === '🔗 Taklif qilish') {
-            $this->onReferral($chatId, $from);
-        } elseif ($text === '🎁 Sovrinlar') {
-            $this->sendAfisha($chatId);
+            return;
+        }
+
+        // Barcha tugmalar uchun kanalga a'zolikni tekshirish
+        if (!$this->isJoinedAll($userId)) {
+            $this->askJoinChannel($chatId);
+            return;
+        }
+
+        switch ($text) {
+            case '🏆 Reyting':
+                $this->onLeaderboard($chatId);
+                break;
+            case '👤 Profil':
+                $this->onProfile($chatId, $from);
+                break;
+            case '🔗 Taklif qilish':
+                $this->onReferral($chatId, $from);
+                break;
+            case '🎁 Sovrinlar':
+                $this->sendAfisha($chatId);
+                break;
+            case '📋 Yoʻriqnoma':
+                $this->sendYoriqnoma($chatId);
+                break;
         }
     }
 
@@ -108,7 +124,7 @@ class WebhookController
             'last_name' => $from['last_name'] ?? '',
         ], $referrerId);
 
-        // Telefon yo'q — faqat raqam so'rash
+        // Telefon yo'q — ro'yxatdan o'tish (Motivation + Contact)
         if (empty($user->phone)) {
             $this->telegram->sendContactRequest(
                 $chatId,
@@ -124,7 +140,9 @@ class WebhookController
             return;
         }
 
-        // Tayyor
+        // Tayyor (mavjud foydalanuvchi uchun xush kelibsiz)
+        $this->telegram->sendMessage($chatId, "Assalomu alaykum! 👋\n\"Nur kitoblar\" doʻkoni tanlovida ishtirok etayotganingizdan xursandmiz!");
+        $this->sendAfisha($chatId);
         $this->sendReferralLink($chatId, $user);
         $this->sendMainKeyboard($chatId);
     }
@@ -152,10 +170,12 @@ class WebhookController
 
         // Kanal tekshiruvi
         if (!$this->isJoinedAll($userId)) {
+            $this->sendAfisha($chatId);
             $this->askJoinChannel($chatId);
             return;
         }
 
+        $this->sendAfisha($chatId);
         $this->sendReferralLink($chatId, $user);
         $this->sendMainKeyboard($chatId);
     }
@@ -259,8 +279,46 @@ class WebhookController
         $this->telegram->sendMessageWithReplyKeyboard($chatId, "📋 Menyu:\n🗓 15-mart — 21-mart", [
             [['text' => '🏆 Reyting'], ['text' => '👤 Profil']],
             [['text' => '🔗 Taklif qilish']],
-            [['text' => '🎁 Sovrinlar']],
+            [['text' => '🎁 Sovrinlar'], ['text' => '📋 Yoʻriqnoma']],
         ]);
+    }
+
+    // ── YOʻRIQNOMA ──────────────────────────────────────
+
+    protected function sendYoriqnoma(int $chatId): void
+    {
+        $text = "📋 *YOʻRIQNOMA*\n";
+        $text .= "━━━━━━━━━━━━━━━━━━\n\n";
+
+        $text .= "📌 *Tanlov haqida:*\n";
+        $text .= "\"Nur kitoblar\" doʻkoni Hayit va Navroʻz bayramlari munosabati bilan kitobxonlar oʻrtasida tanlov eʼlon qiladi.\n\n";
+
+        $text .= "🗓 *Muddat:*\n";
+        $text .= "Boshlanish: *15-mart*\n";
+        $text .= "Tugash: *21-mart*\n\n";
+
+        $text .= "📝 *Qanday qatnashish mumkin:*\n";
+        $text .= "1️⃣ Botga /start bosib roʻyxatdan oʻting\n";
+        $text .= "2️⃣ Telefon raqamingizni yuboring\n";
+        $text .= "3️⃣ Kanalga aʼzo boʻling\n";
+        $text .= "4️⃣ Doʻstlaringizga referral havolangizni yuboring\n\n";
+
+        $text .= "⚡️ *Ball tizimi:*\n";
+        $text .= "Har bir doʻstingiz sizning havolangiz orqali botga qoʻshilsa, sizga *1 ball* beriladi.\n\n";
+
+        $text .= "🏆 *Gʻoliblar qanday aniqlanadi:*\n";
+        $text .= "21-mart kuni eng koʻp ball toʻplagan *4 nafar* ishtirokchi gʻolib deb topiladi.\n\n";
+
+        $text .= "🎁 *Sovrinlar:*\n";
+        $text .= "🥇 1-oʻrin — Qurʼoni Karim (tarjima va tafsiri)\n";
+        $text .= "🥈 2-oʻrin — 2 ta kitob\n";
+        $text .= "🥉 3-oʻrin — 2 ta kitob\n";
+        $text .= "🏅 4-oʻrin — 2 ta kitob\n\n";
+
+        $text .= "━━━━━━━━━━━━━━━━━━\n";
+        $text .= "🔗 @nurkitoblari\\_m";
+
+        $this->telegram->sendMessage($chatId, $text);
     }
 
     // ── PROFIL ───────────────────────────────────────────
