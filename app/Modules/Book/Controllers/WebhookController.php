@@ -68,22 +68,18 @@ class WebhookController
             return;
         }
 
-        switch ($text) {
-            case '🏆 Reyting':
-                $this->onLeaderboard($chatId);
-                break;
-            case '👤 Profil':
-                $this->onProfile($chatId, $from);
-                break;
-            case '🔗 Taklif qilish':
-                $this->onReferral($chatId, $from);
-                break;
-            case '🎁 Sovrinlar':
-                $this->sendAfisha($chatId);
-                break;
-            case '📋 Yoʻriqnoma':
-                $this->sendYoriqnoma($chatId);
-                break;
+        if (str_contains($text, '🏆 Reyting')) {
+            $this->onLeaderboard($chatId);
+        } elseif (str_contains($text, '👤 Profil')) {
+            $this->onProfile($chatId, $from);
+        } elseif (str_contains($text, 'Taklif qilish')) {
+            $this->onReferral($chatId, $from);
+        } elseif (str_contains($text, 'Sovrinlar')) {
+            $this->sendAfisha($chatId);
+        } elseif (str_contains($text, 'riqnoma')) {
+            $this->sendYoriqnoma($chatId);
+        } else {
+            Log::info('[BookBot] Unmatched message text', ['text' => $text]);
         }
     }
 
