@@ -66,6 +66,8 @@ class WebhookController
             $this->onProfile($chatId, $from);
         } elseif ($text === '🔗 Taklif qilish') {
             $this->onReferral($chatId, $from);
+        } elseif ($text === '🎁 Sovrinlar') {
+            $this->sendAfisha($chatId);
         }
     }
 
@@ -206,13 +208,23 @@ class WebhookController
         $text = "╔═══📚🌙🌸═══╗\n";
         $text .= "   *BAYRAMONA KONKURS*\n";
         $text .= "╚═══🌸🌙📚═══╝\n\n";
-        $text .= "🎉 *\"Nur kitoblar\"* doʻkonidan sovrinli tanlov!\n\n";
-        $text .= "🗓 Muddati: *21-martgacha*\n\n";
-        $text .= "🥇 1-oʻrin — Qurʼoni Karim\n";
-        $text .= "🥈 2-oʻrin — 2 ta kitob\n";
-        $text .= "🥉 3-oʻrin — 2 ta kitob\n";
-        $text .= "🏅 4-oʻrin — 2 ta kitob\n\n";
-        $text .= "⚡️ Har bir doʻstingiz = *1 ball*";
+        $text .= "Hayit va Navroʻz bayramlari munosabati bilan *\"Nur kitoblar\"* doʻkoni kitobxonlar uchun sovrinli tanlov eʼlon qiladi! 🎉\n\n";
+        $text .= "🎁 *Sovrinlar:*\n\n";
+        $text .= "🥇 *1-oʻrin*\n";
+        $text .= "📖 Qurʼoni Karim\n";
+        $text .= "(maʼnolarining tarjima va tafsiri)\n\n";
+        $text .= "🥈 *2-oʻrin*\n";
+        $text .= "📚 Odam boʻlish qiyin\n";
+        $text .= "📚 Zirapcha qiz (Qishloqlik Romeo va Juletta)\n\n";
+        $text .= "🥉 *3-oʻrin*\n";
+        $text .= "📚 Lobar, Lobar, Lobarim mening\n";
+        $text .= "📚 Gʻoyib boʻlgan atirgul\n\n";
+        $text .= "🏅 *4-oʻrin*\n";
+        $text .= "📚 Zamonga yengilma\n";
+        $text .= "📚 Alanga ichidagi ayol\n\n";
+        $text .= "👥 Doʻstlaringizni taklif qiling va qimmatli kitoblarni yutib oling!\n\n";
+        $text .= "🚀 Faol boʻling va gʻoliblar qatoridan joy oling!\n";
+        $text .= "⚡️ Har bir qoʻshilgan odam sizni gʻalabaga yaqinlashtiradi!";
 
         $this->telegram->sendMessage($chatId, $text);
     }
@@ -232,9 +244,10 @@ class WebhookController
 
     protected function sendMainKeyboard(int $chatId): void
     {
-        $this->telegram->sendMessageWithReplyKeyboard($chatId, "📋 Menyu:", [
+        $this->telegram->sendMessageWithReplyKeyboard($chatId, "📋 Menyu:\n🗓 15-mart — 21-mart", [
             [['text' => '🏆 Reyting'], ['text' => '👤 Profil']],
             [['text' => '🔗 Taklif qilish']],
+            [['text' => '🎁 Sovrinlar']],
         ]);
     }
 
