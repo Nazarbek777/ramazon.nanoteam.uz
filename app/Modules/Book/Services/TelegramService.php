@@ -31,6 +31,17 @@ class TelegramService
     }
 
     /**
+     * Delete a message.
+     */
+    public function deleteMessage(int|string $chatId, int $messageId): array
+    {
+        return $this->request('deleteMessage', [
+            'chat_id' => $chatId,
+            'message_id' => $messageId,
+        ]);
+    }
+
+    /**
      * Send a message with an inline keyboard.
      */
     public function sendMessageWithKeyboard(int|string $chatId, string $text, array $keyboard): array

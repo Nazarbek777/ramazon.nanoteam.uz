@@ -53,7 +53,7 @@ class WebhookController
 
         // Kontakt (telefon raqam) kelsa
         if (isset($msg['contact'])) {
-            $this->onContact($chatId, $msg['contact'], $from);
+            $this->onContact($chatId, $msg['contact'], $from, $msg['message_id'] ?? 0);
             return;
         }
 
@@ -93,7 +93,6 @@ class WebhookController
 
     protected function onStart(int $chatId, string $text, array $from): void
     {
-        // Referral parse
         $referrerId = null;
         if (str_contains($text, ' ')) {
             $parts = explode(' ', $text);
@@ -109,50 +108,54 @@ class WebhookController
             'last_name' => $from['last_name'] ?? '',
         ], $referrerId);
 
-        // 1. Telefon raqam yo'q — so'rash
+        // Telefon yo'q — faqat raqam so'rash
         if (empty($user->phone)) {
-            $this->telegram->sendMessage($chatId, "Assalomu alaykum, *{$user->first_name}*! 🎉\n\nTanlovda qatnashish uchun telefon raqamingizni yuboring:");
-            $this->telegram->sendContactRequest($chatId, "📱 Quyidagi tugmani bosing:");
+            $this->telegram->sendContactRequest(
+                $chatId,
+                "Assalomu alaykum! 🎉\n\"Nur kitoblar\" doʻkoni tomonidan oʻtkaziladigan bayramona tanlovga xush kelibsiz!\n\n🎁 Ishtirok etish uchun roʻyxatdan oʻting 👇"
+            );
             return;
         }
 
-        // 2. Kanal tekshiruvi
+        // Kanal tekshiruvi
         $userId = $from['id'] ?? $chatId;
         if (!$this->isJoinedAll($userId)) {
-            $this->sendAfisha($chatId);
             $this->askJoinChannel($chatId);
             return;
         }
 
-        // 3. Hammasi tayyor
-        $this->sendAfisha($chatId);
+        // Tayyor
         $this->sendReferralLink($chatId, $user);
         $this->sendMainKeyboard($chatId);
     }
 
     // ── KONTAKT (telefon) ────────────────────────────────
 
-    protected function onContact(int $chatId, array $contact, array $from): void
+    protected function onContact(int $chatId, array $contact, array $from, int $msgId = 0): void
     {
         $phone = $contact['phone_number'] ?? '';
         $userId = $from['id'] ?? $chatId;
 
-        // Raqamni saqlash
         $user = BookUser::where('telegram_id', $userId)->first();
         if ($user) {
-            $user->update(['phone' => $phone]);
+            $user->phone = $phone;
+            $user->save();
         }
 
-        $this->telegram->sendMessage($chatId, "✅ Raqamingiz saqlandi: *{$phone}*");
+        // Eski xabarlarni o'chirish
+        if ($msgId > 0) {
+            $this->telegram->deleteMessage($chatId, $msgId);     // kontakt xabarni o'chirish
+            $this->telegram->deleteMessage($chatId, $msgId - 1); // "raqamni yuboring" xabarni o'chirish
+        }
+
+        $this->telegram->sendMessage($chatId, "✅ Raqam saqlandi!");
 
         // Kanal tekshiruvi
         if (!$this->isJoinedAll($userId)) {
-            $this->sendAfisha($chatId);
             $this->askJoinChannel($chatId);
             return;
         }
 
-        $this->sendAfisha($chatId);
         $this->sendReferralLink($chatId, $user);
         $this->sendMainKeyboard($chatId);
     }
