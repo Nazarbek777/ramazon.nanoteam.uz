@@ -28,8 +28,6 @@ class WebhookController
     {
         $update = $request->all();
 
-        Log::info('[BookBot] RAW UPDATE', $update);
-
         try {
             if (isset($update['message'])) {
                 $this->onMessage($update['message']);
@@ -51,8 +49,6 @@ class WebhookController
         $text = trim($msg['text'] ?? '');
         $from = $msg['from'] ?? [];
         $userId = $from['id'] ?? $chatId;
-
-        Log::info("[BookBot] onMessage", ['chat_id' => $chatId, 'text' => $text, 'u_id' => $userId]);
 
         if (isset($msg['contact'])) {
             $this->onContact($chatId, $msg['contact'], $from, $msg['message_id'] ?? 0);
@@ -211,7 +207,7 @@ class WebhookController
 
         $this->telegram->sendMessageWithKeyboard(
             $chatId,
-            "⚠️ Tanlovda qatnashish uchun kanalga aʼzo boʻling va *\"✅ Tekshirish\"* tugmasini bosing.",
+            "⚠️ Tanlovda qatnashish uchun kanalga aʼzo boʻling va <b>\"✅ Tekshirish\"</b> tugmasini bosing.",
             $keyboard
         );
     }
@@ -236,21 +232,21 @@ class WebhookController
 
     protected function sendAfisha(int $chatId): void
     {
-        $text = "╔═══📚🌙🌸═══╗\n";
-        $text .= "   *BAYRAMONA KONKURS*\n";
-        $text .= "╚═══🌸🌙📚═══╝\n\n";
-        $text .= "Hayit va Navroʻz bayramlari munosabati bilan *\"Nur kitoblar\"* doʻkoni kitobxonlar uchun sovrinli tanlov eʼlon qiladi! 🎉\n\n";
-        $text .= "🎁 *Sovrinlar:*\n\n";
-        $text .= "🥇 *1-oʻrin*\n";
+        $text = "<b>╔═══📚🌙🌸═══╗\n";
+        $text .= "   BAYRAMONA KONKURS\n";
+        $text .= "╚═══🌸🌙📚═══╝</b>\n\n";
+        $text .= "Hayit va Navroʻz bayramlari munosabati bilan <b>\"Nur kitoblar\"</b> doʻkoni kitobxonlar uchun sovrinli tanlov eʼlon qiladi! 🎉\n\n";
+        $text .= "🎁 <b>Sovrinlar:</b>\n\n";
+        $text .= "🥇 <b>1-oʻrin</b>\n";
         $text .= "📖 Qurʼoni Karim\n";
         $text .= "(maʼnolarining tarjima va tafsiri)\n\n";
-        $text .= "🥈 *2-oʻrin*\n";
+        $text .= "🥈 <b>2-oʻrin</b>\n";
         $text .= "📚 Odam boʻlish qiyin\n";
         $text .= "📚 Zirapcha qiz (Qishloqlik Romeo va Juletta)\n\n";
-        $text .= "🥉 *3-oʻrin*\n";
+        $text .= "🥉 <b>3-oʻrin</b>\n";
         $text .= "📚 Lobar, Lobar, Lobarim mening\n";
         $text .= "📚 Gʻoyib boʻlgan atirgul\n\n";
-        $text .= "🏅 *4-oʻrin*\n";
+        $text .= "🏅 <b>4-oʻrin</b>\n";
         $text .= "📚 Zamonga yengilma\n";
         $text .= "📚 Alanga ichidagi ayol\n\n";
         $text .= "👥 Doʻstlaringizni taklif qiling va qimmatli kitoblarni yutib oling!\n\n";
@@ -268,7 +264,7 @@ class WebhookController
         $username = $botInfo['result']['username'] ?? 'bot';
         $link = "https://t.me/{$username}?start={$user->telegram_id}";
 
-        $text = "🔗 *Sizning havolangiz:*\n\n";
+        $text = "🔗 <b>Sizning havolangiz:</b>\n\n";
         $text .= "Quyidagi xabarni doʻstlaringizga yuboring:\n\n";
         $text .= "👇👇👇\n\n";
         $text .= "📚 Kitob yutishni xohlaysizmi?\n";
@@ -295,36 +291,36 @@ class WebhookController
 
     protected function sendYoriqnoma(int $chatId): void
     {
-        $text = "📋 *YOʻRIQNOMA*\n";
+        $text = "📋 <b>YOʻRIQNOMA</b>\n";
         $text .= "━━━━━━━━━━━━━━━━━━\n\n";
 
-        $text .= "📌 *Tanlov haqida:*\n";
+        $text .= "📌 <b>Tanlov haqida:</b>\n";
         $text .= "\"Nur kitoblar\" doʻkoni Hayit va Navroʻz bayramlari munosabati bilan kitobxonlar oʻrtasida tanlov eʼlon qiladi.\n\n";
 
-        $text .= "🗓 *Muddat:*\n";
-        $text .= "Boshlanish: *15-mart*\n";
-        $text .= "Tugash: *21-mart*\n\n";
+        $text .= "🗓 <b>Muddat:</b>\n";
+        $text .= "Boshlanish: <b>15-mart</b>\n";
+        $text .= "Tugash: <b>21-mart</b>\n\n";
 
-        $text .= "📝 *Qanday qatnashish mumkin:*\n";
+        $text .= "📝 <b>Qanday qatnashish mumkin:</b>\n";
         $text .= "1️⃣ Botga /start bosib roʻyxatdan oʻting\n";
         $text .= "2️⃣ Telefon raqamingizni yuboring\n";
         $text .= "3️⃣ Kanalga aʼzo boʻling\n";
         $text .= "4️⃣ Doʻstlaringizga referral havolangizni yuboring\n\n";
 
-        $text .= "⚡️ *Ball tizimi:*\n";
-        $text .= "Har bir doʻstingiz sizning havolangiz orqali botga qoʻshilsa, sizga *1 ball* beriladi.\n\n";
+        $text .= "⚡️ <b>Ball tizimi:</b>\n";
+        $text .= "Har bir doʻstingiz sizning havolangiz orqali botga qoʻshilsa, sizga <b>1 ball</b> beriladi.\n\n";
 
-        $text .= "🏆 *Gʻoliblar qanday aniqlanadi:*\n";
-        $text .= "21-mart kuni eng koʻp ball toʻplagan *4 nafar* ishtirokchi gʻolib deb topiladi.\n\n";
+        $text .= "🏆 <b>Gʻoliblar qanday aniqlanadi:</b>\n";
+        $text .= "21-mart kuni eng koʻp ball toʻplagan <b>4 nafar</b> ishtirokchi gʻolib deb topiladi.\n\n";
 
-        $text .= "🎁 *Sovrinlar:*\n";
+        $text .= "🎁 <b>Sovrinlar:</b>\n";
         $text .= "🥇 1-oʻrin — Qurʼoni Karim (tarjima va tafsiri)\n";
         $text .= "🥈 2-oʻrin — 2 ta kitob\n";
         $text .= "🥉 3-oʻrin — 2 ta kitob\n";
         $text .= "🏅 4-oʻrin — 2 ta kitob\n\n";
 
         $text .= "━━━━━━━━━━━━━━━━━━\n";
-        $text .= "🔗 @nurkitoblari\\_m";
+        $text .= "🔗 @nurkitoblari_m";
 
         $this->telegram->sendMessage($chatId, $text);
     }
@@ -347,11 +343,11 @@ class WebhookController
         $username = $botInfo['result']['username'] ?? 'bot';
         $link = "https://t.me/{$username}?start={$user->telegram_id}";
 
-        $text = "👤 *{$name}*\n\n";
-        $text .= "💰 Ball: *{$user->points}*\n";
-        $text .= "👥 Taklif: *{$count}* ta\n";
+        $text = "👤 <b>{$name}</b>\n\n";
+        $text .= "💰 Ball: <b>{$user->points}</b>\n";
+        $text .= "👥 Taklif: <b>{$count}</b> ta\n";
         $text .= "📱 Raqam: {$user->phone}\n\n";
-        $text .= "🔗 Havola:\n`{$link}`";
+        $text .= "🔗 Havola:\n<code>{$link}</code>";
 
         $this->telegram->sendMessage($chatId, $text);
     }
@@ -362,13 +358,13 @@ class WebhookController
     {
         $leaders = $this->bookService->getLeaderboard(10);
 
-        $text = "🏆 *Top 10*\n\n";
+        $text = "🏆 <b>Top 10</b>\n\n";
         $medals = ['🥇', '🥈', '🥉'];
 
         foreach ($leaders as $i => $l) {
             $m = $medals[$i] ?? ($i + 1) . '.';
             $n = $l->first_name ?: 'Foydalanuvchi';
-            $text .= "{$m} {$n} — *{$l->points}* ball\n";
+            $text .= "{$m} {$n} — <b>{$l->points}</b> ball\n";
         }
 
         if ($leaders->isEmpty()) {

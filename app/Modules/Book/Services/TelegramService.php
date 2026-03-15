@@ -24,7 +24,7 @@ class TelegramService
         $params = array_merge([
             'chat_id' => $chatId,
             'text' => $text,
-            'parse_mode' => 'Markdown',
+            'parse_mode' => 'HTML',
         ], $options);
 
         return $this->request('sendMessage', $params);
