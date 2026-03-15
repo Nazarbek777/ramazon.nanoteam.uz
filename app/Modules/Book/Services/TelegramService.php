@@ -43,6 +43,36 @@ class TelegramService
     }
 
     /**
+     * Send a message with a persistent ReplyKeyboard (bottom buttons).
+     */
+    public function sendMessageWithReplyKeyboard(int|string $chatId, string $text, array $keyboard, bool $resize = true): array
+    {
+        return $this->sendMessage($chatId, $text, [
+            'reply_markup' => json_encode([
+                'keyboard' => $keyboard,
+                'resize_keyboard' => $resize,
+                'one_time_keyboard' => false,
+            ]),
+        ]);
+    }
+
+    /**
+     * Send a contact request button.
+     */
+    public function sendContactRequest(int|string $chatId, string $text): array
+    {
+        return $this->sendMessage($chatId, $text, [
+            'reply_markup' => json_encode([
+                'keyboard' => [
+                    [['text' => '📱 Raqamni yuborish', 'request_contact' => true]],
+                ],
+                'resize_keyboard' => true,
+                'one_time_keyboard' => true,
+            ]),
+        ]);
+    }
+
+    /**
      * Answer a callback query (removes the "loading" state on the button).
      */
     public function answerCallbackQuery(string $callbackQueryId, string $text = '', bool $showAlert = false): array

@@ -15,6 +15,7 @@ class BookUser extends Model
         'username',
         'first_name',
         'last_name',
+        'phone',
         'points',
         'referrer_id',
     ];

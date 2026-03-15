@@ -7,15 +7,13 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Log;
 use App\Modules\Book\Services\TelegramService;
 use App\Modules\Book\Services\BookService;
+use App\Modules\Book\Models\BookUser;
 
 class WebhookController
 {
     protected TelegramService $telegram;
     protected BookService $bookService;
 
-    /**
-     * Kanallar ro'yxati — foydalanuvchi shu kanallarga a'zo bo'lishi shart.
-     */
     protected array $requiredChannels = [
         ['username' => '@nurkitoblari_m', 'name' => '📢 Nur kitoblar'],
     ];
@@ -26,107 +24,74 @@ class WebhookController
         $this->bookService = new BookService();
     }
 
-    // ──────────────────────────────────────────────────────
-    //  WEBHOOK ENTRY POINT
-    // ──────────────────────────────────────────────────────
-
     public function handle(Request $request): JsonResponse
     {
         $update = $request->all();
 
-        Log::info('[BookBot] Webhook received', ['update_id' => $update['update_id'] ?? 'unknown']);
+        Log::info('[BookBot] Update', ['id' => $update['update_id'] ?? '-']);
 
         try {
             if (isset($update['message'])) {
-                $this->handleMessage($update['message']);
+                $this->onMessage($update['message']);
             } elseif (isset($update['callback_query'])) {
-                $this->handleCallbackQuery($update['callback_query']);
+                $this->onCallback($update['callback_query']);
             }
         } catch (\Exception $e) {
-            Log::error('[BookBot] Error: ' . $e->getMessage(), [
-                'file' => $e->getFile(),
-                'line' => $e->getLine(),
-            ]);
+            Log::error('[BookBot] ' . $e->getMessage(), ['line' => $e->getLine()]);
         }
 
         return response()->json(['ok' => true]);
     }
 
-    // ──────────────────────────────────────────────────────
-    //  MESSAGE ROUTER
-    // ──────────────────────────────────────────────────────
+    // ── MESSAGE ──────────────────────────────────────────
 
-    protected function handleMessage(array $message): void
+    protected function onMessage(array $msg): void
     {
-        $chatId = $message['chat']['id'];
-        $text = trim($message['text'] ?? '');
-        $from = $message['from'] ?? [];
+        $chatId = $msg['chat']['id'];
+        $text = trim($msg['text'] ?? '');
+        $from = $msg['from'] ?? [];
 
+        // Kontakt (telefon raqam) kelsa
+        if (isset($msg['contact'])) {
+            $this->onContact($chatId, $msg['contact'], $from);
+            return;
+        }
+
+        // Komandalar
         if (str_starts_with($text, '/start')) {
-            $this->handleStart($chatId, $text, $from);
-        } elseif ($text === '/profile' || $text === '/profil') {
-            $this->handleProfile($chatId, $from);
-        } elseif ($text === '/leaderboard' || $text === '/reyting') {
-            $this->handleLeaderboard($chatId);
-        } elseif ($text === '/books' || $text === '/kitoblar') {
-            $this->handleBooks($chatId);
-        } elseif ($text === '/menu') {
-            $this->showMenu($chatId);
+            $this->onStart($chatId, $text, $from);
+        } elseif ($text === '🏆 Reyting') {
+            $this->onLeaderboard($chatId);
+        } elseif ($text === '👤 Profil') {
+            $this->onProfile($chatId, $from);
+        } elseif ($text === '🔗 Taklif qilish') {
+            $this->onReferral($chatId, $from);
         }
     }
 
-    // ──────────────────────────────────────────────────────
-    //  CALLBACK ROUTER
-    // ──────────────────────────────────────────────────────
+    // ── CALLBACK ─────────────────────────────────────────
 
-    protected function handleCallbackQuery(array $callbackQuery): void
+    protected function onCallback(array $cb): void
     {
-        $chatId = $callbackQuery['message']['chat']['id'] ?? null;
-        $data = $callbackQuery['data'] ?? '';
-        $callbackId = $callbackQuery['id'];
-        $from = $callbackQuery['from'] ?? [];
+        $chatId = $cb['message']['chat']['id'] ?? null;
+        $data = $cb['data'] ?? '';
+        $from = $cb['from'] ?? [];
 
         if (!$chatId)
             return;
 
-        $this->telegram->answerCallbackQuery($callbackId);
+        $this->telegram->answerCallbackQuery($cb['id']);
 
         if ($data === 'check_channels') {
-            $this->handleCheckChannels($chatId, $from);
-            return;
+            $this->onCheckChannels($chatId, $from);
         }
-
-        // Har bir buyruq uchun kanal tekshiruvi
-        $userId = $from['id'] ?? $chatId;
-        if (!$this->userJoinedAllChannels($userId)) {
-            $this->sendJoinChannelsMessage($chatId);
-            return;
-        }
-
-        match ($data) {
-            'profile' => $this->handleProfile($chatId, $from),
-            'leaderboard' => $this->handleLeaderboard($chatId),
-            'books' => $this->handleBooks($chatId),
-            'referral' => $this->handleReferral($chatId, $from),
-            'menu' => $this->showMenu($chatId),
-            default => $this->handleOtherCallback($chatId, $data),
-        };
     }
 
-    // ──────────────────────────────────────────────────────
-    //  /start COMMAND
-    // ──────────────────────────────────────────────────────
+    // ── /start ───────────────────────────────────────────
 
-    protected function handleStart(int $chatId, string $text, array $from): void
+    protected function onStart(int $chatId, string $text, array $from): void
     {
-        $tgUser = [
-            'id' => $from['id'] ?? $chatId,
-            'username' => $from['username'] ?? null,
-            'first_name' => $from['first_name'] ?? '',
-            'last_name' => $from['last_name'] ?? '',
-        ];
-
-        // Referral ID ni parse qilish (/start 12345)
+        // Referral parse
         $referrerId = null;
         if (str_contains($text, ' ')) {
             $parts = explode(' ', $text);
@@ -135,128 +100,147 @@ class WebhookController
             }
         }
 
-        $user = $this->bookService->getOrCreateUser($tgUser, $referrerId);
-        $userId = $from['id'] ?? $chatId;
+        $user = $this->bookService->getOrCreateUser([
+            'id' => $from['id'] ?? $chatId,
+            'username' => $from['username'] ?? null,
+            'first_name' => $from['first_name'] ?? '',
+            'last_name' => $from['last_name'] ?? '',
+        ], $referrerId);
 
-        // Kanal tekshiruvi
-        if (!$this->userJoinedAllChannels($userId)) {
-            $this->sendAfisha($chatId);
-            $this->sendJoinChannelsMessage($chatId);
+        // 1. Telefon raqam yo'q — so'rash
+        if (empty($user->phone)) {
+            $this->telegram->sendMessage($chatId, "Assalomu alaykum, *{$user->first_name}*! 🎉\n\nTanlovda qatnashish uchun telefon raqamingizni yuboring:");
+            $this->telegram->sendContactRequest($chatId, "📱 Quyidagi tugmani bosing:");
             return;
         }
 
-        // Hammasi yaxshi — to'liq xush kelibsiz
+        // 2. Kanal tekshiruvi
+        $userId = $from['id'] ?? $chatId;
+        if (!$this->isJoinedAll($userId)) {
+            $this->sendAfisha($chatId);
+            $this->askJoinChannel($chatId);
+            return;
+        }
+
+        // 3. Hammasi tayyor
         $this->sendAfisha($chatId);
-        $this->sendReferralInfo($chatId, $user);
-        $this->showMenu($chatId);
+        $this->sendReferralLink($chatId, $user);
+        $this->sendMainKeyboard($chatId);
     }
 
-    // ──────────────────────────────────────────────────────
-    //  AFISHA (Konkurs ma'lumoti)
-    // ──────────────────────────────────────────────────────
+    // ── KONTAKT (telefon) ────────────────────────────────
 
-    protected function sendAfisha(int $chatId): void
+    protected function onContact(int $chatId, array $contact, array $from): void
     {
-        $text = <<<TEXT
-╔═══📚🌙🌸═══╗
-   *BAYRAMONA KONKURS*
-╚═══🌸🌙📚═══╝
+        $phone = $contact['phone_number'] ?? '';
+        $userId = $from['id'] ?? $chatId;
 
-Hayit va Navroʻz bayramlari munosabati bilan *"Nur kitoblar"* doʻkoni kitobxonlar uchun sovrinli tanlov eʼlon qiladi! 🎉
+        // Raqamni saqlash
+        $user = BookUser::where('telegram_id', $userId)->first();
+        if ($user) {
+            $user->update(['phone' => $phone]);
+        }
 
-🗓 *Muddati:* 21-martgacha
+        $this->telegram->sendMessage($chatId, "✅ Raqamingiz saqlandi: *{$phone}*");
 
-🎁 *Sovrinlar:*
+        // Kanal tekshiruvi
+        if (!$this->isJoinedAll($userId)) {
+            $this->sendAfisha($chatId);
+            $this->askJoinChannel($chatId);
+            return;
+        }
 
-🥇 *1-oʻrin* — Qurʼoni Karim (maʼnolarining tarjima va tafsiri)
-
-🥈 *2-oʻrin* — Odam boʻlish qiyin, Zirapcha qiz
-
-🥉 *3-oʻrin* — Lobar, Lobar, Lobarim mening, Gʻoyib boʻlgan atirgul
-
-🏅 *4-oʻrin* — Zamonga yengilma, Alanga ichidagi ayol
-
-🚀 Faol boʻling va gʻoliblar qatoridan joy oling!
-⚡️ Har bir qoʻshilgan odam sizni gʻalabaga yaqinlashtiradi!
-TEXT;
-
-        $this->telegram->sendMessage($chatId, $text);
+        $this->sendAfisha($chatId);
+        $this->sendReferralLink($chatId, $user);
+        $this->sendMainKeyboard($chatId);
     }
 
-    // ──────────────────────────────────────────────────────
-    //  KANAL TEKSHIRUVI
-    // ──────────────────────────────────────────────────────
+    // ── KANAL TEKSHIRUVI ─────────────────────────────────
 
-    protected function userJoinedAllChannels(int $userId): bool
+    protected function isJoinedAll(int $userId): bool
     {
-        foreach ($this->requiredChannels as $channel) {
-            if (!$this->telegram->isUserInChannel($channel['username'], $userId)) {
+        foreach ($this->requiredChannels as $ch) {
+            if (!$this->telegram->isUserInChannel($ch['username'], $userId)) {
                 return false;
             }
         }
         return true;
     }
 
-    protected function sendJoinChannelsMessage(int $chatId): void
+    protected function askJoinChannel(int $chatId): void
     {
         $keyboard = [];
-        foreach ($this->requiredChannels as $channel) {
-            $cleanName = ltrim($channel['username'], '@');
-            $keyboard[] = [['text' => $channel['name'], 'url' => "https://t.me/{$cleanName}"]];
+        foreach ($this->requiredChannels as $ch) {
+            $name = ltrim($ch['username'], '@');
+            $keyboard[] = [['text' => $ch['name'], 'url' => "https://t.me/{$name}"]];
         }
         $keyboard[] = [['text' => '✅ Tekshirish', 'callback_data' => 'check_channels']];
 
-        $text = "⚠️ *Tanlovda qatnashish uchun quyidagi kanalga aʼzo boʻling:*\n\n";
-        foreach ($this->requiredChannels as $channel) {
-            $text .= "{$channel['name']} — {$channel['username']}\n";
-        }
-        $text .= "\nAʼzo boʻlganingizdan soʻng *\"✅ Tekshirish\"* tugmasini bosing.";
-
-        $this->telegram->sendMessageWithKeyboard($chatId, $text, $keyboard);
+        $this->telegram->sendMessageWithKeyboard(
+            $chatId,
+            "⚠️ Tanlovda qatnashish uchun kanalga aʼzo boʻling va *\"✅ Tekshirish\"* tugmasini bosing.",
+            $keyboard
+        );
     }
 
-    protected function handleCheckChannels(int $chatId, array $from): void
+    protected function onCheckChannels(int $chatId, array $from): void
     {
         $userId = $from['id'] ?? $chatId;
 
-        if ($this->userJoinedAllChannels($userId)) {
-            $user = $this->bookService->getOrCreateUser([
-                'id' => $userId,
-                'username' => $from['username'] ?? null,
-                'first_name' => $from['first_name'] ?? '',
-                'last_name' => $from['last_name'] ?? '',
-            ]);
-
-            $this->telegram->sendMessage($chatId, "✅ *Ajoyib!* Siz kanalga aʼzo boʻlgansiz!");
-            $this->sendReferralInfo($chatId, $user);
-            $this->showMenu($chatId);
+        if ($this->isJoinedAll($userId)) {
+            $user = BookUser::where('telegram_id', $userId)->first();
+            $this->telegram->sendMessage($chatId, "✅ Ajoyib! Siz kanalga aʼzo boʻlgansiz!");
+            if ($user)
+                $this->sendReferralLink($chatId, $user);
+            $this->sendMainKeyboard($chatId);
         } else {
-            $this->telegram->sendMessage($chatId, "❌ Siz hali kanalga aʼzo boʻlmagansiz. Iltimos, avval kanalga qoʻshiling.");
-            $this->sendJoinChannelsMessage($chatId);
+            $this->telegram->sendMessage($chatId, "❌ Hali kanalga aʼzo boʻlmagansiz.");
+            $this->askJoinChannel($chatId);
         }
     }
 
-    // ──────────────────────────────────────────────────────
-    //  REFERRAL MA'LUMOTI
-    // ──────────────────────────────────────────────────────
+    // ── AFISHA ───────────────────────────────────────────
 
-    protected function sendReferralInfo(int $chatId, $user): void
+    protected function sendAfisha(int $chatId): void
     {
-        $botInfo = $this->telegram->getMe();
-        $botUsername = $botInfo['result']['username'] ?? 'bot';
-        $referralLink = "https://t.me/{$botUsername}?start={$user->telegram_id}";
-
-        $text = "👥 Doʻstlaringizni taklif qiling va har bir doʻstingiz uchun *1 ball* oling!\n\n";
-        $text .= "🔗 *Sizning havolangiz:*\n`{$referralLink}`";
+        $text = "╔═══📚🌙🌸═══╗\n";
+        $text .= "   *BAYRAMONA KONKURS*\n";
+        $text .= "╚═══🌸🌙📚═══╝\n\n";
+        $text .= "🎉 *\"Nur kitoblar\"* doʻkonidan sovrinli tanlov!\n\n";
+        $text .= "🗓 Muddati: *21-martgacha*\n\n";
+        $text .= "🥇 1-oʻrin — Qurʼoni Karim\n";
+        $text .= "🥈 2-oʻrin — 2 ta kitob\n";
+        $text .= "🥉 3-oʻrin — 2 ta kitob\n";
+        $text .= "🏅 4-oʻrin — 2 ta kitob\n\n";
+        $text .= "⚡️ Har bir doʻstingiz = *1 ball*";
 
         $this->telegram->sendMessage($chatId, $text);
     }
 
-    // ──────────────────────────────────────────────────────
-    //  PROFIL
-    // ──────────────────────────────────────────────────────
+    // ── REFERRAL LINK ────────────────────────────────────
 
-    protected function handleProfile(int $chatId, array $from): void
+    protected function sendReferralLink(int $chatId, $user): void
+    {
+        $botInfo = $this->telegram->getMe();
+        $username = $botInfo['result']['username'] ?? 'bot';
+        $link = "https://t.me/{$username}?start={$user->telegram_id}";
+
+        $this->telegram->sendMessage($chatId, "🔗 *Sizning havolangiz:*\n`{$link}`\n\nDoʻstlaringizga yuboring!");
+    }
+
+    // ── ASOSIY KEYBOARD (pastdan chiqadigan) ─────────────
+
+    protected function sendMainKeyboard(int $chatId): void
+    {
+        $this->telegram->sendMessageWithReplyKeyboard($chatId, "📋 Menyu:", [
+            [['text' => '🏆 Reyting'], ['text' => '👤 Profil']],
+            [['text' => '🔗 Taklif qilish']],
+        ]);
+    }
+
+    // ── PROFIL ───────────────────────────────────────────
+
+    protected function onProfile(int $chatId, array $from): void
     {
         $user = $this->bookService->getOrCreateUser([
             'id' => $from['id'] ?? $chatId,
@@ -265,84 +249,47 @@ TEXT;
             'last_name' => $from['last_name'] ?? '',
         ]);
 
-        $botInfo = $this->telegram->getMe();
-        $botUsername = $botInfo['result']['username'] ?? 'bot';
-        $referralLink = "https://t.me/{$botUsername}?start={$user->telegram_id}";
-
         $name = $user->first_name ?: 'Foydalanuvchi';
-        $referralCount = $user->referrals()->count();
+        $count = $user->referrals()->count();
 
-        $text = "👤 *{$name} — Profil*\n\n";
-        $text .= "💰 Ballaringiz: *{$user->points}*\n";
-        $text .= "👥 Taklif qilganlaringiz: *{$referralCount}* ta\n\n";
-        $text .= "🔗 *Sizning havolangiz:*\n`{$referralLink}`";
+        $botInfo = $this->telegram->getMe();
+        $username = $botInfo['result']['username'] ?? 'bot';
+        $link = "https://t.me/{$username}?start={$user->telegram_id}";
 
-        $this->telegram->sendMessageWithKeyboard($chatId, $text, [
-            [['text' => '🔙 Menyu', 'callback_data' => 'menu']],
-        ]);
+        $text = "👤 *{$name}*\n\n";
+        $text .= "💰 Ball: *{$user->points}*\n";
+        $text .= "👥 Taklif: *{$count}* ta\n";
+        $text .= "📱 Raqam: {$user->phone}\n\n";
+        $text .= "🔗 Havola:\n`{$link}`";
+
+        $this->telegram->sendMessage($chatId, $text);
     }
 
-    // ──────────────────────────────────────────────────────
-    //  REYTING (Leaderboard)
-    // ──────────────────────────────────────────────────────
+    // ── REYTING ──────────────────────────────────────────
 
-    protected function handleLeaderboard(int $chatId): void
+    protected function onLeaderboard(int $chatId): void
     {
         $leaders = $this->bookService->getLeaderboard(10);
 
-        $text = "🏆 *Top 10 — Eng faol ishtirokchilar*\n\n";
+        $text = "🏆 *Top 10*\n\n";
+        $medals = ['🥇', '🥈', '🥉'];
+
+        foreach ($leaders as $i => $l) {
+            $m = $medals[$i] ?? ($i + 1) . '.';
+            $n = $l->first_name ?: 'Foydalanuvchi';
+            $text .= "{$m} {$n} — *{$l->points}* ball\n";
+        }
 
         if ($leaders->isEmpty()) {
-            $text .= "Hozircha ishtirokchilar yoʻq. Birinchi boʻling! 🚀";
-        } else {
-            $medals = ['🥇', '🥈', '🥉'];
-            foreach ($leaders as $index => $leader) {
-                $name = $leader->first_name ?: 'Foydalanuvchi';
-                $medal = $medals[$index] ?? ($index + 1) . '.';
-                $text .= "{$medal} {$name} — *{$leader->points}* ball\n";
-            }
+            $text .= "Hozircha ishtirokchilar yoʻq.";
         }
 
-        $this->telegram->sendMessageWithKeyboard($chatId, $text, [
-            [['text' => '🔙 Menyu', 'callback_data' => 'menu']],
-        ]);
+        $this->telegram->sendMessage($chatId, $text);
     }
 
-    // ──────────────────────────────────────────────────────
-    //  KITOBLAR
-    // ──────────────────────────────────────────────────────
+    // ── TAKLIF QILISH ────────────────────────────────────
 
-    protected function handleBooks(int $chatId): void
-    {
-        $books = \App\Modules\Book\Models\Book::all();
-
-        if ($books->isEmpty()) {
-            $this->telegram->sendMessageWithKeyboard(
-                $chatId,
-                "📚 Hozircha kitoblar roʻyxati boʻsh.\nTez kunda yangi kitoblar qoʻshiladi!",
-                [[['text' => '🔙 Menyu', 'callback_data' => 'menu']]]
-            );
-            return;
-        }
-
-        $this->telegram->sendMessage($chatId, "📚 *Mavjud kitoblar:*");
-
-        foreach ($books as $book) {
-            $text = "📖 *{$book->title}*\n";
-            $text .= "✍️ {$book->author}\n";
-            $text .= "💰 {$book->price} soʻm | 📦 {$book->stock} dona";
-
-            $this->telegram->sendMessageWithKeyboard($chatId, $text, [
-                [['text' => '🛒 Sotib olish', 'callback_data' => "buy_{$book->id}"]],
-            ]);
-        }
-    }
-
-    // ──────────────────────────────────────────────────────
-    //  REFERRAL (Taklif qilish)
-    // ──────────────────────────────────────────────────────
-
-    protected function handleReferral(int $chatId, array $from): void
+    protected function onReferral(int $chatId, array $from): void
     {
         $user = $this->bookService->getOrCreateUser([
             'id' => $from['id'] ?? $chatId,
@@ -351,40 +298,6 @@ TEXT;
             'last_name' => $from['last_name'] ?? '',
         ]);
 
-        $this->sendReferralInfo($chatId, $user);
-    }
-
-    // ──────────────────────────────────────────────────────
-    //  BOSHQA CALLBACK
-    // ──────────────────────────────────────────────────────
-
-    protected function handleOtherCallback(int $chatId, string $data): void
-    {
-        if (str_starts_with($data, 'buy_')) {
-            $bookId = str_replace('buy_', '', $data);
-            $book = \App\Modules\Book\Models\Book::find($bookId);
-            $bookName = $book ? $book->title : "#{$bookId}";
-            $this->telegram->sendMessage(
-                $chatId,
-                "📖 *{$bookName}* kitobini sotib olish uchun doʻkonga tashrif buyuring:\n\n🔗 @nurkitoblari\\_m"
-            );
-        }
-    }
-
-    // ──────────────────────────────────────────────────────
-    //  MENYU
-    // ──────────────────────────────────────────────────────
-
-    protected function showMenu(int $chatId): void
-    {
-        $this->telegram->sendMessageWithKeyboard($chatId, "📋 *Asosiy menyu:*", [
-            [
-                ['text' => '🏆 Reyting', 'callback_data' => 'leaderboard'],
-                ['text' => '👤 Profil', 'callback_data' => 'profile'],
-            ],
-            [
-                ['text' => '🔗 Taklif qilish', 'callback_data' => 'referral'],
-            ],
-        ]);
+        $this->sendReferralLink($chatId, $user);
     }
 }
