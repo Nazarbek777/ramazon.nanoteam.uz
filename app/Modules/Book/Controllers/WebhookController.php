@@ -145,8 +145,8 @@ class WebhookController
         }
 
         // Tayyor (mavjud foydalanuvchi uchun xush kelibsiz)
-        $this->telegram->sendMessage($chatId, "🌙 <b>Ramazon hayiti munosabati bilan ajoyib konkurs!</b>\n\nSiz ro'yxatdan o'tgansiz. Konkursda omad tilaymiz! 🎁");
-        $this->sendMainKeyboard($chatId);
+        $text = "🌙 <b>Ramazon hayiti munosabati bilan ajoyib konkurs!</b>\n\nSiz ro'yxatdan o'tgansiz. Konkursda omad tilaymiz! 🎁";
+        $this->sendMainKeyboard($chatId, $text);
     }
 
     // ── KONTAKT (telefon) ────────────────────────────────
@@ -174,8 +174,8 @@ class WebhookController
             return;
         }
 
-        $this->telegram->sendMessage($chatId, "✅ Raqam saqlandi! Konkursda ishtirok etishni boshlashingiz mumkin.");
-        $this->sendMainKeyboard($chatId);
+        $text = "✅ Raqam saqlandi! Konkursda ishtirok etishni boshlashingiz mumkin.";
+        $this->sendMainKeyboard($chatId, $text);
     }
 
     // ── KANAL TEKSHIRUVI ─────────────────────────────────
@@ -210,8 +210,8 @@ class WebhookController
 
         if ($this->isJoinedAll($userId)) {
             $user = BookUser::where('telegram_id', $userId)->first();
-            $this->telegram->sendMessage($chatId, "✅ Ajoyib! Siz barcha guruhlarga aʼzo boʻldingiz!");
-            $this->sendMainKeyboard($chatId);
+            $text = "✅ Ajoyib! Siz barcha guruhlarga aʼzo boʻldingiz!";
+            $this->sendMainKeyboard($chatId, $text);
         } else {
             $this->telegram->sendMessage($chatId, "❌ Hali guruhlarga aʼzo boʻlmagansiz.");
             $this->askJoinChannel($chatId);
@@ -268,9 +268,10 @@ class WebhookController
 
     // ── ASOSIY KEYBOARD (pastdan chiqadigan) ─────────────
 
-    protected function sendMainKeyboard(int $chatId): void
+    protected function sendMainKeyboard(int $chatId, string $text = null): void
     {
-        $this->telegram->sendMessageWithReplyKeyboard($chatId, "📋 Menyu:\n🗓 15-mart — 21-mart", [
+        $message = $text ?? "📋 Asosiy menyu:";
+        $this->telegram->sendMessageWithReplyKeyboard($chatId, $message, [
             [['text' => '🏆 Reyting'], ['text' => '👤 Profil']],
             [['text' => '🔗 Taklif qilish']],
             [['text' => '🎁 Sovrinlar'], ['text' => '📋 Yoʻriqnoma']],
