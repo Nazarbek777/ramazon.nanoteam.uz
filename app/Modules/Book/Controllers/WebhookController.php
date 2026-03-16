@@ -269,7 +269,7 @@ class WebhookController
         $text .= "📚 Zamonga yengilma\n";
         $text .= "📚 Alanga ichidagi ayol\n\n";
         $text .= "🎲 <b>Tasodifiy g'oliblar: (2 ta)</b>\n";
-        $text .= "📚 Tasodifiy tanlangan 2 nafar o'z omadini sinab ko'rgan obunachimizga ham 1 tadan kitob sovg'a qilinadi!\n\n";
+        $text .= "📚 10 tadan ko'p odam qo'shgan ishtirokchilar orasidan 2 nafar tasodifiy g'oliblar tanlanadi va 1 tadan kitob sovg'a qilinadi!\n\n";
         $text .= "👥 Doʻstlaringizni taklif qiling va qimmatli kitoblarni yutib oling!\n\n";
         $text .= "🚀 Faol boʻling va gʻoliblar qatoridan joy oling!\n";
         $text .= "⚡️ Har bir qoʻshilgan odam sizni gʻalabaga yaqinlashtiradi!";
@@ -342,7 +342,7 @@ class WebhookController
         $text .= "🥈 2-oʻrin — 2 ta kitob\n";
         $text .= "🥉 3-oʻrin — 2 ta kitob\n";
         $text .= "🏅 4-oʻrin — 2 ta kitob\n";
-        $text .= "🎲 Tasodifiy g'oliblar (2 ta) — 1 tadan kitob\n\n";
+        $text .= "🎲 Tasodifiy g'oliblar (2 ta) — 1 tadan kitob (10 tadan ko'p do'stini qo'shganlar orasidan)\n\n";
 
         $text .= "━━━━━━━━━━━━━━━━━━\n";
 
