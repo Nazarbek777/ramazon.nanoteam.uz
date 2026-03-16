@@ -113,6 +113,21 @@ class WebhookController
 
     protected function onStart(int $chatId, string $text, array $from): void
     {
+        $now = now()->setTimezone('Asia/Tashkent');
+        $startTime = \Carbon\Carbon::create(2026, 3, 16, 10, 0, 0, 'Asia/Tashkent');
+        $endTime = \Carbon\Carbon::create(2026, 3, 21, 21, 0, 0, 'Asia/Tashkent');
+
+        if ($now->lt($startTime)) {
+            $this->telegram->sendMessage($chatId, "⏳ Konkursimiz hali boshlanmadi.\n\nBoshlanish vaqti: <b>Bugun 10:00 da</b>.\nIltimos, keyinroq qayta urinib ko'ring!");
+            return;
+        }
+
+        if ($now->gt($endTime)) {
+            $this->telegram->sendMessage($chatId, "🏁 Konkursimiz o'z nihoyasiga yetdi (21-mart 21:00).\n\nNatijalarni kutib qoling. Faolligingiz uchun rahmat!");
+            $this->sendMainKeyboard($chatId);
+            return;
+        }
+
         $referrerId = null;
         if (str_contains($text, ' ')) {
             $parts = explode(' ', $text);
@@ -239,6 +254,8 @@ class WebhookController
         $text .= "🏅 <b>4-oʻrin</b>\n";
         $text .= "📚 Zamonga yengilma\n";
         $text .= "📚 Alanga ichidagi ayol\n\n";
+        $text .= "🎲 <b>Tasodifiy g'oliblar: (2 ta)</b>\n";
+        $text .= "📚 Tasodifiy tanlangan 2 nafar o'z omadini sinab ko'rgan obunachimizga ham 1 tadan kitob sovg'a qilinadi!\n\n";
         $text .= "👥 Doʻstlaringizni taklif qiling va qimmatli kitoblarni yutib oling!\n\n";
         $text .= "🚀 Faol boʻling va gʻoliblar qatoridan joy oling!\n";
         $text .= "⚡️ Har bir qoʻshilgan odam sizni gʻalabaga yaqinlashtiradi!";
@@ -250,6 +267,14 @@ class WebhookController
 
     protected function sendReferralLink(int $chatId, $user): void
     {
+        $now = now()->setTimezone('Asia/Tashkent');
+        $endTime = \Carbon\Carbon::create(2026, 3, 21, 21, 0, 0, 'Asia/Tashkent');
+
+        if ($now->gt($endTime)) {
+            $this->telegram->sendMessage($chatId, "🏁 Konkurs tugaganligi sahali havola berilmaydi.");
+            return;
+        }
+
         $botInfo = $this->telegram->getMe();
         $username = $botInfo['result']['username'] ?? 'bot';
         $link = "https://t.me/{$username}?start={$user->telegram_id}";
@@ -301,7 +326,8 @@ class WebhookController
         $text .= "🥇 1-oʻrin — Qurʼoni Karim (tarjima va tafsiri)\n";
         $text .= "🥈 2-oʻrin — 2 ta kitob\n";
         $text .= "🥉 3-oʻrin — 2 ta kitob\n";
-        $text .= "🏅 4-oʻrin — 2 ta kitob\n\n";
+        $text .= "🏅 4-oʻrin — 2 ta kitob\n";
+        $text .= "🎲 Tasodifiy g'oliblar (2 ta) — 1 tadan kitob\n\n";
 
         $text .= "━━━━━━━━━━━━━━━━━━\n";
 
