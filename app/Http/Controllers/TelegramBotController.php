@@ -28,6 +28,12 @@ class TelegramBotController extends Controller
 
             if (isset($update['message'])) {
                 $chatId = $update['message']['chat']['id'];
+                $userId = $update['message']['from']['id'] ?? $chatId;
+
+                if (!$this->checkChannelMembership($userId)) {
+                    $this->sendSubscriptionRequest($chatId);
+                    return response()->json(['status' => 'success']);
+                }
 
                 // Contact message (Phone Number)
                 if (isset($update['message']['contact'])) {
@@ -47,7 +53,35 @@ class TelegramBotController extends Controller
             // Handle inline button callbacks
             if (isset($update['callback_query'])) {
                 $callbackData = $update['callback_query']['data'] ?? '';
-                $chatId = $update['callback_query']['from']['id'];
+                $chatId = $update['callback_query']['message']['chat']['id'] ?? $update['callback_query']['from']['id'];
+                $userId = $update['callback_query']['from']['id'];
+
+                if ($callbackData === 'check_subscription') {
+                    if ($this->checkChannelMembership($userId)) {
+                        $this->callTelegramApi("https://api.telegram.org/bot{$this->token}/answerCallbackQuery", [
+                            'callback_query_id' => $update['callback_query']['id'],
+                            'text' => "✅ Tabriklaymiz, guruhlarga a'zo bo'lganingiz tasdiqlandi!",
+                            'show_alert' => true,
+                        ]);
+                        $this->callTelegramApi("https://api.telegram.org/bot{$this->token}/deleteMessage", [
+                            'chat_id' => $chatId,
+                            'message_id' => $update['callback_query']['message']['message_id']
+                        ]);
+                        $this->sendStartMessage($chatId, $update['callback_query']['from']);
+                    } else {
+                        $this->callTelegramApi("https://api.telegram.org/bot{$this->token}/answerCallbackQuery", [
+                            'callback_query_id' => $update['callback_query']['id'],
+                            'text' => "❌ Iltimos, barcha guruhlarga a'zo bo'ling!",
+                            'show_alert' => true,
+                        ]);
+                    }
+                    return response()->json(['status' => 'success']);
+                }
+
+                if (!$this->checkChannelMembership($userId)) {
+                    $this->sendSubscriptionRequest($chatId);
+                    return response()->json(['status' => 'success']);
+                }
 
                 if ($callbackData === 'yoriqnoma') {
                     $this->sendYoriqnoma($chatId);
@@ -95,25 +129,14 @@ class TelegramBotController extends Controller
     private function sendYoriqnoma($chatId, $withSubjectsButton = false)
     {
         $text = "📋 <b>YORIQNOMA</b>\n\n";
-        $text .= "🌟 Maktabgacha ta'lim tarbiyachilari uchun test boti!\n\n";
-        $text .= "📌 <b>Qanday foydalanish:</b>\n";
-        $text .= "1️⃣ Fanlardan birini tanlang\n";
-        $text .= "2️⃣ Testni boshlang\n";
-        $text .= "3️⃣ Natijangizni ko'ring\n\n";
-        $text .= "📢 <b>Kanal:</b> @attestatsiya_jamoa\n";
-        $text .= "👤 <b>Admin:</b> @abdullayevna_jamoa\n\n";
-        $text .= "Kursga qo'shilmoqchi bo'lsangiz — adminimizga yozing! 👆";
+        $text .= "📚 <b>Nur kitoblari</b> konkursida ishtirok etish qoidalari:\n\n";
+        $text .= "📌 <b>Qanday qatnashasiz:</b>\n";
+        $text .= "1️⃣ Ko'rsatilgan guruhlarga a'zo bo'ling\n";
+        $text .= "2️⃣ Do'stlaringizni taklif qiling\n";
+        $text .= "3️⃣ Faol bo'ling va g'olibga aylaning!\n\n";
+        $text .= "📞 <b>Murojaat uchun:</b> Guruhlardagi adminlar orqali bog'lanishingiz mumkin.";
 
         $extra = ['parse_mode' => 'HTML'];
-
-        if ($withSubjectsButton) {
-            $extra['reply_markup'] = json_encode([
-                'inline_keyboard' => [[[
-                    'text' => '📚 Testlarni boshlash',
-                    'callback_data' => 'show_subjects'
-                ]]]
-            ]);
-        }
 
         $this->sendMessage($chatId, $text, $extra);
     }
@@ -125,7 +148,10 @@ class TelegramBotController extends Controller
 
         if (!$user) {
             // Ask for phone number first
-            $message = "Assalomu alaykum! 👋\nBotdan foydalanish uchun telefon raqamingizni yuboring:";
+            $message = "Assalomu alaykum! 📚 <b>Nur kitoblari</b> konkursiga xush kelibsiz!\n\n";
+            $message .= "Konkursda ishtirok etish va ajoyib sovg'alarga ega bo'lish uchun ro'yxatdan o'tishingiz kerak. 🎁\n\n";
+            $message .= "Boshlash uchun pastdagi tugmani bosib, telefon raqamingizni yuboring 👇";
+
             $keyboard = json_encode([
                 'keyboard' => [
                     [['text' => '📱 Telefon raqamni yuborish', 'request_contact' => true]]
@@ -137,6 +163,7 @@ class TelegramBotController extends Controller
             $this->callTelegramApi("https://api.telegram.org/bot{$this->token}/sendMessage", [
                 'chat_id' => $chatId,
                 'text' => $message,
+                'parse_mode' => 'HTML',
                 'reply_markup' => $keyboard
             ]);
             return;
@@ -195,6 +222,51 @@ class TelegramBotController extends Controller
             'chat_id' => $chatId,
             'text' => $message,
             'parse_mode' => 'Markdown',
+            'reply_markup' => $keyboard
+        ]);
+    }
+
+    private function checkChannelMembership($userId)
+    {
+        $channels = ['@Nurkitoblari_m1', '@NurArt_uz'];
+        foreach ($channels as $channel) {
+            $response = $this->callTelegramApi("https://api.telegram.org/bot{$this->token}/getChatMember", [
+                'chat_id' => $channel,
+                'user_id' => $userId
+            ]);
+            $data = json_decode($response, true);
+            if (!isset($data['result']['status']) || in_array($data['result']['status'], ['left', 'kicked'])) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private function sendSubscriptionRequest($chatId)
+    {
+        $text = "⚠️ <b>Diqqat!</b>\n\nBotdan to'liq foydalanish va konkursda qatnashish uchun quyidagi guruhlarga a'zo bo'lishingiz shart:\n\n";
+        $text .= "1️⃣ @Nurkitoblari_m1\n";
+        $text .= "2️⃣ @NurArt_uz\n\n";
+        $text .= "<i>Guruhlarga a'zo bo'lgach «A'zolikni tekshirish» tugmasini bosing.</i>";
+
+        $keyboard = json_encode([
+            'inline_keyboard' => [
+                [
+                    ['text' => "1-guruhga qo'shilish", 'url' => 'https://t.me/Nurkitoblari_m1']
+                ],
+                [
+                    ['text' => "2-guruhga qo'shilish", 'url' => 'https://t.me/NurArt_uz']
+                ],
+                [
+                    ['text' => "✅ A'zolikni tekshirish", 'callback_data' => 'check_subscription']
+                ]
+            ]
+        ]);
+
+        $this->callTelegramApi("https://api.telegram.org/bot{$this->token}/sendMessage", [
+            'chat_id' => $chatId,
+            'text' => $text,
+            'parse_mode' => 'HTML',
             'reply_markup' => $keyboard
         ]);
     }
