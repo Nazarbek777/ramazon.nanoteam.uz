@@ -15,7 +15,8 @@ class WebhookController
     protected BookService $bookService;
 
     protected array $requiredChannels = [
-        ['username' => '@nurkitoblari_m', 'name' => '📢 Nur kitoblar'],
+        ['username' => '@Nurkitoblari_m1', 'name' => '📢 Nur kitoblar'],
+        ['username' => '@NurArt_uz', 'name' => '🎨 Nur Art'],
     ];
 
     public function __construct()
@@ -132,7 +133,7 @@ class WebhookController
         if (empty($user->phone)) {
             $this->telegram->sendContactRequest(
                 $chatId,
-                "Assalomu alaykum! 🎉\n\"Nur kitoblar\" doʻkoni tomonidan oʻtkaziladigan bayramona tanlovga xush kelibsiz!\n\n🎁 Ishtirok etish uchun roʻyxatdan oʻting 👇"
+                "🌙 <b>Ramazon hayiti munosabati bilan ajoyib konkurs!</b>\n\nAssalomu alaykum! 🎉\n\"Nur kitoblar\" doʻkoni konkursiga xush kelibsiz!\n\n🎁 Ishtirok etish va sovg'alarga ega bo'lish uchun telefon raqamingizni yuboring 👇"
             );
             return;
         }
@@ -145,7 +146,7 @@ class WebhookController
         }
 
         // Tayyor (mavjud foydalanuvchi uchun xush kelibsiz)
-        $this->telegram->sendMessage($chatId, "Assalomu alaykum! 👋\n\"Nur kitoblar\" doʻkoni tanlovida ishtirok etayotganingizdan xursandmiz!");
+        $this->telegram->sendMessage($chatId, "🌙 <b>Ramazon hayiti munosabati bilan ajoyib konkurs!</b>\n\nSiz boshlashga tayyorsiz! Qimmatbaho sovg'alar sizni kutmoqda. 🎁");
         $this->sendAfisha($chatId);
         $this->sendReferralLink($chatId, $user);
         $this->sendMainKeyboard($chatId);
@@ -207,7 +208,7 @@ class WebhookController
 
         $this->telegram->sendMessageWithKeyboard(
             $chatId,
-            "⚠️ Tanlovda qatnashish uchun kanalga aʼzo boʻling va <b>\"✅ Tekshirish\"</b> tugmasini bosing.",
+            "⚠️ Botdan to'liq foydalanish va konkursda qatnashish uchun quyidagi guruhlarga a'zo bo'lishingiz shart.\n\nA'zo bo'lgach <b>\"✅ Tekshirish\"</b> tugmasini bosing.",
             $keyboard
         );
     }
@@ -218,12 +219,12 @@ class WebhookController
 
         if ($this->isJoinedAll($userId)) {
             $user = BookUser::where('telegram_id', $userId)->first();
-            $this->telegram->sendMessage($chatId, "✅ Ajoyib! Siz kanalga aʼzo boʻlgansiz!");
+            $this->telegram->sendMessage($chatId, "✅ Ajoyib! Siz guruhlarga aʼzo boʻlgansiz!");
             if ($user)
                 $this->sendReferralLink($chatId, $user);
             $this->sendMainKeyboard($chatId);
         } else {
-            $this->telegram->sendMessage($chatId, "❌ Hali kanalga aʼzo boʻlmagansiz.");
+            $this->telegram->sendMessage($chatId, "❌ Hali guruhlarga aʼzo boʻlmagansiz.");
             $this->askJoinChannel($chatId);
         }
     }
@@ -235,7 +236,7 @@ class WebhookController
         $text = "<b>╔═══📚🌙🌸═══╗\n";
         $text .= "   BAYRAMONA KONKURS\n";
         $text .= "╚═══🌸🌙📚═══╝</b>\n\n";
-        $text .= "Hayit va Navroʻz bayramlari munosabati bilan <b>\"Nur kitoblar\"</b> doʻkoni kitobxonlar uchun sovrinli tanlov eʼlon qiladi! 🎉\n\n";
+        $text .= "Ramazon hayiti munosabati bilan <b>\"Nur kitoblar\"</b> doʻkoni yirik sovrinli konkursni eʼlon qiladi! 🎉\n\n";
         $text .= "🎁 <b>Sovrinlar:</b>\n\n";
         $text .= "🥇 <b>1-oʻrin</b>\n";
         $text .= "📖 Qurʼoni Karim\n";
@@ -291,27 +292,20 @@ class WebhookController
 
     protected function sendYoriqnoma(int $chatId): void
     {
-        $text = "📋 <b>YOʻRIQNOMA</b>\n";
+        $text = "📋 <b>QOIDA VA SHARTLAR</b>\n";
         $text .= "━━━━━━━━━━━━━━━━━━\n\n";
 
-        $text .= "📌 <b>Tanlov haqida:</b>\n";
-        $text .= "\"Nur kitoblar\" doʻkoni Hayit va Navroʻz bayramlari munosabati bilan kitobxonlar oʻrtasida tanlov eʼlon qiladi.\n\n";
-
-        $text .= "🗓 <b>Muddat:</b>\n";
-        $text .= "Boshlanish: <b>15-mart</b>\n";
-        $text .= "Tugash: <b>21-mart</b>\n\n";
+        $text .= "📌 <b>Konkurs haqida:</b>\n";
+        $text .= "\"Nur kitoblar\" doʻkoni Ramazon hayiti munosabati bilan konkurs eʼlon qiladi.\n\n";
 
         $text .= "📝 <b>Qanday qatnashish mumkin:</b>\n";
         $text .= "1️⃣ Botga /start bosib roʻyxatdan oʻting\n";
         $text .= "2️⃣ Telefon raqamingizni yuboring\n";
-        $text .= "3️⃣ Kanalga aʼzo boʻling\n";
-        $text .= "4️⃣ Doʻstlaringizga referral havolangizni yuboring\n\n";
+        $text .= "3️⃣ Kerakli guruhlarga aʼzo boʻling\n";
+        $text .= "4️⃣ Doʻstlaringizga o'z havolangizni yuboring\n\n";
 
         $text .= "⚡️ <b>Ball tizimi:</b>\n";
-        $text .= "Har bir doʻstingiz sizning havolangiz orqali botga qoʻshilsa, sizga <b>1 ball</b> beriladi.\n\n";
-
-        $text .= "🏆 <b>Gʻoliblar qanday aniqlanadi:</b>\n";
-        $text .= "21-mart kuni eng koʻp ball toʻplagan <b>4 nafar</b> ishtirokchi gʻolib deb topiladi.\n\n";
+        $text .= "Sizning havolangiz orqali kirgan har bir doʻstingiz uchun <b>1 ball</b> beriladi.\n\n";
 
         $text .= "🎁 <b>Sovrinlar:</b>\n";
         $text .= "🥇 1-oʻrin — Qurʼoni Karim (tarjima va tafsiri)\n";
@@ -320,7 +314,6 @@ class WebhookController
         $text .= "🏅 4-oʻrin — 2 ta kitob\n\n";
 
         $text .= "━━━━━━━━━━━━━━━━━━\n";
-        $text .= "🔗 @nurkitoblari_m";
 
         $this->telegram->sendMessage($chatId, $text);
     }
