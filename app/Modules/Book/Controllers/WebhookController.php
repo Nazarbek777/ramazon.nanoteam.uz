@@ -324,8 +324,9 @@ class WebhookController
         $text = "📋 <b>QOIDA VA SHARTLAR</b>\n";
         $text .= "━━━━━━━━━━━━━━━━━━\n\n";
 
-        $text .= "📌 <b>Konkurs haqida:</b>\n";
-        $text .= "\"Nur kitoblar\" doʻkoni Ramazon hayiti munosabati bilan konkurs eʼlon qiladi.\n\n";
+        $text .= "🗓 <b>Muddat:</b>\n";
+        $text .= "Boshlanish: <b>16-mart 10:00</b>\n";
+        $text .= "Tugash: <b>21-mart 21:00</b>\n\n";
 
         $text .= "📝 <b>Qanday qatnashish mumkin:</b>\n";
         $text .= "1️⃣ Botga /start bosib roʻyxatdan oʻting\n";
