@@ -121,20 +121,35 @@ class TelegramBotController extends Controller
             ]
         );
 
-        $this->sendMessage($telegramId, "✅ Rahmat! Ma'lumotlaringiz saqlandi.");
-        // Show yoriqnoma first, then subjects
-        $this->sendYoriqnoma($telegramId, true);
+        $this->sendMessage($telegramId, "✅ Rahmat! Ma'lumotlaringiz muvaffaqiyatli saqlandi.");
+        $this->sendMainMenu($telegramId);
     }
 
-    private function sendYoriqnoma($chatId, $withSubjectsButton = false)
+    private function sendMainMenu($chatId)
     {
-        $text = "📋 <b>YORIQNOMA</b>\n\n";
-        $text .= "📚 <b>Nur kitoblari</b> konkursida ishtirok etish qoidalari:\n\n";
-        $text .= "📌 <b>Qanday qatnashasiz:</b>\n";
-        $text .= "1️⃣ Ko'rsatilgan guruhlarga a'zo bo'ling\n";
-        $text .= "2️⃣ Do'stlaringizni taklif qiling\n";
-        $text .= "3️⃣ Faol bo'ling va g'olibga aylaning!\n\n";
-        $text .= "📞 <b>Murojaat uchun:</b> Guruhlardagi adminlar orqali bog'lanishingiz mumkin.";
+        $text = "🌙 <b>Ramazon hayiti munosabati bilan ajoyib konkurs!</b>\n\n";
+        $text .= "Siz boshlashga tayyorsiz! Qimmatbaho sovg'alar sizni kutmoqda. 🎁\n\n";
+        $text .= "👇 Konkursda ishtirok etish uchun pastdagi tugmani bosing:";
+
+        $extra = [
+            'parse_mode' => 'HTML',
+            'reply_markup' => json_encode([
+                'inline_keyboard' => [[[
+                    'text' => '🚀 Konkursni boshlash',
+                    'callback_data' => 'show_subjects'
+                ]]]
+            ])
+        ];
+
+        $this->sendMessage($chatId, $text, $extra);
+    }
+
+    private function sendYoriqnoma($chatId)
+    {
+        $text = "📋 <b>QOIDA VA SHARTLAR</b>\n\n";
+        $text .= "1️⃣ Ko'rsatilgan barcha guruhlarga a'zo bo'lish.\n";
+        $text .= "2️⃣ Faol ishtirok etish va testlarni ishlash.\n\n";
+        $text .= "🎉 <b>Barchaga omad tilaymiz!</b>";
 
         $extra = ['parse_mode' => 'HTML'];
 
@@ -148,9 +163,9 @@ class TelegramBotController extends Controller
 
         if (!$user) {
             // Ask for phone number first
-            $message = "Assalomu alaykum! 📚 <b>Nur kitoblari</b> konkursiga xush kelibsiz!\n\n";
-            $message .= "Konkursda ishtirok etish va ajoyib sovg'alarga ega bo'lish uchun ro'yxatdan o'tishingiz kerak. 🎁\n\n";
-            $message .= "Boshlash uchun pastdagi tugmani bosib, telefon raqamingizni yuboring 👇";
+            $message = "🌙 <b>Ramazon hayiti munosabati bilan ajoyib konkurs!</b>\n\n";
+            $message .= "Assalomu alaykum! 📚 <b>Nur kitoblari</b> botiga xush kelibsiz!\n\n";
+            $message .= "Konkursda ishtirok etish va sovg'alarga ega bo'lish uchun telefon raqamingizni yuboring 👇";
 
             $keyboard = json_encode([
                 'keyboard' => [
@@ -169,8 +184,8 @@ class TelegramBotController extends Controller
             return;
         }
 
-        // User exists — show yoriqnoma first, then subjects
-        $this->sendYoriqnoma($chatId, true);
+        // User exists — show main menu
+        $this->sendMainMenu($chatId);
     }
 
     private function sendSubjectsMenu($chatId)
