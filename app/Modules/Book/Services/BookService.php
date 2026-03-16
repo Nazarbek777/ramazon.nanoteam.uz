@@ -38,18 +38,22 @@ class BookService
                     'referrer_id' => $referrerId,
                 ]);
 
-                if ($referrerId) {
-                    $this->processReferral($referrerId, $user->id);
-                }
+                // Referrerni saqlaymiz, lekin ballni telefon kiritilganda beramiz
             }
 
             return $user;
         });
     }
 
-    protected function processReferral(int $referrerId, int $referredId): void
+    public function processReferral(int $referrerId, int $referredId): void
     {
-        $points = 1; // Default points for referral
+        // Oldinroq ball berilganligini tekshiramiz
+        $exists = Referral::where('referred_id', $referredId)->exists();
+        if ($exists) {
+            return;
+        }
+
+        $points = 1;
 
         Referral::create([
             'referrer_id' => $referrerId,

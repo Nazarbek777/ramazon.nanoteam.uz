@@ -159,6 +159,10 @@ class WebhookController
             return;
         }
 
+        if ($user && $user->referrer_id && !empty($user->phone)) {
+            $this->bookService->processReferral($user->referrer_id, $user->id);
+        }
+
         // Tayyor (mavjud foydalanuvchi uchun xush kelibsiz)
         $text = "🌙 <b>Ramazon hayiti munosabati bilan ajoyib konkurs!</b>\n\nSiz ro'yxatdan o'tgansiz. Konkursda omad tilaymiz! 🎁";
         $this->sendMainKeyboard($chatId, $text);
@@ -187,6 +191,10 @@ class WebhookController
         if (!$this->isJoinedAll($userId)) {
             $this->askJoinChannel($chatId, "✅ Raqamingiz saqlandi!\n\n⚠️ Konkursda ishtirok etish uchun eng avvalo quyidagi guruhga a'zo bo'lishingiz shart.");
             return;
+        }
+
+        if ($user && $user->referrer_id) {
+            $this->bookService->processReferral($user->referrer_id, $user->id);
         }
 
         $text = "✅ Raqam saqlandi! Konkursda ishtirok etishni boshlashingiz mumkin.";
@@ -225,6 +233,12 @@ class WebhookController
 
         if ($this->isJoinedAll($userId)) {
             $user = BookUser::where('telegram_id', $userId)->first();
+            
+            // Kanalga muvaffaqiyatli a'zo bo'lgandan SO'NG ball beriladi
+            if ($user && $user->referrer_id && !empty($user->phone)) {
+                $this->bookService->processReferral($user->referrer_id, $user->id);
+            }
+
             $text = "✅ Ajoyib! Siz barcha guruhlarga aʼzo boʻldingiz!";
             $this->sendMainKeyboard($chatId, $text);
         } else {
@@ -295,7 +309,7 @@ class WebhookController
 
     protected function sendMainKeyboard(int $chatId, string $text = null): void
     {
-        $message = $text ?? "📋 Asosiy menyu:";
+        $message = $text ?? "� Kerakli bo'limni tanlang:";
         $this->telegram->sendMessageWithReplyKeyboard($chatId, $message, [
             [['text' => '🏆 Reyting'], ['text' => '👤 Profil']],
             [['text' => '🔗 Taklif qilish']],
