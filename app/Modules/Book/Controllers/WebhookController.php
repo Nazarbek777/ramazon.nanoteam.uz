@@ -170,15 +170,13 @@ class WebhookController
             $this->telegram->deleteMessage($chatId, $msgId - 1); // "raqamni yuboring" xabarni o'chirish
         }
 
-        $this->telegram->sendMessage($chatId, "✅ Raqam saqlandi!");
-
         // Kanal tekshiruvi
         if (!$this->isJoinedAll($userId)) {
-            $this->sendAfisha($chatId);
-            $this->askJoinChannel($chatId);
+            $this->askJoinChannel($chatId, "✅ Raqamingiz saqlandi!\n\n⚠️ Konkursda ishtirok etish uchun eng avvalo quyidagi guruhga a'zo bo'lishingiz shart.");
             return;
         }
 
+        $this->telegram->sendMessage($chatId, "✅ Raqam saqlandi!");
         $this->sendAfisha($chatId);
         $this->sendReferralLink($chatId, $user);
         $this->sendMainKeyboard($chatId);
@@ -196,7 +194,7 @@ class WebhookController
         return true;
     }
 
-    protected function askJoinChannel(int $chatId): void
+    protected function askJoinChannel(int $chatId, string $message = null): void
     {
         $keyboard = [];
         foreach ($this->requiredChannels as $ch) {
@@ -205,11 +203,9 @@ class WebhookController
         }
         $keyboard[] = [['text' => '✅ Tekshirish', 'callback_data' => 'check_channels']];
 
-        $this->telegram->sendMessageWithKeyboard(
-            $chatId,
-            "⚠️ Botdan to'liq foydalanish va konkursda qatnashish uchun quyidagi guruhlarga a'zo bo'lishingiz shart.\n\nA'zo bo'lgach <b>\"✅ Tekshirish\"</b> tugmasini bosing.",
-            $keyboard
-        );
+        $text = $message ?? "⚠️ Botdan to'liq foydalanish va konkursda qatnashish uchun quyidagi guruhga a'zo bo'lishingiz shart.\n\nA'zo bo'lgach <b>\"✅ Tekshirish\"</b> tugmasini bosing.";
+
+        $this->telegram->sendMessageWithKeyboard($chatId, $text, $keyboard);
     }
 
     protected function onCheckChannels(int $chatId, array $from): void
