@@ -16,7 +16,6 @@ class WebhookController
 
     protected array $requiredChannels = [
         ['username' => '@Nurkitoblari_m1', 'name' => '📢 Nur kitoblar'],
-        ['username' => '@NurArt_uz', 'name' => '🎨 Nur Art'],
     ];
 
     public function __construct()
