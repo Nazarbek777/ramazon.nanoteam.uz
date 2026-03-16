@@ -145,9 +145,7 @@ class WebhookController
         }
 
         // Tayyor (mavjud foydalanuvchi uchun xush kelibsiz)
-        $this->telegram->sendMessage($chatId, "🌙 <b>Ramazon hayiti munosabati bilan ajoyib konkurs!</b>\n\nSiz boshlashga tayyorsiz! Qimmatbaho sovg'alar sizni kutmoqda. 🎁");
-        $this->sendAfisha($chatId);
-        $this->sendReferralLink($chatId, $user);
+        $this->telegram->sendMessage($chatId, "🌙 <b>Ramazon hayiti munosabati bilan ajoyib konkurs!</b>\n\nSiz ro'yxatdan o'tgansiz. Konkursda omad tilaymiz! 🎁");
         $this->sendMainKeyboard($chatId);
     }
 
@@ -176,9 +174,7 @@ class WebhookController
             return;
         }
 
-        $this->telegram->sendMessage($chatId, "✅ Raqam saqlandi!");
-        $this->sendAfisha($chatId);
-        $this->sendReferralLink($chatId, $user);
+        $this->telegram->sendMessage($chatId, "✅ Raqam saqlandi! Konkursda ishtirok etishni boshlashingiz mumkin.");
         $this->sendMainKeyboard($chatId);
     }
 
@@ -214,9 +210,7 @@ class WebhookController
 
         if ($this->isJoinedAll($userId)) {
             $user = BookUser::where('telegram_id', $userId)->first();
-            $this->telegram->sendMessage($chatId, "✅ Ajoyib! Siz guruhlarga aʼzo boʻlgansiz!");
-            if ($user)
-                $this->sendReferralLink($chatId, $user);
+            $this->telegram->sendMessage($chatId, "✅ Ajoyib! Siz barcha guruhlarga aʼzo boʻldingiz!");
             $this->sendMainKeyboard($chatId);
         } else {
             $this->telegram->sendMessage($chatId, "❌ Hali guruhlarga aʼzo boʻlmagansiz.");
