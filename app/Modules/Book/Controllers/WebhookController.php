@@ -60,6 +60,13 @@ class WebhookController
             return;
         }
 
+        // Raqamni qo'lda kiritishni rad etish
+        $user = BookUser::where('telegram_id', $userId)->first();
+        if ($user && empty($user->phone)) {
+            $this->telegram->sendMessage($chatId, "⚠️ Iltimos, raqamingizni pastdagi **\"Raqamni yuborish\"** tugmasi orqali yuboring. Qo'lda yozib kiritish mumkin emas.");
+            return;
+        }
+
         // Barcha tugmalar uchun kanalga a'zolikni tekshirish
         $isJoined = $this->isJoinedAll($userId);
         Log::info("[BookBot] Membership", ['u_id' => $userId, 'is_joined' => $isJoined]);
@@ -174,10 +181,31 @@ class WebhookController
     {
         $phone = $contact['phone_number'] ?? '';
         $userId = $from['id'] ?? $chatId;
+        $contactUserId = $contact['user_id'] ?? null;
+
+        // 1. O'zining raqamini yuborganligini tekshirish (bot aralashuvini oldini olish)
+        if ($contactUserId != $userId) {
+            $this->telegram->sendMessage($chatId, "⚠️ Kechirasiz, siz faqat o'zingizning shaxsiy raqamingizni yuborishingiz mumkin! Boshqa kontakt yuborish taqiqlangan.");
+            return;
+        }
+
+        // 2. Raqam O'zbekiston raqami ekanligini tekshirish
+        $cleanPhone = preg_replace('/\D/', '', $phone);
+        if (!str_starts_with($cleanPhone, '998') || strlen($cleanPhone) < 12) {
+            $this->telegram->sendMessage($chatId, "⚠️ Kechirasiz, tanlovda faqat O'zbekiston (+998) raqamlari bilan qatnashish mumkin!");
+            return;
+        }
+
+        // 3. Raqam bazada boshqa profil tomonidan band qilinmaganini tekshirish
+        $existing = BookUser::where('phone', 'like', "%{$cleanPhone}%")->where('telegram_id', '!=', $userId)->first();
+        if ($existing) {
+            $this->telegram->sendMessage($chatId, "⚠️ Bu raqam egasi avval ishtirok etgan! Bitta raqam bilan faqat bitta Telegram profildan qatnashish mumkin.");
+            return;
+        }
 
         $user = BookUser::where('telegram_id', $userId)->first();
         if ($user) {
-            $user->phone = $phone;
+            $user->phone = $cleanPhone;
             $user->save();
         }
 
