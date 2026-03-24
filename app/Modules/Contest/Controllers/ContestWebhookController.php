@@ -75,30 +75,37 @@ class ContestWebhookController
             return;
         }
 
-        // Text-based menu buttons
-        switch ($text) {
-            case '📊 Mening natijalarim':
-                $this->onProfile($chatId, $from);
-                return;
-            case '🏆 Reyting':
-                $this->onLeaderboard($chatId);
-                return;
-            case '🔗 Referral havolam':
-                $this->onReferralLink($chatId, $from);
-                return;
-            case '📋 Qoidalar':
-                $this->onRules($chatId);
-                return;
-        }
-
-        // Keyword auto-replies
+        // 1. Check Keywords (including Menu Buttons)
         $keyword = ContestKeyword::where('contest_id', $this->contest->id)
             ->whereRaw('LOWER(keyword) = ?', [mb_strtolower($text)])
             ->first();
 
         if ($keyword) {
+            // Check for System Actions
+            if ($keyword->action) {
+                switch ($keyword->action) {
+                    case 'profile':
+                        $this->onProfile($chatId, $from);
+                        return;
+                    case 'leaderboard':
+                        $this->onLeaderboard($chatId);
+                        return;
+                    case 'referral':
+                        $this->onReferralLink($chatId, $from);
+                        return;
+                    case 'rules':
+                        $this->onRules($chatId);
+                        return;
+                }
+            }
+
+            // Normal Keyword Response (Text/Photo)
             if ($keyword->response_photo) {
-                $this->telegram->sendPhoto($chatId, $keyword->response_photo, $keyword->response_text);
+                // If the response_photo looks like a file_id, use it directly. 
+                // If it's a URL, Telegram will handle it.
+                $this->telegram->sendPhoto($chatId, $keyword->response_photo, [
+                    'caption' => $keyword->response_text
+                ]);
             } else {
                 $this->telegram->sendMessage($chatId, $keyword->response_text);
             }
@@ -312,10 +319,28 @@ class ContestWebhookController
 
     protected function sendMainKeyboard(int $chatId, string $text = null): void
     {
-        $keyboard = [
-            ['📊 Mening natijalarim', '🏆 Reyting'],
-            ['🔗 Referral havolam', '📋 Qoidalar'],
-        ];
+        $buttons = $this->contest->keywords()
+            ->where('is_menu_button', true)
+            ->orderBy('sort_order')
+            ->get();
+
+        if ($buttons->isEmpty()) {
+            $this->telegram->sendMessage($chatId, $text ?? '👇');
+            return;
+        }
+
+        $keyboard = [];
+        $row = [];
+        foreach ($buttons as $btn) {
+            $row[] = $btn->keyword;
+            if (count($row) === 2) {
+                $keyboard[] = $row;
+                $row = [];
+            }
+        }
+        if (!empty($row)) {
+            $keyboard[] = $row;
+        }
 
         $this->telegram->sendMessageWithReplyKeyboard(
             $chatId,
@@ -391,9 +416,13 @@ class ContestWebhookController
         $botUsername = $this->bot->username;
         $link = "https://t.me/{$botUsername}?start=ref_{$from['id']}";
 
-        $text = "🔗 <b>Sizning referral havolangiz:</b>\n\n"
-            . "<code>{$link}</code>\n\n"
-            . "👆 Havolani do'stlaringizga yuboring va ball yig'ing!";
+        $text = $this->contest->referral_text ?: "🔗 <b>Sizning referral havolangiz:</b>\n\n<code>{link}</code>\n\n👆 Havolani do'stlaringizga yuboring va ball yig'ing!";
+
+        $text = str_replace(
+            ['{link}', '{points}', '{name}'],
+            [$link, $this->contest->referral_points, $from['first_name'] ?? ''],
+            $text
+        );
 
         $this->telegram->sendMessage($chatId, $text);
     }

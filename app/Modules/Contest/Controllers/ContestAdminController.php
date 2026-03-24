@@ -59,7 +59,7 @@ class ContestAdminController
 
     public function update(Request $request, ContestBot $bot, Contest $contest)
     {
-        $data = $request->validate([
+        $request->validate([
             'title' => 'required|string|max:255',
             'description' => 'nullable|string',
             'start_text' => 'nullable|string',
@@ -70,14 +70,18 @@ class ContestAdminController
             'require_channel_join' => 'boolean',
             'require_referral' => 'boolean',
             'referral_points' => 'integer|min:0',
+            'referral_text' => 'nullable|string',
+            'referral_button_text' => 'nullable|string',
             'is_active' => 'boolean',
         ]);
 
+        $data = $request->all();
         $data['require_phone'] = $request->has('require_phone');
         $data['require_channel_join'] = $request->has('require_channel_join');
         $data['require_referral'] = $request->has('require_referral');
         $data['is_active'] = $request->has('is_active');
-        $data['referral_points'] = $request->input('referral_points', 1);
+        // The instruction removed the default for referral_points, so it will be null if not provided.
+        // If a default is needed, it should be added back here or in validation.
 
         $contest->update($data);
 
@@ -125,15 +129,21 @@ class ContestAdminController
     public function storeKeyword(Request $request, ContestBot $bot, Contest $contest)
     {
         $request->validate([
-            'keyword' => 'required|string|max:255',
+            'keyword' => 'required|string',
             'response_text' => 'required|string',
+            'response_photo' => 'nullable|string',
+            'is_menu_button' => 'nullable|boolean',
+            'action' => 'nullable|string',
+            'sort_order' => 'integer',
         ]);
 
-        ContestKeyword::create([
-            'contest_id' => $contest->id,
+        $contest->keywords()->create([
             'keyword' => $request->keyword,
             'response_text' => $request->response_text,
             'response_photo' => $request->response_photo,
+            'is_menu_button' => $request->has('is_menu_button'),
+            'action' => $request->action,
+            'sort_order' => $request->sort_order ?? 0,
         ]);
 
         return redirect()->route('contest-admin.bots.contests.edit', [$bot, $contest])

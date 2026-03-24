@@ -14,6 +14,9 @@ class ContestKeyword extends Model
         'keyword',
         'response_text',
         'response_photo',
+        'is_menu_button',
+        'action',
+        'sort_order',
     ];
 
     public function contest(): BelongsTo

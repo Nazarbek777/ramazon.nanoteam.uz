@@ -84,10 +84,22 @@
                                 class="w-5 h-5 rounded-lg border-2 border-violet-500 bg-transparent text-violet-500 focus:ring-violet-500">
                             <span class="text-sm font-bold text-slate-200">👥 Referral tizimi</span>
                         </label>
-                        <div class="pl-8">
-                            <label class="block text-sm font-bold text-slate-300 mb-2">Har bir referral uchun ball</label>
-                            <input type="number" name="referral_points" value="{{ old('referral_points', $contest->referral_points) }}" min="0"
-                                class="input-dark w-32 rounded-xl px-4 py-3">
+                        <div class="pl-8 space-y-4">
+                            <div>
+                                <label class="block text-sm font-bold text-slate-300 mb-2">Har bir referral uchun ball</label>
+                                <input type="number" name="referral_points" value="{{ old('referral_points', $contest->referral_points) }}" min="0"
+                                    class="input-dark w-32 rounded-xl px-4 py-3">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-bold text-slate-300 mb-2">Referral taklif xabari</label>
+                                <textarea name="referral_text" rows="3" class="input-dark w-full rounded-xl px-4 py-3"
+                                    placeholder="Do'stlarni taklif qilish uchun xabar matni...">{{ old('referral_text', $contest->referral_text) }}</textarea>
+                                <p class="text-[10px] text-slate-500 mt-1">
+                                    Mavjud taglar: <span class="text-violet-400">{link}</span> (referral havola), 
+                                    <span class="text-violet-400">{points}</span> (ball), 
+                                    <span class="text-violet-400">{name}</span> (foydalanuvchi ismi)
+                                </p>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -165,14 +177,34 @@
                 <form action="{{ route('contest-admin.bots.contests.keywords.store', [$bot, $contest]) }}" method="POST"
                     class="mt-4 space-y-3">
                     @csrf
-                    <input type="text" name="keyword" placeholder="Kalit so'z" required
+                    <input type="text" name="keyword" placeholder="Tugma matni / Kalit so'z" required
                         class="input-dark w-full rounded-lg px-3 py-2 text-sm">
-                    <textarea name="response_text" placeholder="Javob matni" required rows="3"
+                    <textarea name="response_text" placeholder="Javob matni (oddiy tugma bo'lsa)" rows="3"
                         class="input-dark w-full rounded-lg px-3 py-2 text-sm"></textarea>
-                    <input type="text" name="response_photo" placeholder="Rasm URL yoki Telegram File ID (ixtiyoriy)"
+                    
+                    <div class="grid grid-cols-2 gap-2">
+                        <select name="action" class="input-dark w-full rounded-lg px-3 py-2 text-sm">
+                            <option value="">-- Amal tanlang (ixtiyoriy) --</option>
+                            <option value="profile">👤 Profil / Natijalar</option>
+                            <option value="leaderboard">🏆 Reyting (TOP 20)</option>
+                            <option value="referral">🔗 Referral havola</option>
+                            <option value="rules">📋 Qoidalar</option>
+                        </select>
+                        <input type="number" name="sort_order" placeholder="Tartib (Sort)" value="0"
+                            class="input-dark w-full rounded-lg px-3 py-2 text-sm">
+                    </div>
+
+                    <input type="text" name="response_photo" placeholder="Rasm URL yoki File ID (ixtiyoriy)"
                         class="input-dark w-full rounded-lg px-3 py-2 text-sm">
+
+                    <label class="flex items-center space-x-2 cursor-pointer bg-white/5 p-2 rounded-lg border border-white/10 hover:border-violet-500/50 transition">
+                        <input type="checkbox" name="is_menu_button" value="1" 
+                            class="w-4 h-4 rounded border-violet-500 bg-transparent text-violet-500 focus:ring-violet-500">
+                        <span class="text-xs font-bold text-slate-300">Asosiy menyuda tugma sifatida ko'rinsin</span>
+                    </label>
+
                     <button type="submit" class="w-full btn-primary px-4 py-2 rounded-lg text-sm font-bold text-white">
-                        <i class="fas fa-plus mr-1"></i> Kalit so'z qo'shish
+                        <i class="fas fa-plus mr-1"></i> Qo'shish
                     </button>
                 </form>
             </div>

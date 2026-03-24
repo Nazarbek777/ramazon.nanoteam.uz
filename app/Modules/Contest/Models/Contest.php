@@ -24,6 +24,8 @@ class Contest extends Model
         'require_channel_join',
         'require_referral',
         'referral_points',
+        'referral_text',
+        'referral_button_text',
     ];
 
     protected $casts = [
