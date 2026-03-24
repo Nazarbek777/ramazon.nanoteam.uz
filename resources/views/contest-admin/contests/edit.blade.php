@@ -169,6 +169,8 @@
                         class="input-dark w-full rounded-lg px-3 py-2 text-sm">
                     <textarea name="response_text" placeholder="Javob matni" required rows="3"
                         class="input-dark w-full rounded-lg px-3 py-2 text-sm"></textarea>
+                    <input type="text" name="response_photo" placeholder="Rasm URL yoki Telegram File ID (ixtiyoriy)"
+                        class="input-dark w-full rounded-lg px-3 py-2 text-sm">
                     <button type="submit" class="w-full btn-primary px-4 py-2 rounded-lg text-sm font-bold text-white">
                         <i class="fas fa-plus mr-1"></i> Kalit so'z qo'shish
                     </button>
