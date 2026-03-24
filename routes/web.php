@@ -108,4 +108,40 @@ Route::prefix('admin')->name('admin.')->group(function () {
     });
 });
 
+// ── Contest Bot Webhook (public, no auth) ───────────────────────
+Route::post('/telegram/contest-webhook/{botId}', [App\Modules\Contest\Controllers\ContestWebhookController::class, 'handle'])
+    ->name('contest.webhook');
 
+// ── Contest Admin Panel (separate panel) ────────────────────────
+Route::prefix('contest-admin')->name('contest-admin.')->middleware([\App\Http\Middleware\AdminMiddleware::class])->group(function () {
+
+    // Bots
+    Route::get('/', [App\Modules\Contest\Controllers\ContestBotAdminController::class, 'index'])->name('bots.index');
+    Route::get('/bots/create', [App\Modules\Contest\Controllers\ContestBotAdminController::class, 'create'])->name('bots.create');
+    Route::post('/bots', [App\Modules\Contest\Controllers\ContestBotAdminController::class, 'store'])->name('bots.store');
+    Route::get('/bots/{bot}/edit', [App\Modules\Contest\Controllers\ContestBotAdminController::class, 'edit'])->name('bots.edit');
+    Route::put('/bots/{bot}', [App\Modules\Contest\Controllers\ContestBotAdminController::class, 'update'])->name('bots.update');
+    Route::delete('/bots/{bot}', [App\Modules\Contest\Controllers\ContestBotAdminController::class, 'destroy'])->name('bots.destroy');
+    Route::post('/bots/{bot}/toggle', [App\Modules\Contest\Controllers\ContestBotAdminController::class, 'toggleActive'])->name('bots.toggle');
+    Route::post('/bots/{bot}/reset-webhook', [App\Modules\Contest\Controllers\ContestBotAdminController::class, 'resetWebhook'])->name('bots.reset-webhook');
+
+    // Contests per bot
+    Route::get('/bots/{bot}/contests', [App\Modules\Contest\Controllers\ContestAdminController::class, 'index'])->name('bots.contests.index');
+    Route::get('/bots/{bot}/contests/create', [App\Modules\Contest\Controllers\ContestAdminController::class, 'create'])->name('bots.contests.create');
+    Route::post('/bots/{bot}/contests', [App\Modules\Contest\Controllers\ContestAdminController::class, 'store'])->name('bots.contests.store');
+    Route::get('/bots/{bot}/contests/{contest}/edit', [App\Modules\Contest\Controllers\ContestAdminController::class, 'edit'])->name('bots.contests.edit');
+    Route::put('/bots/{bot}/contests/{contest}', [App\Modules\Contest\Controllers\ContestAdminController::class, 'update'])->name('bots.contests.update');
+    Route::delete('/bots/{bot}/contests/{contest}', [App\Modules\Contest\Controllers\ContestAdminController::class, 'destroy'])->name('bots.contests.destroy');
+
+    // Channels
+    Route::post('/bots/{bot}/contests/{contest}/channels', [App\Modules\Contest\Controllers\ContestAdminController::class, 'storeChannel'])->name('bots.contests.channels.store');
+    Route::delete('/bots/{bot}/contests/{contest}/channels/{channel}', [App\Modules\Contest\Controllers\ContestAdminController::class, 'destroyChannel'])->name('bots.contests.channels.destroy');
+
+    // Keywords
+    Route::post('/bots/{bot}/contests/{contest}/keywords', [App\Modules\Contest\Controllers\ContestAdminController::class, 'storeKeyword'])->name('bots.contests.keywords.store');
+    Route::delete('/bots/{bot}/contests/{contest}/keywords/{keyword}', [App\Modules\Contest\Controllers\ContestAdminController::class, 'destroyKeyword'])->name('bots.contests.keywords.destroy');
+
+    // Participants
+    Route::get('/bots/{bot}/contests/{contest}/participants', [App\Modules\Contest\Controllers\ContestAdminController::class, 'participants'])->name('bots.contests.participants');
+    Route::get('/bots/{bot}/contests/{contest}/export', [App\Modules\Contest\Controllers\ContestAdminController::class, 'exportParticipants'])->name('bots.contests.export');
+});

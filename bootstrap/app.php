@@ -25,6 +25,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'telegram/webhook',
             'telegram/baza-webhook',
             'telegram/book-bot-webhook',
+            'telegram/contest-webhook/*',
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
