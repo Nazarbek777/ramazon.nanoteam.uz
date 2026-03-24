@@ -7,6 +7,7 @@ use App\Modules\Contest\Models\ContestBot;
 use App\Modules\Contest\Models\Contest;
 use App\Modules\Contest\Models\ContestKeyword;
 use App\Modules\Contest\Models\ContestChannel;
+use App\Modules\Contest\Models\ContestPrize;
 
 class ContestBotSeeder extends Seeder
 {
