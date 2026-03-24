@@ -145,4 +145,8 @@ Route::prefix('contest-admin')->name('contest-admin.')->middleware([\App\Http\Mi
     // Participants
     Route::get('/bots/{bot}/contests/{contest}/participants', [App\Modules\Contest\Controllers\ContestAdminController::class, 'participants'])->name('bots.contests.participants');
     Route::get('/bots/{bot}/contests/{contest}/export', [App\Modules\Contest\Controllers\ContestAdminController::class, 'exportParticipants'])->name('bots.contests.export');
+
+    // Prizes
+    Route::post('/bots/{bot}/contests/{contest}/prizes', [App\Modules\Contest\Controllers\ContestAdminController::class, 'storePrize'])->name('bots.contests.prizes.store');
+    Route::delete('/bots/{bot}/contests/{contest}/prizes/{prize}', [App\Modules\Contest\Controllers\ContestAdminController::class, 'destroyPrize'])->name('bots.contests.prizes.destroy');
 });

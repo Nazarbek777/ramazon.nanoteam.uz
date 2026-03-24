@@ -209,6 +209,56 @@
                 </form>
             </div>
 
+            <!-- Prizes (Sovg'alar) -->
+            <div class="glass-card rounded-2xl p-6 border border-white/10 mt-6">
+                <h3 class="text-sm font-bold text-slate-400 uppercase tracking-widest flex items-center">
+                    <i class="fas fa-gift mr-2 text-pink-500"></i> Sovg'alar (Prizes)
+                </h3>
+                
+                <div class="mt-4 space-y-3">
+                    @foreach($contest->prizes as $prize)
+                        <div class="flex items-center justify-between p-3 bg-white/5 rounded-xl border border-white/5 group hover:border-pink-500/30 transition">
+                            <div class="flex items-center space-x-3">
+                                @if($prize->image)
+                                    <img src="{{ $prize->image }}" class="w-10 h-10 rounded-lg object-cover">
+                                @else
+                                    <div class="w-10 h-10 rounded-lg bg-pink-500/10 flex items-center justify-center text-pink-400">
+                                        <i class="fas fa-gift"></i>
+                                    </div>
+                                @endif
+                                <div>
+                                    <div class="text-xs font-bold text-white">{{ $prize->title }}</div>
+                                    <div class="text-[10px] text-slate-400">⭐ {{ $prize->points_required }} ball</div>
+                                </div>
+                            </div>
+                            <form action="{{ route('contest-admin.bots.contests.prizes.destroy', [$bot, $contest, $prize]) }}" method="POST">
+                                @csrf @method('DELETE')
+                                <button type="submit" class="text-slate-500 hover:text-red-400 transition" onclick="return confirm('O\'chirilsinmi?')">
+                                    <i class="fas fa-trash text-xs"></i>
+                                </button>
+                            </form>
+                        </div>
+                    @endforeach
+                </div>
+
+                <form action="{{ route('contest-admin.bots.contests.prizes.store', [$bot, $contest]) }}" method="POST"
+                    class="mt-6 space-y-3 pt-6 border-t border-white/5">
+                    @csrf
+                    <input type="text" name="title" placeholder="Sovg'a nomi" required
+                        class="input-dark w-full rounded-lg px-3 py-2 text-sm">
+                    <input type="number" name="points_required" placeholder="Kerakli ball" required
+                        class="input-dark w-full rounded-lg px-3 py-2 text-sm">
+                    <input type="text" name="image" placeholder="Rasm URL (ixtiyoriy)"
+                        class="input-dark w-full rounded-lg px-3 py-2 text-sm">
+                    <input type="number" name="sort_order" placeholder="Tartib" value="0"
+                        class="input-dark w-full rounded-lg px-3 py-2 text-sm">
+                    
+                    <button type="submit" class="w-full bg-pink-600 hover:bg-pink-500 py-2 rounded-lg text-sm font-bold text-white transition">
+                        <i class="fas fa-plus mr-1"></i> Sovg'a qo'shish
+                    </button>
+                </form>
+            </div>
+
             <!-- Statistika -->
             <div class="glass-card rounded-2xl p-6">
                 <h3 class="text-sm font-bold text-emerald-400 mb-4"><i class="fas fa-chart-bar mr-1"></i> Statistika</h3>

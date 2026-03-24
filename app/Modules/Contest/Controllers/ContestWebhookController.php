@@ -96,6 +96,9 @@ class ContestWebhookController
                     case 'rules':
                         $this->onRules($chatId);
                         return;
+                    case 'prizes':
+                        $this->onPrizes($chatId);
+                        return;
                 }
             }
 
@@ -432,6 +435,26 @@ class ContestWebhookController
         if (!$this->contest) return;
 
         $text = $this->contest->rules_text ?: "📋 Konkurs qoidalari hali kiritilmagan.";
+        $this->telegram->sendMessage($chatId, $text);
+    }
+
+    protected function onPrizes(int $chatId): void
+    {
+        if (!$this->contest) return;
+
+        $prizes = $this->contest->prizes;
+        if ($prizes->isEmpty()) {
+            $this->telegram->sendMessage($chatId, "🎁 Hali sovg'alar kiritilmagan.");
+            return;
+        }
+
+        $text = "🎁 <b>Konkurs sovg'alari:</b>\n\n";
+        foreach ($prizes as $prize) {
+            $text .= "<b>{$prize->title}</b>\n";
+            if ($prize->description) $text .= "📝 {$prize->description}\n";
+            $text .= "⭐ Kerakli ball: <b>{$prize->points_required}</b>\n\n";
+        }
+
         $this->telegram->sendMessage($chatId, $text);
     }
 }

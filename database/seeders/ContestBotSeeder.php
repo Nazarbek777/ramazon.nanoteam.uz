@@ -65,6 +65,12 @@ class ContestBotSeeder extends Seeder
                 'sort_order' => 4,
                 'response_text' => 'Konkurs qoidalari',
             ],
+            [
+                'keyword' => '🎁 Sovg\'alar',
+                'action' => 'prizes',
+                'sort_order' => 5,
+                'response_text' => 'Sovg\'alar ro\'yxati',
+            ],
         ];
 
         foreach ($menuButtons as $btn) {
@@ -84,6 +90,20 @@ class ContestBotSeeder extends Seeder
             ContestChannel::updateOrCreate(
                 ['contest_id' => $contest->id, 'channel_id' => $ch['channel_id']],
                 $ch
+            );
+        }
+
+        // 5. Chotki Sovg'alar
+        $prizes = [
+            ['title' => 'iPhone 15 Pro', 'points_required' => 500, 'description' => 'Eng ko\'p ball to\'plagan 1-o\'rin sohibiga!'],
+            ['title' => 'AirPods Pro 2', 'points_required' => 200, 'description' => '2-5 o\'rinlar uchun!'],
+            ['title' => 'Smart Watch', 'points_required' => 100, 'description' => '6-10 o\'rinlar uchun'],
+        ];
+
+        foreach ($prizes as $prize) {
+            ContestPrize::updateOrCreate(
+                ['contest_id' => $contest->id, 'title' => $prize['title']],
+                $prize
             );
         }
     }

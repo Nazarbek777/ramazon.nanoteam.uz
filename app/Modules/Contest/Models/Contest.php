@@ -56,4 +56,9 @@ class Contest extends Model
     {
         return $this->hasMany(ContestKeyword::class, 'contest_id');
     }
+
+    public function prizes(): HasMany
+    {
+        return $this->hasMany(ContestPrize::class, 'contest_id')->orderBy('sort_order');
+    }
 }

@@ -53,7 +53,7 @@ class ContestAdminController
 
     public function edit(ContestBot $bot, Contest $contest)
     {
-        $contest->load('channels', 'keywords');
+        $contest->load('channels', 'keywords', 'prizes');
         return view('contest-admin.contests.edit', compact('bot', 'contest'));
     }
 
@@ -198,5 +198,29 @@ class ContestAdminController
         return response($csv)
             ->header('Content-Type', 'text/csv; charset=utf-8')
             ->header('Content-Disposition', "attachment; filename=participants_{$contest->id}.csv");
+    }
+    // ── Prizes (Sovg'alar) ───────────────────────────────
+
+    public function storePrize(Request $request, ContestBot $bot, Contest $contest)
+    {
+        $request->validate([
+            'title' => 'required|string|max:255',
+            'description' => 'nullable|string',
+            'image' => 'nullable|string',
+            'points_required' => 'required|integer|min:0',
+            'sort_order' => 'integer',
+        ]);
+
+        $contest->prizes()->create($request->all());
+
+        return redirect()->route('contest-admin.bots.contests.edit', [$bot, $contest])
+            ->with('success', 'Sovg\'a qo\'shildi!');
+    }
+
+    public function destroyPrize(ContestBot $bot, Contest $contest, ContestPrize $prize)
+    {
+        $prize->delete();
+        return redirect()->route('contest-admin.bots.contests.edit', [$bot, $contest])
+            ->with('success', 'Sovg\'a o\'chirildi!');
     }
 }
