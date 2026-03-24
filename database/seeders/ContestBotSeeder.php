@@ -23,7 +23,7 @@ class ContestBotSeeder extends Seeder
 
         // 2. Chotki shablon - Konkurs yaratish
         $contest = Contest::updateOrCreate(
-            ['bot_id' => $bot->id, 'title' => 'Ramazon Mega Konkurs 2026'],
+            ['contest_bot_id' => $bot->id, 'title' => 'Ramazon Mega Konkurs 2026'],
             [
                 'description' => 'Ushbu konkursda qatnashib qimmatbaho sovg\'alarni yutib oling!',
                 'start_text' => "👋 Assalomu alaykum!\n\n🏆 *Ramazon Mega Konkurs*imizga xush kelibsiz!\n\n🎁 Konkursda qatnashish uchun quyidagi tugmalardan foydalaning. Do'stlarni taklif qiling va ballar yig'ing!",
