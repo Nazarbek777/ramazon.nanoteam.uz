@@ -123,6 +123,7 @@ Route::prefix('contest-admin')->name('contest-admin.')->middleware([\App\Http\Mi
     Route::put('/bots/{bot}', [App\Modules\Contest\Controllers\ContestBotAdminController::class, 'update'])->name('bots.update');
     Route::delete('/bots/{bot}', [App\Modules\Contest\Controllers\ContestBotAdminController::class, 'destroy'])->name('bots.destroy');
     Route::post('/bots/{bot}/toggle', [App\Modules\Contest\Controllers\ContestBotAdminController::class, 'toggleActive'])->name('bots.toggle');
+    Route::post('/bots/{bot}/toggle-webhook', [App\Modules\Contest\Controllers\ContestBotAdminController::class, 'toggleWebhook'])->name('bots.toggle-webhook');
     Route::post('/bots/{bot}/reset-webhook', [App\Modules\Contest\Controllers\ContestBotAdminController::class, 'resetWebhook'])->name('bots.reset-webhook');
 
     // Contests per bot

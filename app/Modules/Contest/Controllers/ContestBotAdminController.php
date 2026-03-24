@@ -88,22 +88,35 @@ class ContestBotAdminController
     public function toggleActive(ContestBot $bot)
     {
         $bot->update(['is_active' => !$bot->is_active]);
+        return back()->with('success', 'Bot holati o\'zgartirildi.');
+    }
 
-        $status = $bot->is_active ? 'faollashtirildi' : 'o\'chirildi';
-        return redirect()->route('contest-admin.bots.index')
-            ->with('success', "Bot {$status}!");
+    public function toggleWebhook(ContestBot $bot)
+    {
+        try {
+            if ($bot->webhook_set) {
+                $this->botService->deleteWebhook($bot);
+                $bot->update(['webhook_set' => false]);
+                $msg = 'Webhook o\'chirildi.';
+            } else {
+                $this->botService->setupBot($bot);
+                $bot->update(['webhook_set' => true]);
+                $msg = 'Webhook o\'rnatildi.';
+            }
+            return back()->with('success', $msg);
+        } catch (\Exception $e) {
+            return back()->with('error', 'Xatolik: ' . $e->getMessage());
+        }
     }
 
     public function resetWebhook(ContestBot $bot)
     {
-        $result = $this->botService->setupBot($bot);
-
-        if ($result['ok'] ?? false) {
-            return redirect()->route('contest-admin.bots.index')
-                ->with('success', 'Webhook qayta o\'rnatildi!');
+        try {
+            $this->botService->setupBot($bot);
+            $bot->update(['webhook_set' => true]);
+            return back()->with('success', 'Webhook qayta o\'rnatildi.');
+        } catch (\Exception $e) {
+            return back()->with('error', 'Xatolik: ' . $e->getMessage());
         }
-
-        return redirect()->route('contest-admin.bots.index')
-            ->withErrors(['webhook' => 'Webhook o\'rnatishda xatolik!']);
     }
 }

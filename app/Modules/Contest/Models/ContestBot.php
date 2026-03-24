@@ -14,6 +14,7 @@ class ContestBot extends Model
         'username',
         'token',
         'webhook_secret',
+        'webhook_set',
         'is_active',
     ];
 

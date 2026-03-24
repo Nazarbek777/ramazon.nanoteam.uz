@@ -44,7 +44,7 @@ class ContestBotService
     /**
      * Remove webhook from a bot.
      */
-    public function removeWebhook(ContestBot $bot): array
+    public function deleteWebhook(ContestBot $bot): array
     {
         $telegram = new ContestTelegramService($bot->token);
         return $telegram->deleteWebhook();
