@@ -31,6 +31,7 @@ class DatabaseSeeder extends Seeder
             SuperAdminSeeder::class,
             SubjectsSeeder::class,
             DemoSeeder::class,
+            ContestBotSeeder::class,
         ]);
     }
 }
