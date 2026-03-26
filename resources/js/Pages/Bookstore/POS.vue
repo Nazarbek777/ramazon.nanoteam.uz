@@ -184,7 +184,60 @@ watch(
 );
 
 
-const printReceipt = () => window.print();
+const printReceipt = () => {
+    const r = receipt.value;
+    if (!r) return;
+    const rows = (r.items || []).map(i => `
+        <tr>
+            <td style="padding:5px 0;border-bottom:1px solid #eee;">${i.title}</td>
+            <td style="padding:5px 8px;text-align:center;border-bottom:1px solid #eee;">${i.quantity}</td>
+            <td style="padding:5px 0;text-align:right;border-bottom:1px solid #eee;">${Number(i.unit_price).toLocaleString()}</td>
+            <td style="padding:5px 0 5px 8px;text-align:right;border-bottom:1px solid #eee;font-weight:700;">${Number(i.total_price).toLocaleString()}</td>
+        </tr>`).join('');
+    const html = `<!DOCTYPE html><html><head>
+        <meta charset="UTF-8"><title>Chek #${r.id}</title>
+        <style>
+            * { margin:0; padding:0; box-sizing:border-box; }
+            body { font-family: 'Courier New', monospace; font-size: 13px; color: #000; background: #fff; padding: 24px 20px; max-width: 320px; margin: 0 auto; }
+            h2 { font-size: 16px; font-weight: 800; text-align: center; margin-bottom: 4px; letter-spacing: 0.5px; }
+            .sub { text-align: center; font-size: 11px; color: #555; margin-bottom: 14px; }
+            .divider { border: none; border-top: 1px dashed #999; margin: 10px 0; }
+            table { width: 100%; border-collapse: collapse; margin-bottom: 10px; }
+            th { font-size: 10px; text-align: left; color: #777; padding-bottom: 6px; border-bottom: 1px solid #ccc; }
+            th:nth-child(2), th:nth-child(3), th:nth-child(4) { text-align: right; }
+            .totals { font-size: 13px; }
+            .totals div { display: flex; justify-content: space-between; padding: 3px 0; }
+            .grand { font-size: 16px; font-weight: 800; margin-top: 4px; }
+            .footer { text-align: center; font-size: 11px; color: #777; margin-top: 14px; }
+            .badge { display: inline-block; background: #f3f4f6; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 700; text-transform: uppercase; }
+        </style>
+    </head><body>
+        <h2>KITOB DO'KONI</h2>
+        <div class="sub">${r.created_at} &nbsp;|&nbsp; Chek #${r.id}</div>
+        <hr class="divider">
+        <table>
+            <thead><tr>
+                <th>Kitob</th>
+                <th style="text-align:center;">Dona</th>
+                <th style="text-align:right;">Narx</th>
+                <th style="text-align:right;padding-left:8px;">Summa</th>
+            </tr></thead>
+            <tbody>${rows}</tbody>
+        </table>
+        <hr class="divider">
+        <div class="totals">
+            ${r.discount ? `<div><span>Chegirma</span><span>−${Number(r.discount).toLocaleString()} so'm</span></div>` : ''}
+            <div class="grand"><span>JAMI</span><span>${Number(r.total_amount).toLocaleString()} so'm</span></div>
+            <div style="margin-top:6px;"><span>To'lov</span><span class="badge">${(r.payment_method || '').toUpperCase()}</span></div>
+        </div>
+        <hr class="divider">
+        <div class="footer">Xaridingiz uchun rahmat!</div>
+        <script>window.onload=function(){window.print();setTimeout(function(){window.close();},800);}<\/script>
+    </body></html>`;
+    const w = window.open('', '_blank', 'width=380,height=600');
+    w.document.write(html);
+    w.document.close();
+};
 const closeReceipt = () => { showReceipt.value = false; receipt.value = null; };
 
 // ─── Global key capture ──────────────────────────────────────────────────────
