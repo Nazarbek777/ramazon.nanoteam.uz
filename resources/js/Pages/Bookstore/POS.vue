@@ -18,22 +18,54 @@ const focusInput = () => barcodeInput.value?.focus();
 
 const handleScan = async () => {
     const code = currentBarcode.value.trim();
-    if (!code) return;
+    console.log('[POS] handleScan triggered. Raw value:', JSON.stringify(currentBarcode.value), '| Trimmed:', JSON.stringify(code));
+
+    if (!code) {
+        console.warn('[POS] Empty barcode — scan aborted.');
+        return;
+    }
+
     isScanning.value = true;
     scanError.value = '';
+
+    const url = `/api/bookstore/books/${encodeURIComponent(code)}`;
+    console.log('[POS] Sending GET request to:', url);
+
     try {
-        const { data } = await axios.get(`/api/bookstore/books/${code}`);
+        const response = await axios.get(url);
+        console.log('[POS] Response status:', response.status);
+        console.log('[POS] Response data:', response.data);
+
+        const data = response.data;
+
+        if (!data || !data.id) {
+            console.error('[POS] Response OK but data missing id field:', data);
+            scanError.value = 'Server noto\'g\'ri javob berdi';
+            return;
+        }
+
         const existing = cart.value.find(i => i.id === data.id);
         if (existing) {
             existing.quantity++;
+            console.log('[POS] Existing item quantity incremented:', existing);
         } else {
             cart.value.unshift({ ...data, quantity: 1 });
+            console.log('[POS] New item added to cart:', data);
         }
+
         successFlash.value = true;
         setTimeout(() => successFlash.value = false, 800);
-    } catch {
+
+    } catch (err) {
+        console.error('[POS] Axios error:', err.message);
+        if (err.response) {
+            console.error('[POS] HTTP status:', err.response.status);
+            console.error('[POS] HTTP response body:', err.response.data);
+        } else {
+            console.error('[POS] No HTTP response — network error or CORS?');
+        }
         scanError.value = `Topilmadi: "${code}"`;
-        setTimeout(() => scanError.value = '', 3000);
+        setTimeout(() => scanError.value = '', 4000);
     } finally {
         currentBarcode.value = '';
         isScanning.value = false;

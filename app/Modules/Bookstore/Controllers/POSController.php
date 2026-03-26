@@ -19,14 +19,39 @@ class POSController extends Controller
 
     public function findBook($barcode)
     {
-        $book = Book::where('barcode', $barcode)->firstOrFail();
+        \Log::debug('[Bookstore] findBook called', [
+            'barcode_raw'    => $barcode,
+            'barcode_length' => strlen($barcode),
+            'request_url'    => request()->fullUrl(),
+            'request_method' => request()->method(),
+        ]);
+
+        $book = Book::where('barcode', $barcode)->first();
+
+        if (!$book) {
+            \Log::warning('[Bookstore] Book NOT found', [
+                'barcode'     => $barcode,
+                'total_books' => Book::count(),
+                'all_barcodes' => Book::pluck('barcode')->toArray(),
+            ]);
+            return response()->json(['error' => 'Kitob topilmadi', 'barcode' => $barcode], 404);
+        }
+
+        \Log::debug('[Bookstore] Book FOUND', [
+            'id'     => $book->id,
+            'title'  => $book->title,
+            'price'  => $book->price,
+            'stock'  => $book->stock,
+            'barcode' => $book->barcode,
+        ]);
+
         return response()->json([
-            'id' => $book->id,
-            'title' => $book->title,
+            'id'     => $book->id,
+            'title'  => $book->title,
             'author' => $book->author,
             'barcode' => $book->barcode,
-            'price' => (float) $book->price,
-            'stock' => $book->stock,
+            'price'  => (float) $book->price,
+            'stock'  => $book->stock,
         ]);
     }
 
