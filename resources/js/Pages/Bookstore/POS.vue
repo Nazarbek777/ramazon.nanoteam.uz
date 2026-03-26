@@ -10,78 +10,74 @@ const cart = ref([]);
 const scanError = ref('');
 const isScanning = ref(false);
 const successFlash = ref(false);
+let debounceTimer = null;
 
 const totalAmount = computed(() => cart.value.reduce((s, i) => s + i.price * i.quantity, 0));
 const netTotal = computed(() => Math.max(0, totalAmount.value - form.discount));
 
-const focusInput = () => barcodeInput.value?.focus();
-
-// Keep interval so focus is never permanently lost
-let focusInterval = null;
-
-// Redirect ALL keystrokes to barcode input (scanner global capture)
-const globalKeyCapture = (e) => {
-    // Ignore if user is typing in another input/textarea
-    const tag = e.target.tagName;
-    if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
-    // Focus barcode input and replay the key
-    focusInput();
-};
-
 const handleScan = async () => {
     const code = currentBarcode.value.trim();
-    console.log('[POS] handleScan triggered. Raw value:', JSON.stringify(currentBarcode.value), '| Trimmed:', JSON.stringify(code));
-
-    if (!code) {
-        console.warn('[POS] Empty barcode — scan aborted.');
-        return;
-    }
+    if (!code || isScanning.value) return;
 
     isScanning.value = true;
     scanError.value = '';
+    clearTimeout(debounceTimer);
 
     const url = `/bookstore/book-find/${encodeURIComponent(code)}`;
-    console.log('[POS] Sending GET request to:', url);
+    console.log('[POS] Scanning:', code, '→', url);
 
     try {
-        const response = await axios.get(url);
-        console.log('[POS] Response status:', response.status);
-        console.log('[POS] Response data:', response.data);
-
-        const data = response.data;
-
-        if (!data || !data.id) {
-            console.error('[POS] Response OK but data missing id field:', data);
-            scanError.value = 'Server noto\'g\'ri javob berdi';
-            return;
-        }
+        const { data } = await axios.get(url);
+        if (!data?.id) throw new Error('Invalid response');
 
         const existing = cart.value.find(i => i.id === data.id);
         if (existing) {
             existing.quantity++;
-            console.log('[POS] Existing item quantity incremented:', existing);
         } else {
             cart.value.unshift({ ...data, quantity: 1 });
-            console.log('[POS] New item added to cart:', data);
         }
 
         successFlash.value = true;
         setTimeout(() => successFlash.value = false, 800);
 
     } catch (err) {
-        console.error('[POS] Axios error:', err.message);
-        if (err.response) {
-            console.error('[POS] HTTP status:', err.response.status);
-            console.error('[POS] HTTP response body:', err.response.data);
-        } else {
-            console.error('[POS] No HTTP response — network error or CORS?');
-        }
-        scanError.value = `Topilmadi: "${code}"`;
+        const status = err.response?.status;
+        console.error('[POS] Error:', status, err.response?.data ?? err.message);
+        scanError.value = status === 404
+            ? `❌ Barcode topilmadi: "${code}"`
+            : `❌ Xato: ${err.message}`;
         setTimeout(() => scanError.value = '', 4000);
     } finally {
         currentBarcode.value = '';
         isScanning.value = false;
-        focusInput();
+    }
+};
+
+// ─── Global keystroke capture ────────────────────────────────────────────────
+// Captures ALL keystrokes on the page regardless of which element has focus.
+// This is the standard POS pattern for USB/Bluetooth barcode scanners.
+const handleGlobalKey = (e) => {
+    // If user is actively typing in a different input (discount field, etc.), ignore
+    const active = document.activeElement;
+    const isOtherInput = (active?.tagName === 'INPUT' || active?.tagName === 'TEXTAREA')
+        && active !== barcodeInput.value;
+    if (isOtherInput) return;
+
+    if (e.key === 'Enter') {
+        e.preventDefault();
+        clearTimeout(debounceTimer);
+        if (currentBarcode.value.trim()) handleScan();
+        return;
+    }
+
+    // Append printable characters to barcode buffer
+    if (e.key.length === 1 && !e.ctrlKey && !e.altKey && !e.metaKey) {
+        currentBarcode.value += e.key;
+        // Also auto-trigger 200ms after last keystroke (in case no Enter)
+        clearTimeout(debounceTimer);
+        debounceTimer = setTimeout(() => {
+            if (currentBarcode.value.trim()) handleScan();
+        }, 200);
     }
 };
 
@@ -93,35 +89,27 @@ const submitSale = () => {
     if (!cart.value.length) return;
     form.items = cart.value.map(i => ({ id: i.id, quantity: i.quantity }));
     form.post('/bookstore/sales', {
-        onSuccess: () => { cart.value = []; form.reset('discount'); focusInput(); },
+        onSuccess: () => { cart.value = []; form.reset('discount'); },
     });
 };
 
-onMounted(() => {
-    focusInput();
-    // Refocus on any window click
-    window.addEventListener('click', focusInput);
-    // Redirect stray keypresses to barcode input
-    window.addEventListener('keydown', globalKeyCapture);
-    // Fallback interval in case scanner bypasses events
-    focusInterval = setInterval(focusInput, 500);
-});
-
-onUnmounted(() => {
-    window.removeEventListener('click', focusInput);
-    window.removeEventListener('keydown', globalKeyCapture);
-    clearInterval(focusInterval);
-});
-
 const payMethods = [
-    { key: 'cash', label: 'Naqd', icon: '💵' },
-    { key: 'card', label: 'Karta', icon: '💳' },
+    { key: 'cash',  label: 'Naqd',  icon: '💵' },
+    { key: 'card',  label: 'Karta', icon: '💳' },
     { key: 'click', label: 'Click', icon: '📱' },
     { key: 'payme', label: 'Payme', icon: '🅿️' },
 ];
+
+onMounted(() => {
+    window.addEventListener('keydown', handleGlobalKey);
+});
+
+onUnmounted(() => {
+    window.removeEventListener('keydown', handleGlobalKey);
+    clearTimeout(debounceTimer);
+});
 </script>
 
-<template>
     <Head title="POS — Sotuv" />
 
     <BookstoreLayout>
@@ -148,11 +136,13 @@ const payMethods = [
                             <input
                                 ref="barcodeInput"
                                 v-model="currentBarcode"
-                                @keydown.enter="handleScan"
+                                @input="onBarcodeInput"
+                                @keydown.enter.prevent="handleScan"
+                                @keyup.enter.prevent="handleScan"
                                 @click.stop
                                 type="text"
                                 autocomplete="off"
-                                placeholder="Barcode skanerlang yoki yozing, so'ng Enter bosing..."
+                                placeholder="Barcode skanerlang yoki yozing..."
                                 class="w-full px-5 py-3.5 rounded-2xl text-white text-base font-mono transition-all focus:outline-none"
                                 style="background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1);"
                             />
