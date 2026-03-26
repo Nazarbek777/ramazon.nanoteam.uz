@@ -1,7 +1,7 @@
 <script setup>
 import BookstoreLayout from '@/Layouts/BookstoreLayout.vue';
 import { Head, useForm } from '@inertiajs/vue3';
-import { ref, computed } from 'vue';
+import { ref, computed, onMounted, onUnmounted } from 'vue';
 import axios from 'axios';
 
 const barcodeInput = ref(null);
@@ -15,6 +15,18 @@ const totalAmount = computed(() => cart.value.reduce((s, i) => s + i.price * i.q
 const netTotal = computed(() => Math.max(0, totalAmount.value - form.discount));
 
 const focusInput = () => barcodeInput.value?.focus();
+
+// Keep interval so focus is never permanently lost
+let focusInterval = null;
+
+// Redirect ALL keystrokes to barcode input (scanner global capture)
+const globalKeyCapture = (e) => {
+    // Ignore if user is typing in another input/textarea
+    const tag = e.target.tagName;
+    if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
+    // Focus barcode input and replay the key
+    focusInput();
+};
 
 const handleScan = async () => {
     const code = currentBarcode.value.trim();
@@ -84,6 +96,22 @@ const submitSale = () => {
         onSuccess: () => { cart.value = []; form.reset('discount'); focusInput(); },
     });
 };
+
+onMounted(() => {
+    focusInput();
+    // Refocus on any window click
+    window.addEventListener('click', focusInput);
+    // Redirect stray keypresses to barcode input
+    window.addEventListener('keydown', globalKeyCapture);
+    // Fallback interval in case scanner bypasses events
+    focusInterval = setInterval(focusInput, 500);
+});
+
+onUnmounted(() => {
+    window.removeEventListener('click', focusInput);
+    window.removeEventListener('keydown', globalKeyCapture);
+    clearInterval(focusInterval);
+});
 
 const payMethods = [
     { key: 'cash', label: 'Naqd', icon: '💵' },
