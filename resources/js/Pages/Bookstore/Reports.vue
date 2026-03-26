@@ -93,27 +93,42 @@ const exportCsv = () => {
             </div>
         </div>
 
-        <!-- Summary Cards -->
-        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:18px;">
-            <div style="background:#0d0d1f;border:1px solid rgba(255,255,255,0.07);border-radius:16px;padding:18px 20px;">
-                <div style="color:rgba(255,255,255,0.3);font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;margin-bottom:6px;">Jami daromad</div>
-                <div style="color:#fff;font-size:20px;font-weight:800;">{{ fmt(summary.total_revenue) }}</div>
-                <div style="color:rgba(255,255,255,0.2);font-size:11px;">so'm</div>
+        <!-- Enhanced Summary Cards -->
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:18px;">
+            <!-- Revenue Card -->
+            <div style="background:#0d0d1f;border:1px solid rgba(255,255,255,0.07);border-radius:18px;padding:22px;">
+                <div style="color:rgba(255,255,255,0.3);font-size:11px;font-weight:700;text-transform:uppercase;margin-bottom:10px;">Jami Tushum (Revenue)</div>
+                <div style="color:#fff;font-size:24px;font-weight:900;">{{ fmt(summary.total_revenue) }} <span style="font-size:12px;color:rgba(255,255,255,0.2);">so'm</span></div>
+                <div style="margin-top:10px;display:flex;justify-content:space-between;font-size:12px;color:rgba(255,255,255,0.4);">
+                    <span>Sotuvlar soni:</span><span>{{ summary.total_count }} ta</span>
+                </div>
             </div>
-            <div style="background:#0d0d1f;border:1px solid rgba(255,255,255,0.07);border-radius:16px;padding:18px 20px;">
-                <div style="color:rgba(255,255,255,0.3);font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;margin-bottom:6px;">Sotuvlar soni</div>
-                <div style="color:#fff;font-size:20px;font-weight:800;">{{ summary.total_count }}</div>
-                <div style="color:rgba(255,255,255,0.2);font-size:11px;">ta tranzaksiya</div>
+            
+            <!-- Profit Card -->
+            <div style="background:linear-gradient(135deg,#0d0d1f,#141426);border:1px solid rgba(34,197,94,0.1);border-radius:18px;padding:22px;position:relative;overflow:hidden;">
+                <div style="color:rgba(134,239,172,0.5);font-size:11px;font-weight:700;text-transform:uppercase;margin-bottom:10px;">Sof Foyda (Net Profit)</div>
+                <div :style="`font-size:24px;font-weight:900;${summary.net_profit>=0?'color:#86efac;':'color:#fca5a5;'}`">
+                    {{ summary.net_profit >= 0 ? '+' : '' }}{{ fmt(summary.net_profit) }} <span style="font-size:12px;opacity:0.6;">so'm</span>
+                </div>
+                <div style="margin-top:10px;display:grid;grid-template-columns:1fr 1fr;gap:15px;font-size:11px;">
+                    <div>
+                        <div style="color:rgba(255,255,255,0.2);margin-bottom:2px;">Yalpi foyda:</div>
+                        <div style="color:#fff;font-weight:700;">{{ fmt(summary.gross_profit) }}</div>
+                    </div>
+                    <div>
+                        <div style="color:rgba(255,255,255,0.2);margin-bottom:2px;">Chegirmalar:</div>
+                        <div style="color:#fca5a5;font-weight:700;">−{{ fmt(summary.total_discount) }}</div>
+                    </div>
+                </div>
             </div>
-            <div style="background:#0d0d1f;border:1px solid rgba(255,255,255,0.07);border-radius:16px;padding:18px 20px;">
-                <div style="color:rgba(255,255,255,0.3);font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;margin-bottom:6px;">O'rtacha chek</div>
-                <div style="color:#fff;font-size:20px;font-weight:800;">{{ fmt(summary.avg_sale) }}</div>
-                <div style="color:rgba(255,255,255,0.2);font-size:11px;">so'm</div>
-            </div>
-            <div style="background:#0d0d1f;border:1px solid rgba(255,255,255,0.07);border-radius:16px;padding:18px 20px;">
-                <div style="color:rgba(255,255,255,0.3);font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;margin-bottom:6px;">Jami chegirma</div>
-                <div style="color:#fff;font-size:20px;font-weight:800;">{{ fmt(summary.total_discount) }}</div>
-                <div style="color:rgba(255,255,255,0.2);font-size:11px;">so'm</div>
+ 
+            <!-- Expenses Card -->
+            <div style="background:#0d0d1f;border:1px solid rgba(239,68,68,0.1);border-radius:18px;padding:22px;">
+                <div style="color:rgba(239,68,68,0.5);font-size:11px;font-weight:700;text-transform:uppercase;margin-bottom:10px;">Boshqa Chiqimlar</div>
+                <div style="color:#fca5a5;font-size:24px;font-weight:900;">{{ fmt(summary.external_expenses) }} <span style="font-size:12px;opacity:0.6;">so'm</span></div>
+                <div style="margin-top:10px;color:rgba(255,255,255,0.3);font-size:11px;">
+                    Ijara, svet va boshqa xarajatlar
+                </div>
             </div>
         </div>
 
