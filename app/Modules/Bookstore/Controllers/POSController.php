@@ -20,7 +20,14 @@ class POSController extends Controller
     public function findBook($barcode)
     {
         $book = Book::where('barcode', $barcode)->firstOrFail();
-        return response()->json($book);
+        return response()->json([
+            'id' => $book->id,
+            'title' => $book->title,
+            'author' => $book->author,
+            'barcode' => $book->barcode,
+            'price' => (float) $book->price,
+            'stock' => $book->stock,
+        ]);
     }
 
     public function store(Request $request)

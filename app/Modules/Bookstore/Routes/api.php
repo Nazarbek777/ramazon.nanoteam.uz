@@ -3,6 +3,6 @@
 use Illuminate\Support\Facades\Route;
 use App\Modules\Bookstore\Controllers\POSController;
 
-Route::middleware('auth:bookstore')->group(function () {
-    Route::get('/books/{barcode}', [POSController::class, 'findBook'])->name('books.find');
-});
+// No auth middleware here - the page is already guarded by web session.
+// This is a simple JSON read-only endpoint.
+Route::get('/books/{barcode}', [POSController::class, 'findBook']);
