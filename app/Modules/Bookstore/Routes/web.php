@@ -16,6 +16,9 @@ Route::prefix('bookstore')->name('bookstore.')->group(function () {
         Route::get('/pos', [POSController::class, 'index'])->name('pos');
         Route::post('/sales', [POSController::class, 'store'])->name('sales.store');
 
+        // Barcode lookup — web route (session auth guaranteed)
+        Route::get('/book-find/{barcode}', [POSController::class, 'findBook'])->name('book.find');
+
         // Books CRUD
         Route::get('/books', [BookController::class, 'index'])->name('books.index');
         Route::post('/books', [BookController::class, 'store'])->name('books.store');

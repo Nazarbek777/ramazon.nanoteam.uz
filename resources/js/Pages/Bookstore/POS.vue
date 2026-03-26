@@ -40,7 +40,7 @@ const handleScan = async () => {
     isScanning.value = true;
     scanError.value = '';
 
-    const url = `/api/bookstore/books/${encodeURIComponent(code)}`;
+    const url = `/bookstore/book-find/${encodeURIComponent(code)}`;
     console.log('[POS] Sending GET request to:', url);
 
     try {
