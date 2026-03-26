@@ -85,11 +85,14 @@ const printQr = () => window.print();
                     class="w-full pl-10 pr-5 py-3.5 rounded-2xl text-white text-sm bg-transparent focus:outline-none transition-all"
                     style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);" />
             </div>
-            <button @click="openAdd"
-                class="px-6 py-3.5 rounded-2xl font-bold text-white text-sm transition-all active:scale-95 flex items-center gap-2 flex-shrink-0"
-                style="background: linear-gradient(135deg, #e94560, #533483); box-shadow: 0 6px 20px rgba(233,69,96,0.3);">
-                ＋ Yangi kitob
-            </button>
+            <div style="text-align:right;">
+                <div style="color:rgba(255,255,255,0.3);font-size:11px;margin-bottom:6px;">Yangi kitob qo'shish yoki zaxira to'ldirish:</div>
+                <button @click="router.get('/bookstore/arrivals')"
+                    class="px-6 py-2.5 rounded-xl font-bold text-white text-xs transition-all active:scale-95 flex items-center gap-2"
+                    style="background: rgba(99,102,241,0.15); border: 1px solid rgba(99,102,241,0.3); color: #a5b4fc;">
+                    ＋ Keldi / Chiqim qismiga o'tish
+                </button>
+            </div>
         </div>
 
         <!-- Table -->
@@ -172,7 +175,7 @@ const printQr = () => window.print();
                         style="background: #1a1a2e; border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 40px 100px rgba(0,0,0,0.6);">
 
                         <h2 class="text-xl font-extrabold text-white mb-7">
-                            {{ editingBook ? '✏️ Kitobni tahrirlash' : '➕ Yangi kitob qo\'shish' }}
+                            ✏️ Kitob ma'lumotlarini tahrirlash
                         </h2>
 
                         <form @submit.prevent="submit" class="space-y-4">
@@ -242,8 +245,8 @@ const printQr = () => window.print();
                                 </button>
                                 <button type="submit" :disabled="form.processing"
                                     class="flex-1 py-3.5 rounded-2xl font-bold text-white text-sm transition-all active:scale-95 disabled:opacity-50"
-                                    style="background: linear-gradient(135deg, #e94560, #533483);">
-                                    {{ editingBook ? 'Saqlash' : 'Qo\'shish' }}
+                                    style="background: linear-gradient(135deg, #6366f1, #4f46e5);">
+                                    Saqlash
                                 </button>
                             </div>
                         </form>

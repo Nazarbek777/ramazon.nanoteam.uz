@@ -83,6 +83,11 @@ class ArrivalsController extends Controller
     {
         $data = $request->validate([
             'book_id'    => 'nullable|exists:bookstore_books,id',
+            'is_new_book'=> 'nullable|boolean',
+            'title'      => 'nullable|string|max:255|required_if:is_new_book,true',
+            'author'     => 'nullable|string|max:255',
+            'barcode'    => 'nullable|string|max:255|required_if:is_new_book,true',
+            'price'      => 'nullable|numeric|min:0|required_if:is_new_book,true',
             'quantity'   => 'required|integer|min:1',
             'cost_price' => 'required|numeric|min:0',
             'supplier'   => 'nullable|string|max:200',
@@ -90,18 +95,39 @@ class ArrivalsController extends Controller
             'arrived_at' => 'required|date',
         ]);
 
-        $data['total_cost'] = $data['quantity'] * $data['cost_price'];
+        return DB::transaction(function () use ($data) {
+            $bookId = $data['book_id'];
 
-        $arrival = Arrival::create($data);
+            if (!empty($data['is_new_book'])) {
+                $book = Book::create([
+                    'title'      => $data['title'],
+                    'author'     => $data['author'],
+                    'barcode'    => $data['barcode'],
+                    'price'      => $data['price'],
+                    'cost_price' => $data['cost_price'],
+                    'stock'      => 0, // Will be incremented below
+                ]);
+                $bookId = $book->id;
+            }
 
-        // Update book stock and cost_price
-        if ($data['book_id']) {
-            $book = Book::find($data['book_id']);
-            $book->increment('stock', $data['quantity']);
-            $book->update(['cost_price' => $data['cost_price']]);
-        }
+            $arrival = Arrival::create([
+                'book_id'    => $bookId,
+                'quantity'   => $data['quantity'],
+                'cost_price' => $data['cost_price'],
+                'total_cost' => $data['quantity'] * $data['cost_price'],
+                'supplier'   => $data['supplier'],
+                'note'       => $data['note'],
+                'arrived_at' => $data['arrived_at'],
+            ]);
 
-        return redirect()->route('bookstore.arrivals')->with('success', 'Keldi qayd etildi!');
+            if ($bookId) {
+                $book = Book::find($bookId);
+                $book->increment('stock', $data['quantity']);
+                $book->update(['cost_price' => $data['cost_price']]);
+            }
+
+            return redirect()->route('bookstore.arrivals')->with('success', 'Muvaffaqiyatli saqlandi!');
+        });
     }
 
     public function destroy(Arrival $arrival)

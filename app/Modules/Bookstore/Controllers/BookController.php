@@ -6,6 +6,9 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use App\Modules\Bookstore\Models\Book;
+use App\Modules\Bookstore\Models\Arrival;
+use Carbon\Carbon;
+use Illuminate\Support\Facades\DB;
 
 class BookController extends Controller
 {
@@ -26,9 +29,22 @@ class BookController extends Controller
             'stock' => 'required|integer|min:0',
         ]);
 
-        Book::create($data);
+        return DB::transaction(function () use ($data) {
+            $book = Book::create($data);
 
-        return redirect('/bookstore/books')->with('success', 'Kitob qo\'shildi!');
+            if ($book->stock > 0) {
+                Arrival::create([
+                    'book_id'    => $book->id,
+                    'quantity'   => $book->stock,
+                    'cost_price' => $book->cost_price,
+                    'total_cost' => $book->stock * $book->cost_price,
+                    'note'       => 'Initial stock on creation',
+                    'arrived_at' => Carbon::now()->toDateString(),
+                ]);
+            }
+
+            return redirect('/bookstore/books')->with('success', 'Kitob qo\'shildi va keldi qayd etildi!');
+        });
     }
 
     public function update(Request $request, Book $book)
@@ -42,9 +58,24 @@ class BookController extends Controller
             'stock' => 'required|integer|min:0',
         ]);
 
-        $book->update($data);
+        return DB::transaction(function () use ($request, $book, $data) {
+            $oldStock = $book->stock;
+            $book->update($data);
 
-        return redirect('/bookstore/books')->with('success', 'Kitob yangilandi!');
+            if ($book->stock > $oldStock) {
+                $diff = $book->stock - $oldStock;
+                Arrival::create([
+                    'book_id'    => $book->id,
+                    'quantity'   => $diff,
+                    'cost_price' => $book->cost_price,
+                    'total_cost' => $diff * $book->cost_price,
+                    'note'       => 'Manual stock adjustment (increase)',
+                    'arrived_at' => Carbon::now()->toDateString(),
+                ]);
+            }
+
+            return redirect('/bookstore/books')->with('success', 'Kitob yangilandi!');
+        });
     }
 
     public function destroy(Book $book)

@@ -29,12 +29,38 @@ const filteredBooks = computed(() => {
 
 const form = useForm({
     book_id:    '',
+    is_new_book: false,
+    title:      '',
+    author:     '',
+    barcode:    '',
+    price:      '',
     quantity:   '',
     cost_price: '',
     supplier:   '',
     note:       '',
     arrived_at: new Date().toISOString().slice(0, 10),
 });
+
+const barcodeInput = ref('');
+const handleBarcode = async () => {
+    const bc = barcodeInput.value.trim();
+    if (!bc) return;
+
+    // Check if book exists
+    const response = await fetch(`/api/bookstore/books/${bc}`);
+    if (response.ok) {
+        const book = await response.json();
+        selectBook(book);
+    } else {
+        // Switch to new book mode
+        form.is_new_book = true;
+        form.barcode = bc;
+        form.book_id = '';
+        bookSearch.value = 'Yangi kitob: ' + bc;
+        // Focus on title next (we'll handle focus in template)
+    }
+    barcodeInput.value = '';
+};
 
 const selectBook = (book) => {
     form.book_id    = book.id;
@@ -50,7 +76,12 @@ const applyFilter = () => {
 
 const submit = () => {
     form.post('/bookstore/arrivals', {
-        onSuccess: () => { showForm.value = false; form.reset(); bookSearch.value = ''; },
+        onSuccess: () => { 
+            showForm.value = false; 
+            form.reset(); 
+            bookSearch.value = ''; 
+            isOtherExpense.value = false; 
+        },
     });
 };
 
@@ -175,8 +206,15 @@ onMounted(async () => {
                     <div style="background:#0d0d1f;border:1px solid rgba(255,255,255,0.1);border-radius:24px;padding:32px;width:100%;max-width:480px;">
                         <h2 style="color:#fff;font-size:16px;font-weight:800;margin:0 0 24px;">Yangi tovar qabulı</h2>
                         <form @submit.prevent="submit">
+                            <!-- Barcode Scanner Input (Hidden or Small) -->
+                            <div style="margin-bottom:18px;">
+                                <label style="display:block;color:rgba(255,255,255,0.3);font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;margin-bottom:6px;">Skayner (Barcode) orqali qidirish</label>
+                                <input v-model="barcodeInput" @keyup.enter="handleBarcode" type="text" placeholder="Barcodeni skanerlang..." autofocus
+                                    style="width:100%;padding:10px 14px;box-sizing:border-box;background:rgba(99,102,241,0.1);border:1px solid rgba(99,102,241,0.3);border-radius:10px;color:#fff;font-size:13px;outline:none;" />
+                            </div>
+
                             <!-- Toggle for Other Expense -->
-                            <div style="margin-bottom:18px;display:flex;align-items:center;gap:10px;cursor:pointer;" @click="isOtherExpense = !isOtherExpense; if(isOtherExpense) { form.book_id=''; bookSearch=''; }">
+                            <div v-if="!form.is_new_book" style="margin-bottom:18px;display:flex;align-items:center;gap:10px;cursor:pointer;" @click="isOtherExpense = !isOtherExpense; if(isOtherExpense) { form.book_id=''; bookSearch=''; }">
                                 <div :style="`width:36px;height:20px;border-radius:10px;position:relative;transition:0.3s;background:${isOtherExpense?'#6366f1':'rgba(255,255,255,0.1)'}`">
                                     <div :style="`width:14px;height:14px;background:#fff;border-radius:50%;position:absolute;top:3px;transition:0.3s;left:${isOtherExpense?'19px':'3px'}`"></div>
                                 </div>
@@ -184,8 +222,8 @@ onMounted(async () => {
                             </div>
 
                             <!-- Book picker -->
-                            <div v-if="!isOtherExpense" style="margin-bottom:14px;position:relative;">
-                                <label style="display:block;color:rgba(255,255,255,0.3);font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;margin-bottom:6px;">Kitob *</label>
+                            <div v-if="!isOtherExpense && !form.is_new_book" style="margin-bottom:14px;position:relative;">
+                                <label style="display:block;color:rgba(255,255,255,0.3);font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;margin-bottom:6px;">Kitob tanlang *</label>
                                 <input v-model="bookSearch" type="text" placeholder="Kitob nomini qidiring..."
                                     @focus="filteredOpen=true" @blur="setTimeout(()=>filteredOpen=false, 200)"
                                     style="width:100%;padding:10px 14px;box-sizing:border-box;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.08);border-radius:10px;color:#fff;font-size:13px;outline:none;" />
@@ -195,7 +233,36 @@ onMounted(async () => {
                                         {{ b.title }} <span style="color:rgba(255,255,255,0.3);font-size:11px;margin-left:8px;">{{ b.barcode }}</span>
                                     </div>
                                 </div>
+                                <div style="padding:10px;text-align:center;">
+                                    <button type="button" @click="form.is_new_book=true; bookSearch='Yangi kitob'" style="font-size:11px;color:#818cf8;border:none;background:none;cursor:pointer;">＋ Ro'yxatda yo'q (Yangi qo'shish)</button>
+                                </div>
                                 <div v-if="form.errors.book_id" style="color:#fca5a5;font-size:11px;margin-top:4px;">{{ form.errors.book_id }}</div>
+                            </div>
+
+                            <!-- New Book Fields -->
+                            <div v-if="form.is_new_book" style="background:rgba(99,102,241,0.05);border:1px solid rgba(99,102,241,0.2);border-radius:16px;padding:16px;margin-bottom:18px;">
+                                <div style="display:flex;justify-content:space-between;margin-bottom:12px;align-items:center;">
+                                    <span style="color:#a5b4fc;font-size:12px;font-weight:700;">YANGI KITOB MA'LUMOTLARI</span>
+                                    <button type="button" @click="form.is_new_book=false; form.title=''" style="color:rgba(255,255,255,0.3);font-size:11px;">Bekor qilish</button>
+                                </div>
+                                <div style="margin-bottom:10px;">
+                                    <label style="display:block;color:rgba(255,255,255,0.3);font-size:9px;font-weight:700;text-transform:uppercase;margin-bottom:4px;">Nomi *</label>
+                                    <input v-model="form.title" type="text" required style="width:100%;padding:8px 12px;box-sizing:border-box;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:8px;color:#fff;font-size:13px;" />
+                                </div>
+                                <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;">
+                                    <div>
+                                        <label style="display:block;color:rgba(255,255,255,0.3);font-size:9px;font-weight:700;text-transform:uppercase;margin-bottom:4px;">Muallif</label>
+                                        <input v-model="form.author" type="text" style="width:100%;padding:8px 12px;box-sizing:border-box;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:8px;color:#fff;font-size:13px;" />
+                                    </div>
+                                    <div>
+                                        <label style="display:block;color:rgba(255,255,255,0.3);font-size:9px;font-weight:700;text-transform:uppercase;margin-bottom:4px;">Sotish narxi *</label>
+                                        <input v-model="form.price" type="number" required style="width:100%;padding:8px 12px;box-sizing:border-box;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:8px;color:#fff;font-size:13px;" />
+                                    </div>
+                                </div>
+                                <div>
+                                    <label style="display:block;color:rgba(255,255,255,0.3);font-size:9px;font-weight:700;text-transform:uppercase;margin-bottom:4px;">QR Barcode *</label>
+                                    <input v-model="form.barcode" type="text" required style="width:100%;padding:8px 12px;box-sizing:border-box;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:8px;color:#fff;font-size:13px;" />
+                                </div>
                             </div>
 
                             <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px;">
