@@ -15,16 +15,16 @@ const user = computed(() => page.props.auth.user);
             </div>
             
             <nav class="flex-grow p-4 space-y-2">
-                <Link :href="route('bookstore.dashboard')" 
+                <Link href="/bookstore" 
                     class="flex items-center space-x-3 p-3 rounded-xl transition-all hover:bg-indigo-800"
-                    :class="{ 'bg-indigo-700 shadow-lg': route().current('bookstore.dashboard') }">
+                    :class="{ 'bg-indigo-700 shadow-lg': page.url === '/bookstore' }">
                     <span class="text-xl">📊</span>
                     <span>Bosh sahifa</span>
                 </Link>
                 
-                <Link :href="route('bookstore.pos')" 
+                <Link href="/bookstore/pos" 
                     class="flex items-center space-x-3 p-3 rounded-xl transition-all hover:bg-indigo-800"
-                    :class="{ 'bg-indigo-700 shadow-lg': route().current('bookstore.pos') }">
+                    :class="{ 'bg-indigo-700 shadow-lg': page.url === '/bookstore/pos' }">
                     <span class="text-xl">🛒</span>
                     <span>Sotuv Paneli (POS)</span>
                 </Link>
@@ -41,7 +41,7 @@ const user = computed(() => page.props.auth.user);
                     </div>
                 </div>
                 
-                <Link :href="route('bookstore.logout')" method="post" as="button"
+                <Link href="/bookstore/logout" method="post" as="button"
                     class="w-full text-left p-3 rounded-xl hover:bg-red-500/20 text-red-300 transition-all flex items-center space-x-3">
                     <span>🚪</span>
                     <span>Chiqish</span>

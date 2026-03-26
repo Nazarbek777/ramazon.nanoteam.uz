@@ -23,7 +23,7 @@ const handleScan = async () => {
     
     error.value = '';
     try {
-        const response = await axios.get(route('bookstore.books.find', currentBarcode.value));
+        const response = await axios.get(`/api/bookstore/books/${currentBarcode.value}`);
         const book = response.data;
         
         const existingItem = cart.value.find(item => item.id === book.id);
@@ -37,11 +37,9 @@ const handleScan = async () => {
         }
         
         currentBarcode.value = '';
-        // Play success sound (optional browser notification style beep)
     } catch (err) {
         error.value = 'Kitob topilmadi: ' + currentBarcode.value;
         currentBarcode.value = '';
-        // Play error sound
     }
 };
 
@@ -63,7 +61,7 @@ const submitSale = () => {
         quantity: item.quantity
     }));
     
-    form.post(route('bookstore.sales.store'), {
+    form.post('/bookstore/sales', {
         onSuccess: () => {
             cart.value = [];
             focusInput();

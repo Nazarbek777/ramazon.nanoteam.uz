@@ -8,7 +8,7 @@ const form = useForm({
 });
 
 const submit = () => {
-    form.post(route('bookstore.login'), {
+    form.post('/bookstore/login', {
         onFinish: () => form.reset('password'),
     });
 };
