@@ -13,6 +13,7 @@ class Book extends Model
         'author',
         'barcode',
         'price',
+        'cost_price',
         'stock',
     ];
 }

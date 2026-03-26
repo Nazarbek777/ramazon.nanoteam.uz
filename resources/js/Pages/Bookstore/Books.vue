@@ -26,6 +26,7 @@ const form = useForm({
     author: '',
     barcode: '',
     price: '',
+    cost_price: '',
     stock: '',
 });
 
@@ -41,6 +42,7 @@ const openEdit = (book) => {
     form.author = book.author || '';
     form.barcode = book.barcode;
     form.price = book.price;
+    form.cost_price = book.cost_price || '';
     form.stock = book.stock;
     showModal.value = true;
 };
@@ -203,10 +205,10 @@ const printQr = () => window.print();
                                 <div v-if="form.errors.barcode" class="text-red-400 text-xs mt-1.5">{{ form.errors.barcode }}</div>
                             </div>
 
-                            <!-- Price + Stock row -->
-                            <div class="grid grid-cols-2 gap-3">
+                            <!-- Price + Cost Price + Stock row -->
+                            <div class="grid grid-cols-3 gap-3">
                                 <div>
-                                    <label class="block text-xs font-bold uppercase tracking-widest mb-2" style="color: rgba(255,255,255,0.35);">Narx (so'm) *</label>
+                                    <label class="block text-xs font-bold uppercase tracking-widest mb-2" style="color: rgba(255,255,255,0.35);">Sotish narxi *</label>
                                     <input v-model="form.price" type="number" required min="0"
                                         class="w-full px-4 py-3.5 rounded-2xl text-white text-sm focus:outline-none transition-all"
                                         style="background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1);"
@@ -214,7 +216,15 @@ const printQr = () => window.print();
                                     <div v-if="form.errors.price" class="text-red-400 text-xs mt-1.5">{{ form.errors.price }}</div>
                                 </div>
                                 <div>
-                                    <label class="block text-xs font-bold uppercase tracking-widest mb-2" style="color: rgba(255,255,255,0.35);">Zaxira (dona) *</label>
+                                    <label class="block text-xs font-bold uppercase tracking-widest mb-2" style="color: rgba(255,255,255,0.35);">Sotib olish *</label>
+                                    <input v-model="form.cost_price" type="number" required min="0"
+                                        class="w-full px-4 py-3.5 rounded-2xl text-white text-sm focus:outline-none transition-all"
+                                        style="background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1);"
+                                        placeholder="35000" />
+                                    <div v-if="form.errors.cost_price" class="text-red-400 text-xs mt-1.5">{{ form.errors.cost_price }}</div>
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-bold uppercase tracking-widest mb-2" style="color: rgba(255,255,255,0.35);">Zaxira *</label>
                                     <input v-model="form.stock" type="number" required min="0"
                                         class="w-full px-4 py-3.5 rounded-2xl text-white text-sm focus:outline-none transition-all"
                                         style="background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1);"

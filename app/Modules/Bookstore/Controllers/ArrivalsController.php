@@ -82,7 +82,7 @@ class ArrivalsController extends Controller
     public function store(Request $request)
     {
         $data = $request->validate([
-            'book_id'    => 'required|exists:bookstore_books,id',
+            'book_id'    => 'nullable|exists:bookstore_books,id',
             'quantity'   => 'required|integer|min:1',
             'cost_price' => 'required|numeric|min:0',
             'supplier'   => 'nullable|string|max:200',
@@ -95,17 +95,21 @@ class ArrivalsController extends Controller
         $arrival = Arrival::create($data);
 
         // Update book stock and cost_price
-        $book = Book::find($data['book_id']);
-        $book->increment('stock', $data['quantity']);
-        $book->update(['cost_price' => $data['cost_price']]);
+        if ($data['book_id']) {
+            $book = Book::find($data['book_id']);
+            $book->increment('stock', $data['quantity']);
+            $book->update(['cost_price' => $data['cost_price']]);
+        }
 
         return redirect()->route('bookstore.arrivals')->with('success', 'Keldi qayd etildi!');
     }
 
     public function destroy(Arrival $arrival)
     {
-        // Reverse the stock increment
-        $arrival->book->decrement('stock', $arrival->quantity);
+        // Reverse the stock increment ONLY if book_id is present
+        if ($arrival->book_id) {
+            $arrival->book->decrement('stock', $arrival->quantity);
+        }
         $arrival->delete();
         return redirect()->route('bookstore.arrivals')->with('success', 'O\'chirildi');
     }

@@ -19,6 +19,7 @@ const chartRef  = ref(null);
 const fmt       = (n) => Number(n || 0).toLocaleString('uz-UZ');
 const profit    = computed(() => props.periodRevenue - props.periodCost);
 const bookSearch = ref('');
+const isOtherExpense = ref(false);
 
 const filteredBooks = computed(() => {
     const q = bookSearch.value.toLowerCase();
@@ -174,8 +175,16 @@ onMounted(async () => {
                     <div style="background:#0d0d1f;border:1px solid rgba(255,255,255,0.1);border-radius:24px;padding:32px;width:100%;max-width:480px;">
                         <h2 style="color:#fff;font-size:16px;font-weight:800;margin:0 0 24px;">Yangi tovar qabulı</h2>
                         <form @submit.prevent="submit">
+                            <!-- Toggle for Other Expense -->
+                            <div style="margin-bottom:18px;display:flex;align-items:center;gap:10px;cursor:pointer;" @click="isOtherExpense = !isOtherExpense; if(isOtherExpense) { form.book_id=''; bookSearch=''; }">
+                                <div :style="`width:36px;height:20px;border-radius:10px;position:relative;transition:0.3s;background:${isOtherExpense?'#6366f1':'rgba(255,255,255,0.1)'}`">
+                                    <div :style="`width:14px;height:14px;background:#fff;border-radius:50%;position:absolute;top:3px;transition:0.3s;left:${isOtherExpense?'19px':'3px'}`"></div>
+                                </div>
+                                <span style="color:rgba(255,255,255,0.6);font-size:13px;font-weight:600;">Boshqa xarajat (kitob emas)</span>
+                            </div>
+
                             <!-- Book picker -->
-                            <div style="margin-bottom:14px;position:relative;">
+                            <div v-if="!isOtherExpense" style="margin-bottom:14px;position:relative;">
                                 <label style="display:block;color:rgba(255,255,255,0.3);font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;margin-bottom:6px;">Kitob *</label>
                                 <input v-model="bookSearch" type="text" placeholder="Kitob nomini qidiring..."
                                     @focus="filteredOpen=true" @blur="setTimeout(()=>filteredOpen=false, 200)"
@@ -254,8 +263,13 @@ onMounted(async () => {
                     <tr v-for="a in arrivals.data" :key="a.id" style="border-top:1px solid rgba(255,255,255,0.04);">
                         <td style="padding:13px 22px;color:rgba(255,255,255,0.5);font-size:12px;">{{ a.arrived_at }}</td>
                         <td style="padding:13px 22px;">
-                            <div style="color:#fff;font-size:13px;font-weight:500;">{{ a.book?.title }}</div>
-                            <div style="color:rgba(255,255,255,0.3);font-size:11px;font-family:monospace;">{{ a.book?.barcode }}</div>
+                            <template v-if="a.book">
+                                <div style="color:#fff;font-size:13px;font-weight:500;">{{ a.book.title }}</div>
+                                <div style="color:rgba(255,255,255,0.3);font-size:11px;font-family:monospace;">{{ a.book.barcode }}</div>
+                            </template>
+                            <template v-else>
+                                <div style="color:rgba(255,255,255,0.5);font-size:13px;font-style:italic;">Boshqa xarajat</div>
+                            </template>
                         </td>
                         <td style="padding:13px 22px;color:#fff;font-weight:700;font-size:13px;">{{ a.quantity }} <span style="color:rgba(255,255,255,0.3);font-weight:400;font-size:11px;">dona</span></td>
                         <td style="padding:13px 22px;color:#fff;font-size:13px;">{{ fmt(a.cost_price) }} <span style="color:rgba(255,255,255,0.3);font-size:11px;">so'm</span></td>

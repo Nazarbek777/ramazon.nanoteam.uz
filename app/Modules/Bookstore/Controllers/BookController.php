@@ -22,6 +22,7 @@ class BookController extends Controller
             'author' => 'nullable|string|max:255',
             'barcode' => 'required|string|unique:bookstore_books,barcode',
             'price' => 'required|numeric|min:0',
+            'cost_price' => 'required|numeric|min:0',
             'stock' => 'required|integer|min:0',
         ]);
 
@@ -37,6 +38,7 @@ class BookController extends Controller
             'author' => 'nullable|string|max:255',
             'barcode' => 'required|string|unique:bookstore_books,barcode,' . $book->id,
             'price' => 'required|numeric|min:0',
+            'cost_price' => 'required|numeric|min:0',
             'stock' => 'required|integer|min:0',
         ]);
 
