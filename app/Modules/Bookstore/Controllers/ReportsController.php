@@ -8,6 +8,8 @@ use App\Modules\Bookstore\Models\Sale;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
+use App\Modules\Bookstore\Models\Arrival;
+use App\Modules\Bookstore\Models\Book;
 
 class ReportsController extends Controller
 {
@@ -43,7 +45,23 @@ class ReportsController extends Controller
             ->groupBy('payment_method')
             ->get();
 
+        // Stock Valuation (Real-time)
+        $stockStats = Arrival::where('remaining_stock', '>', 0)
+            ->join('bookstore_books', 'bookstore_arrivals.book_id', '=', 'bookstore_books.id')
+            ->select(
+                DB::raw('SUM(remaining_stock) as total_quantity'),
+                DB::raw('SUM(remaining_stock * bookstore_arrivals.cost_price) as total_cost_value'),
+                DB::raw('SUM(remaining_stock * bookstore_books.price) as total_sale_value')
+            )
+            ->first();
+
         return Inertia::render('Bookstore/Reports', [
+            'stockStats'   => [
+                'total_quantity'   => (int) $stockStats->total_quantity,
+                'total_cost_value' => (float) $stockStats->total_cost_value,
+                'total_sale_value' => (float) $stockStats->total_sale_value,
+                'potential_profit' => (float) ($stockStats->total_sale_value - $stockStats->total_cost_value),
+            ],
             'sales'        => $sales->through(fn($s) => [
                 'id'             => $s->id,
                 'total_amount'   => (float) $s->total_amount,

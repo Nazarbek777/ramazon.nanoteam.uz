@@ -7,6 +7,7 @@ const props = defineProps({
     sales:        { type: Object, default: () => ({ data: [], links: [], meta: {} }) },
     summary:      { type: Object, default: () => ({}) },
     payBreakdown: { type: Array,  default: () => [] },
+    stockStats:   { type: Object, default: () => ({ total_quantity:0, total_cost_value:0, total_sale_value:0, potential_profit:0 }) },
     filters:      { type: Object, default: () => ({}) },
 });
 
@@ -67,6 +68,29 @@ const exportCsv = () => {
                 <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
                 CSV Yuklab olish
             </button>
+        </div>
+
+        <!-- Warehouse Valuation Section (Ichma ich) -->
+        <div style="background:linear-gradient(135deg,#1e1e3f,#0d0d1f);border:1px solid rgba(255,255,255,0.07);border-radius:22px;padding:24px;margin-bottom:24px;display:grid;grid-template-columns:1.5fr 1fr 1fr 1fr;gap:20px;align-items:center;">
+            <div>
+                <div style="color:rgba(255,255,255,0.4);font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;margin-bottom:8px;">📦 Ombor Holati (Hozirgi vaqtda)</div>
+                <div style="color:#fff;font-size:24px;font-weight:900;">Jami kitoblar: {{ fmt(stockStats.total_quantity) }} <span style="font-weight:400;font-size:14px;color:rgba(255,255,255,0.3);">ta</span></div>
+            </div>
+            <div style="background:rgba(255,255,255,0.03);padding:14px 18px;border-radius:14px;border:1px solid rgba(255,255,255,0.05);">
+                <div style="color:rgba(255,255,255,0.3);font-size:10px;font-weight:700;text-transform:uppercase;margin-bottom:4px;">Xarid qiymati</div>
+                <div style="color:#fff;font-size:17px;font-weight:800;">{{ fmt(stockStats.total_cost_value) }}</div>
+                <div style="color:rgba(255,255,255,0.2);font-size:11px;">so'm (investitsiya)</div>
+            </div>
+            <div style="background:rgba(255,255,255,0.03);padding:14px 18px;border-radius:14px;border:1px solid rgba(255,255,255,0.05);">
+                <div style="color:rgba(255,255,255,0.3);font-size:10px;font-weight:700;text-transform:uppercase;margin-bottom:4px;">Sotuv qiymati</div>
+                <div style="color:#86efac;font-size:17px;font-weight:800;">{{ fmt(stockStats.total_sale_value) }}</div>
+                <div style="color:rgba(255,255,255,0.2);font-size:11px;">so'm (kutilayotgan)</div>
+            </div>
+            <div style="background:rgba(99,102,241,0.08);padding:14px 18px;border-radius:14px;border:1px solid rgba(99,102,241,0.2);">
+                <div style="color:rgba(165,180,252,0.6);font-size:10px;font-weight:700;text-transform:uppercase;margin-bottom:4px;">Kutilayotgan foyda</div>
+                <div style="color:#a5b4fc;font-size:17px;font-weight:800;">{{ fmt(stockStats.potential_profit) }}</div>
+                <div style="color:rgba(255,255,255,0.2);font-size:11px;">so'm (sof)</div>
+            </div>
         </div>
 
         <!-- Summary Cards -->
