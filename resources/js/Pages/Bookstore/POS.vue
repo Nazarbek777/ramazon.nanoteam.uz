@@ -165,13 +165,24 @@ const submitSale = () => {
     form.items = items;
     form.post('/bookstore/sales', {
         onSuccess: () => {
-            const flash = page.props.flash?.saleReceipt;
-            if (flash) { receipt.value = flash; showReceipt.value = true; }
             cart.value = [];
             form.reset('discount');
         },
     });
 };
+
+// Watch for saleReceipt flash from server (populated after Inertia redirect)
+watch(
+    () => page.props.flash?.saleReceipt,
+    (val) => {
+        if (val) {
+            receipt.value = val;
+            showReceipt.value = true;
+        }
+    },
+    { immediate: true }
+);
+
 
 const printReceipt = () => window.print();
 const closeReceipt = () => { showReceipt.value = false; receipt.value = null; };
