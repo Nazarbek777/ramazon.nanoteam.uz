@@ -66,9 +66,10 @@ class ReportsController extends Controller
             ->groupBy('payment_method')
             ->get();
 
-        // Stock Valuation (Real-time)
+        // Stock Valuation (Real-time) - Only active books
         $stockStats = Arrival::where('remaining_stock', '>', 0)
             ->join('bookstore_books', 'bookstore_arrivals.book_id', '=', 'bookstore_books.id')
+            ->whereNull('bookstore_books.deleted_at')
             ->select(
                 DB::raw('SUM(remaining_stock) as total_quantity'),
                 DB::raw('SUM(remaining_stock * bookstore_arrivals.cost_price) as total_cost_value'),
