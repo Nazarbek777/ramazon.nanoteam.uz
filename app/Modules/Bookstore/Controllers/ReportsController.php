@@ -19,7 +19,7 @@ class ReportsController extends Controller
         $to      = $request->input('to')   ? Carbon::parse($request->input('to'))->endOfDay()     : Carbon::now()->endOfDay();
         $payment = $request->input('payment');
 
-        $query = Sale::with(['user', 'items.book'])
+        $query = Sale::with(['user', 'items.book' => fn($q) => $q->withTrashed()])
             ->whereBetween('created_at', [$from, $to]);
 
         if ($payment) {

@@ -18,7 +18,7 @@ class ArrivalsController extends Controller
         $from    = $request->input('from') ? Carbon::parse($request->input('from'))->startOfDay() : Carbon::now()->startOfMonth();
         $to      = $request->input('to')   ? Carbon::parse($request->input('to'))->endOfDay()     : Carbon::now()->endOfDay();
 
-        $arrivals = Arrival::with('book:id,title,author,barcode')
+        $arrivals = Arrival::with(['book' => fn($q) => $q->withTrashed()->select('id', 'title', 'author', 'barcode')])
             ->whereBetween('arrived_at', [$from->toDateString(), $to->toDateString()])
             ->latest('arrived_at')
             ->paginate(25)
@@ -157,7 +157,7 @@ class ArrivalsController extends Controller
         $from = $request->input('from') ? Carbon::parse($request->input('from'))->startOfDay() : Carbon::now()->startOfMonth();
         $to   = $request->input('to')   ? Carbon::parse($request->input('to'))->endOfDay()     : Carbon::now()->endOfDay();
 
-        $arrivals = Arrival::with('book')
+        $arrivals = Arrival::with(['book' => fn($q) => $q->withTrashed()])
             ->whereBetween('arrived_at', [$from->toDateString(), $to->toDateString()])
             ->latest('arrived_at')->get();
 
