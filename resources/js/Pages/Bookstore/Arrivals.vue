@@ -1,0 +1,288 @@
+<script setup>
+import BookstoreLayout from '@/Layouts/BookstoreLayout.vue';
+import { Head, useForm, router } from '@inertiajs/vue3';
+import { ref, computed, onMounted } from 'vue';
+
+const props = defineProps({
+    arrivals:      { type: Object, default: () => ({ data: [], links: [] }) },
+    books:         { type: Array,  default: () => [] },
+    periodRevenue: { type: Number, default: 0 },
+    periodCost:    { type: Number, default: 0 },
+    plData:        { type: Array,  default: () => [] },
+    filters:       { type: Object, default: () => ({}) },
+});
+
+const from      = ref(props.filters.from || '');
+const to        = ref(props.filters.to   || '');
+const showForm  = ref(false);
+const chartRef  = ref(null);
+const fmt       = (n) => Number(n || 0).toLocaleString('uz-UZ');
+const profit    = computed(() => props.periodRevenue - props.periodCost);
+const bookSearch = ref('');
+
+const filteredBooks = computed(() => {
+    const q = bookSearch.value.toLowerCase();
+    if (!q) return props.books;
+    return props.books.filter(b => b.title.toLowerCase().includes(q) || b.barcode?.includes(q));
+});
+
+const form = useForm({
+    book_id:    '',
+    quantity:   '',
+    cost_price: '',
+    supplier:   '',
+    note:       '',
+    arrived_at: new Date().toISOString().slice(0, 10),
+});
+
+const selectBook = (book) => {
+    form.book_id    = book.id;
+    form.cost_price = book.cost_price || '';
+    bookSearch.value = book.title;
+    filteredOpen.value = false;
+};
+const filteredOpen = ref(false);
+
+const applyFilter = () => {
+    router.get('/bookstore/arrivals', { from: from.value, to: to.value }, { preserveState: true, replace: true });
+};
+
+const submit = () => {
+    form.post('/bookstore/arrivals', {
+        onSuccess: () => { showForm.value = false; form.reset(); bookSearch.value = ''; },
+    });
+};
+
+const deleteArrival = (id) => {
+    if (!confirm('O\'chirishni tasdiqlaysizmi? Zaxira kamayadi!')) return;
+    router.delete(`/bookstore/arrivals/${id}`);
+};
+
+const exportCsv = () => {
+    window.location.href = `/bookstore/arrivals/export?from=${from.value}&to=${to.value}`;
+};
+
+onMounted(async () => {
+    const { Chart, registerables } = await import('chart.js');
+    Chart.register(...registerables);
+    if (!chartRef.value) return;
+
+    new Chart(chartRef.value, {
+        type: 'bar',
+        data: {
+            labels: props.plData.map(m => m.month),
+            datasets: [
+                {
+                    label: 'Daromad',
+                    data: props.plData.map(m => m.revenue),
+                    backgroundColor: 'rgba(99,102,241,0.6)',
+                    borderRadius: 5,
+                    barPercentage: 0.45,
+                    categoryPercentage: 0.8,
+                },
+                {
+                    label: 'Chiqim',
+                    data: props.plData.map(m => m.cost),
+                    backgroundColor: 'rgba(239,68,68,0.5)',
+                    borderRadius: 5,
+                    barPercentage: 0.45,
+                    categoryPercentage: 0.8,
+                },
+            ],
+        },
+        options: {
+            responsive: true, maintainAspectRatio: false,
+            plugins: {
+                legend: { labels: { color: 'rgba(255,255,255,0.4)', font: { size: 11 }, boxWidth: 10, borderRadius: 3 } },
+                tooltip: { callbacks: { label: c => ' ' + Number(c.raw).toLocaleString() + ' so\'m' } },
+            },
+            scales: {
+                x: { grid: { display: false }, ticks: { color: 'rgba(255,255,255,0.35)', font: { size: 11 } } },
+                y: { grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { color: 'rgba(255,255,255,0.3)', font: { size: 10 }, callback: v => v >= 1000000 ? (v/1000000).toFixed(1)+'M' : v >= 1000 ? Math.round(v/1000)+'k' : v } },
+            },
+        },
+    });
+});
+</script>
+
+<template>
+    <Head title="Keldi / Chiqim" />
+    <BookstoreLayout>
+        <template #header>
+            <svg width="17" height="17" fill="none" viewBox="0 0 24 24" stroke="rgba(255,255,255,0.5)" stroke-width="2" style="margin-right:6px;">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"/>
+            </svg>
+            Keldi / Inventar
+        </template>
+
+        <!-- Summary Cards -->
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:18px;">
+            <div style="background:#0d0d1f;border:1px solid rgba(255,255,255,0.07);border-radius:16px;padding:18px 20px;">
+                <div style="color:rgba(255,255,255,0.3);font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;margin-bottom:6px;">Daromad</div>
+                <div style="color:#a5b4fc;font-size:20px;font-weight:800;">{{ fmt(periodRevenue) }}</div>
+                <div style="color:rgba(255,255,255,0.2);font-size:11px;">so'm</div>
+            </div>
+            <div style="background:#0d0d1f;border:1px solid rgba(255,255,255,0.07);border-radius:16px;padding:18px 20px;">
+                <div style="color:rgba(255,255,255,0.3);font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;margin-bottom:6px;">Chiqim (xarid)</div>
+                <div style="color:#fca5a5;font-size:20px;font-weight:800;">{{ fmt(periodCost) }}</div>
+                <div style="color:rgba(255,255,255,0.2);font-size:11px;">so'm</div>
+            </div>
+            <div :style="`background:#0d0d1f;border:1px solid ${profit>=0?'rgba(34,197,94,0.15)':'rgba(239,68,68,0.15)'};border-radius:16px;padding:18px 20px;`">
+                <div style="color:rgba(255,255,255,0.3);font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;margin-bottom:6px;">Sof foyda</div>
+                <div :style="`font-size:20px;font-weight:800;${profit>=0?'color:#86efac;':'color:#fca5a5;'}`">{{ profit >= 0 ? '+' : '' }}{{ fmt(profit) }}</div>
+                <div style="color:rgba(255,255,255,0.2);font-size:11px;">so'm</div>
+            </div>
+            <div style="background:#0d0d1f;border:1px solid rgba(255,255,255,0.07);border-radius:16px;padding:18px 20px;">
+                <div style="color:rgba(255,255,255,0.3);font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;margin-bottom:6px;">Rentabellik</div>
+                <div style="color:#fcd34d;font-size:20px;font-weight:800;">{{ periodCost > 0 ? Math.round(profit / periodCost * 100) : 0 }}%</div>
+                <div style="color:rgba(255,255,255,0.2);font-size:11px;">marja</div>
+            </div>
+        </div>
+
+        <!-- P&L Chart -->
+        <div style="background:#0d0d1f;border:1px solid rgba(255,255,255,0.07);border-radius:18px;padding:22px 24px;margin-bottom:18px;">
+            <h3 style="color:#fff;font-weight:700;font-size:13px;margin:0 0 18px;">{{ new Date().getFullYear() }} — Daromad vs Chiqim (oylik)</h3>
+            <div style="height:220px;"><canvas ref="chartRef"></canvas></div>
+        </div>
+
+        <!-- Filter + Add -->
+        <div style="background:#0d0d1f;border:1px solid rgba(255,255,255,0.07);border-radius:16px;padding:16px 20px;margin-bottom:18px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+            <div style="display:flex;flex-direction:column;gap:4px;">
+                <label style="color:rgba(255,255,255,0.3);font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;">Dan</label>
+                <input type="date" v-model="from" style="background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.08);border-radius:9px;padding:8px 12px;color:#fff;font-size:13px;outline:none;" />
+            </div>
+            <div style="display:flex;flex-direction:column;gap:4px;">
+                <label style="color:rgba(255,255,255,0.3);font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;">Gacha</label>
+                <input type="date" v-model="to" style="background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.08);border-radius:9px;padding:8px 12px;color:#fff;font-size:13px;outline:none;" />
+            </div>
+            <button @click="applyFilter" style="margin-top:18px;background:linear-gradient(135deg,#6366f1,#8b5cf6);border:none;border-radius:9px;padding:9px 20px;color:#fff;font-size:13px;font-weight:700;cursor:pointer;">Filtrlash</button>
+            <button @click="exportCsv" style="margin-top:18px;background:rgba(20,184,166,0.12);border:1px solid rgba(20,184,166,0.2);border-radius:9px;padding:9px 20px;color:#5eead4;font-size:13px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:6px;">
+                <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                CSV
+            </button>
+            <button @click="showForm = !showForm" style="margin-top:18px;margin-left:auto;background:rgba(34,197,94,0.1);border:1px solid rgba(34,197,94,0.25);border-radius:9px;padding:9px 20px;color:#86efac;font-size:13px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:6px;">
+                <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+                Yangi keldi
+            </button>
+        </div>
+
+        <!-- Add Arrival Form -->
+        <Teleport to="body">
+            <Transition name="fade">
+                <div v-if="showForm" class="fixed inset-0 z-50 flex items-center justify-center p-4"
+                    style="background:rgba(0,0,0,0.75);backdrop-filter:blur(6px);" @click.self="showForm=false">
+                    <div style="background:#0d0d1f;border:1px solid rgba(255,255,255,0.1);border-radius:24px;padding:32px;width:100%;max-width:480px;">
+                        <h2 style="color:#fff;font-size:16px;font-weight:800;margin:0 0 24px;">Yangi tovar qabulı</h2>
+                        <form @submit.prevent="submit">
+                            <!-- Book picker -->
+                            <div style="margin-bottom:14px;position:relative;">
+                                <label style="display:block;color:rgba(255,255,255,0.3);font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;margin-bottom:6px;">Kitob *</label>
+                                <input v-model="bookSearch" type="text" placeholder="Kitob nomini qidiring..."
+                                    @focus="filteredOpen=true" @blur="setTimeout(()=>filteredOpen=false, 200)"
+                                    style="width:100%;padding:10px 14px;box-sizing:border-box;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.08);border-radius:10px;color:#fff;font-size:13px;outline:none;" />
+                                <div v-if="filteredOpen && filteredBooks.length" style="position:absolute;top:100%;left:0;right:0;background:#141426;border:1px solid rgba(255,255,255,0.1);border-radius:10px;overflow:hidden;z-index:10;max-height:180px;overflow-y:auto;margin-top:4px;">
+                                    <div v-for="b in filteredBooks.slice(0,8)" :key="b.id" @mousedown="selectBook(b)"
+                                        style="padding:9px 14px;color:#fff;font-size:13px;cursor:pointer;border-bottom:1px solid rgba(255,255,255,0.04);">
+                                        {{ b.title }} <span style="color:rgba(255,255,255,0.3);font-size:11px;margin-left:8px;">{{ b.barcode }}</span>
+                                    </div>
+                                </div>
+                                <div v-if="form.errors.book_id" style="color:#fca5a5;font-size:11px;margin-top:4px;">{{ form.errors.book_id }}</div>
+                            </div>
+
+                            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px;">
+                                <div>
+                                    <label style="display:block;color:rgba(255,255,255,0.3);font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;margin-bottom:6px;">Miqdor *</label>
+                                    <input v-model="form.quantity" type="number" min="1" required style="width:100%;padding:10px 14px;box-sizing:border-box;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.08);border-radius:10px;color:#fff;font-size:13px;outline:none;" placeholder="50" />
+                                </div>
+                                <div>
+                                    <label style="display:block;color:rgba(255,255,255,0.3);font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;margin-bottom:6px;">Sotib olish narxi *</label>
+                                    <input v-model="form.cost_price" type="number" min="0" required style="width:100%;padding:10px 14px;box-sizing:border-box;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.08);border-radius:10px;color:#fff;font-size:13px;outline:none;" placeholder="25000" />
+                                </div>
+                            </div>
+
+                            <div style="margin-bottom:14px;">
+                                <label style="display:block;color:rgba(255,255,255,0.3);font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;margin-bottom:6px;">Kelgan sana *</label>
+                                <input v-model="form.arrived_at" type="date" required style="width:100%;padding:10px 14px;box-sizing:border-box;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.08);border-radius:10px;color:#fff;font-size:13px;outline:none;" />
+                            </div>
+
+                            <div style="margin-bottom:14px;">
+                                <label style="display:block;color:rgba(255,255,255,0.3);font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;margin-bottom:6px;">Yetkazuvchi</label>
+                                <input v-model="form.supplier" type="text" style="width:100%;padding:10px 14px;box-sizing:border-box;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.08);border-radius:10px;color:#fff;font-size:13px;outline:none;" placeholder="Mas: Kitob savdosi LLC" />
+                            </div>
+
+                            <div style="margin-bottom:18px;">
+                                <label style="display:block;color:rgba(255,255,255,0.3);font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;margin-bottom:6px;">Izoh</label>
+                                <textarea v-model="form.note" rows="2" style="width:100%;padding:10px 14px;box-sizing:border-box;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.08);border-radius:10px;color:#fff;font-size:13px;outline:none;resize:none;" placeholder="Ixtiyoriy..."></textarea>
+                            </div>
+
+                            <!-- Preview total -->
+                            <div v-if="form.quantity && form.cost_price" style="background:rgba(99,102,241,0.08);border:1px solid rgba(99,102,241,0.15);border-radius:10px;padding:12px 16px;margin-bottom:18px;display:flex;justify-content:space-between;">
+                                <span style="color:rgba(255,255,255,0.5);font-size:13px;">Jami xarajat</span>
+                                <span style="color:#a5b4fc;font-weight:800;font-size:14px;">{{ fmt(form.quantity * form.cost_price) }} so'm</span>
+                            </div>
+
+                            <div style="display:flex;gap:10px;">
+                                <button type="button" @click="showForm=false" style="flex:1;padding:12px;border-radius:10px;border:1px solid rgba(255,255,255,0.08);background:rgba(255,255,255,0.04);color:rgba(255,255,255,0.4);font-weight:600;font-size:13px;cursor:pointer;">Bekor</button>
+                                <button type="submit" :disabled="form.processing" style="flex:2;padding:12px;border-radius:10px;border:none;background:linear-gradient(135deg,#22c55e,#16a34a);color:#fff;font-weight:700;font-size:13px;cursor:pointer;opacity:1;" :style="form.processing?'opacity:0.5':''">
+                                    Saqlash va zaxirani yangilash
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </Transition>
+        </Teleport>
+
+        <!-- Arrivals Table -->
+        <div style="background:#0d0d1f;border:1px solid rgba(255,255,255,0.07);border-radius:18px;overflow:hidden;">
+            <div style="padding:18px 24px;border-bottom:1px solid rgba(255,255,255,0.05);">
+                <h3 style="color:#fff;font-weight:700;font-size:13px;margin:0;">Keldi ro'yxati</h3>
+            </div>
+            <table style="width:100%;border-collapse:collapse;">
+                <thead>
+                    <tr style="background:rgba(255,255,255,0.02);">
+                        <th style="padding:10px 22px;text-align:left;color:rgba(255,255,255,0.2);font-size:10px;font-weight:700;letter-spacing:0.07em;text-transform:uppercase;">Sana</th>
+                        <th style="padding:10px 22px;text-align:left;color:rgba(255,255,255,0.2);font-size:10px;font-weight:700;letter-spacing:0.07em;text-transform:uppercase;">Kitob</th>
+                        <th style="padding:10px 22px;text-align:left;color:rgba(255,255,255,0.2);font-size:10px;font-weight:700;letter-spacing:0.07em;text-transform:uppercase;">Miqdor</th>
+                        <th style="padding:10px 22px;text-align:left;color:rgba(255,255,255,0.2);font-size:10px;font-weight:700;letter-spacing:0.07em;text-transform:uppercase;">Narxi</th>
+                        <th style="padding:10px 22px;text-align:left;color:rgba(255,255,255,0.2);font-size:10px;font-weight:700;letter-spacing:0.07em;text-transform:uppercase;">Jami</th>
+                        <th style="padding:10px 22px;text-align:left;color:rgba(255,255,255,0.2);font-size:10px;font-weight:700;letter-spacing:0.07em;text-transform:uppercase;">Yetkazuvchi</th>
+                        <th style="padding:10px 22px;"></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr v-for="a in arrivals.data" :key="a.id" style="border-top:1px solid rgba(255,255,255,0.04);">
+                        <td style="padding:13px 22px;color:rgba(255,255,255,0.5);font-size:12px;">{{ a.arrived_at }}</td>
+                        <td style="padding:13px 22px;">
+                            <div style="color:#fff;font-size:13px;font-weight:500;">{{ a.book?.title }}</div>
+                            <div style="color:rgba(255,255,255,0.3);font-size:11px;font-family:monospace;">{{ a.book?.barcode }}</div>
+                        </td>
+                        <td style="padding:13px 22px;color:#fff;font-weight:700;font-size:13px;">{{ a.quantity }} <span style="color:rgba(255,255,255,0.3);font-weight:400;font-size:11px;">dona</span></td>
+                        <td style="padding:13px 22px;color:#fff;font-size:13px;">{{ fmt(a.cost_price) }} <span style="color:rgba(255,255,255,0.3);font-size:11px;">so'm</span></td>
+                        <td style="padding:13px 22px;color:#fca5a5;font-size:13px;font-weight:700;">{{ fmt(a.total_cost) }} <span style="color:rgba(239,68,68,0.4);font-weight:400;font-size:11px;">so'm</span></td>
+                        <td style="padding:13px 22px;color:rgba(255,255,255,0.4);font-size:12px;">{{ a.supplier || '—' }}</td>
+                        <td style="padding:13px 22px;text-align:right;">
+                            <button @click="deleteArrival(a.id)" style="padding:5px 12px;border-radius:7px;border:1px solid rgba(239,68,68,0.2);background:rgba(239,68,68,0.08);color:#fca5a5;font-size:11px;font-weight:600;cursor:pointer;">O'chirish</button>
+                        </td>
+                    </tr>
+                    <tr v-if="!arrivals.data?.length">
+                        <td colspan="7" style="padding:60px;text-align:center;color:rgba(255,255,255,0.15);font-size:13px;">Bu davr uchun keldi qaydlari yo'q</td>
+                    </tr>
+                </tbody>
+            </table>
+            <!-- Pagination -->
+            <div v-if="arrivals.links?.length > 3" style="padding:14px 22px;display:flex;gap:6px;border-top:1px solid rgba(255,255,255,0.05);">
+                <template v-for="link in arrivals.links" :key="link.label">
+                    <button v-if="link.url" @click="router.get(link.url)"
+                        :style="`padding:6px 12px;border-radius:7px;font-size:12px;font-weight:600;cursor:pointer;border:1px solid ${link.active?'rgba(99,102,241,0.5)':'rgba(255,255,255,0.06)'};background:${link.active?'rgba(99,102,241,0.15)':'transparent'};color:${link.active?'#a5b4fc':'rgba(255,255,255,0.35)'};`"
+                        v-html="link.label"></button>
+                </template>
+            </div>
+        </div>
+    </BookstoreLayout>
+</template>
+
+<style scoped>
+.fade-enter-active, .fade-leave-active { transition: opacity 0.2s; }
+.fade-enter-from, .fade-leave-to { opacity: 0; }
+</style>

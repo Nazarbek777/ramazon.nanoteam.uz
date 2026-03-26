@@ -7,6 +7,7 @@ use App\Modules\Bookstore\Controllers\POSController;
 use App\Modules\Bookstore\Controllers\BookController;
 use App\Modules\Bookstore\Controllers\ReportsController;
 use App\Modules\Bookstore\Controllers\AnalyticsController;
+use App\Modules\Bookstore\Controllers\ArrivalsController;
 
 Route::prefix('bookstore')->name('bookstore.')->group(function () {
     Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
@@ -34,5 +35,11 @@ Route::prefix('bookstore')->name('bookstore.')->group(function () {
 
         // CRM — Analytics
         Route::get('/analytics', [AnalyticsController::class, 'index'])->name('analytics');
+
+        // CRM — Arrivals / Inventory ledger
+        Route::get('/arrivals', [ArrivalsController::class, 'index'])->name('arrivals');
+        Route::post('/arrivals', [ArrivalsController::class, 'store'])->name('arrivals.store');
+        Route::delete('/arrivals/{arrival}', [ArrivalsController::class, 'destroy'])->name('arrivals.destroy');
+        Route::get('/arrivals/export', [ArrivalsController::class, 'export'])->name('arrivals.export');
     });
 });

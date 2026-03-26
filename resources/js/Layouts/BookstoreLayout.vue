@@ -11,6 +11,7 @@ const navItems = [
     { href: '/bookstore/books',     label: 'Kitoblar' },
     { href: '/bookstore/reports',   label: 'Hisobotlar' },
     { href: '/bookstore/analytics', label: 'Analitika' },
+    { href: '/bookstore/arrivals',  label: 'Keldi / Chiqim' },
 ];
 
 const isActive = (item) => item.exact ? page.url === item.href : page.url.startsWith(item.href);
