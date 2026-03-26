@@ -110,6 +110,7 @@ onUnmounted(() => {
 });
 </script>
 
+<template>
     <Head title="POS — Sotuv" />
 
     <BookstoreLayout>
