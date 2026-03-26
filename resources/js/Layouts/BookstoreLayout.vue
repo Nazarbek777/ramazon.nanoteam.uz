@@ -69,9 +69,3 @@ const user = computed(() => page.props.auth.user);
         </main>
     </div>
 </template>
-
-<style scoped>
-.router-link-active {
-    @apply bg-indigo-700;
-}
-</style>
