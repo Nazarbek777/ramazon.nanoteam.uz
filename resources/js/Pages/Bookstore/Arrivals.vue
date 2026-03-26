@@ -19,7 +19,8 @@ const chartRef  = ref(null);
 const fmt       = (n) => Number(n || 0).toLocaleString('uz-UZ');
 const profit    = computed(() => props.periodRevenue - props.periodCost);
 const bookSearch = ref('');
-const isOtherExpense = ref(false);
+const activeTab = ref('book'); // 'book' or 'expense'
+
 
 const filteredBooks = computed(() => {
     const q = bookSearch.value.toLowerCase();
@@ -40,6 +41,13 @@ const form = useForm({
     note:       '',
     arrived_at: new Date().toISOString().slice(0, 10),
 });
+
+const openModal = (tab = 'book') => {
+    form.reset();
+    activeTab.value = tab;
+    bookSearch.value = '';
+    showForm.value = true;
+};
 
 const barcodeInput = ref('');
 const handleBarcode = async () => {
@@ -192,9 +200,13 @@ onMounted(async () => {
                 <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
                 CSV
             </button>
-            <button @click="showForm = !showForm" style="margin-top:18px;margin-left:auto;background:rgba(34,197,94,0.1);border:1px solid rgba(34,197,94,0.25);border-radius:9px;padding:9px 20px;color:#86efac;font-size:13px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:6px;">
+            <button @click="openModal('book')" style="margin-top:18px;margin-left:auto;background:rgba(34,197,94,0.1);border:1px solid rgba(34,197,94,0.25);border-radius:9px;padding:9px 20px;color:#86efac;font-size:13px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:6px;">
                 <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
-                Yangi keldi
+                Kitob kelishi
+            </button>
+            <button @click="openModal('expense')" style="margin-top:18px;background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.25);border-radius:9px;padding:9px 20px;color:#fca5a5;font-size:13px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:6px;">
+                <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M20 12H4"/></svg>
+                Boshqa chiqim
             </button>
         </div>
 
@@ -203,104 +215,121 @@ onMounted(async () => {
             <Transition name="fade">
                 <div v-if="showForm" class="fixed inset-0 z-50 flex items-center justify-center p-4"
                     style="background:rgba(0,0,0,0.75);backdrop-filter:blur(6px);" @click.self="showForm=false">
-                    <div style="background:#0d0d1f;border:1px solid rgba(255,255,255,0.1);border-radius:24px;padding:32px;width:100%;max-width:480px;">
-                        <h2 style="color:#fff;font-size:16px;font-weight:800;margin:0 0 24px;">Yangi tovar qabulı</h2>
+                    <div style="background:#0d0d1f;border:1px solid rgba(255,255,255,0.1);border-radius:24px;padding:32px;width:100%;max-width:500px;">
+                        <!-- Tabs -->
+                        <div style="display:flex;background:rgba(255,255,255,0.04);padding:4px;border-radius:12px;margin-bottom:24px;">
+                            <button type="button" @click="activeTab='book'; form.book_id=''" :style="`flex:1;padding:10px;border-radius:9px;border:none;font-size:13px;font-weight:700;cursor:pointer;transition:0.3s;${activeTab==='book'?'background:#6366f1;color:#fff;':'background:transparent;color:rgba(255,255,255,0.4);'}`">📦 Kitob Kelishi</button>
+                            <button type="button" @click="activeTab='expense'; form.book_id=''; form.is_new_book=false" :style="`flex:1;padding:10px;border-radius:9px;border:none;font-size:13px;font-weight:700;cursor:pointer;transition:0.3s;${activeTab==='expense'?'background:#ef4444;color:#fff;':'background:transparent;color:rgba(255,255,255,0.4);'}`">💸 Boshqa Chiqim</button>
+                        </div>
+
                         <form @submit.prevent="submit">
-                            <!-- Barcode Scanner Input (Hidden or Small) -->
-                            <div style="margin-bottom:18px;">
-                                <label style="display:block;color:rgba(255,255,255,0.3);font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;margin-bottom:6px;">Skayner (Barcode) orqali qidirish</label>
-                                <input v-model="barcodeInput" @keyup.enter="handleBarcode" type="text" placeholder="Barcodeni skanerlang..." autofocus
-                                    style="width:100%;padding:10px 14px;box-sizing:border-box;background:rgba(99,102,241,0.1);border:1px solid rgba(99,102,241,0.3);border-radius:10px;color:#fff;font-size:13px;outline:none;" />
-                            </div>
-
-                            <!-- Toggle for Other Expense -->
-                            <div v-if="!form.is_new_book" style="margin-bottom:18px;display:flex;align-items:center;gap:10px;cursor:pointer;" @click="isOtherExpense = !isOtherExpense; if(isOtherExpense) { form.book_id=''; bookSearch=''; }">
-                                <div :style="`width:36px;height:20px;border-radius:10px;position:relative;transition:0.3s;background:${isOtherExpense?'#6366f1':'rgba(255,255,255,0.1)'}`">
-                                    <div :style="`width:14px;height:14px;background:#fff;border-radius:50%;position:absolute;top:3px;transition:0.3s;left:${isOtherExpense?'19px':'3px'}`"></div>
-                                </div>
-                                <span style="color:rgba(255,255,255,0.6);font-size:13px;font-weight:600;">Boshqa xarajat (kitob emas)</span>
-                            </div>
-
-                            <!-- Book picker -->
-                            <div v-if="!isOtherExpense && !form.is_new_book" style="margin-bottom:14px;position:relative;">
-                                <label style="display:block;color:rgba(255,255,255,0.3);font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;margin-bottom:6px;">Kitob tanlang *</label>
-                                <input v-model="bookSearch" type="text" placeholder="Kitob nomini qidiring..."
-                                    @focus="filteredOpen=true" @blur="setTimeout(()=>filteredOpen=false, 200)"
-                                    style="width:100%;padding:10px 14px;box-sizing:border-box;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.08);border-radius:10px;color:#fff;font-size:13px;outline:none;" />
-                                <div v-if="filteredOpen && filteredBooks.length" style="position:absolute;top:100%;left:0;right:0;background:#141426;border:1px solid rgba(255,255,255,0.1);border-radius:10px;overflow:hidden;z-index:10;max-height:180px;overflow-y:auto;margin-top:4px;">
-                                    <div v-for="b in filteredBooks.slice(0,8)" :key="b.id" @mousedown="selectBook(b)"
-                                        style="padding:9px 14px;color:#fff;font-size:13px;cursor:pointer;border-bottom:1px solid rgba(255,255,255,0.04);">
-                                        {{ b.title }} <span style="color:rgba(255,255,255,0.3);font-size:11px;margin-left:8px;">{{ b.barcode }}</span>
+                            <!-- mode: BOOK -->
+                            <div v-if="activeTab==='book'">
+                                <!-- Barcode / Search -->
+                                <div style="margin-bottom:20px;position:relative;">
+                                    <label style="display:block;color:rgba(255,255,255,0.4);font-size:11px;font-weight:700;margin-bottom:8px;">SKAYNERLANG YOKI QIDIRING</label>
+                                    <input v-model="barcodeInput" @keyup.enter="handleBarcode" type="text" placeholder="Barcode skanerlang yoki kitob nomi..." autofocus
+                                        style="width:100%;padding:12px 16px;box-sizing:border-box;background:rgba(99,102,241,0.1);border:1px solid rgba(99,102,241,0.3);border-radius:12px;color:#fff;font-size:14px;outline:none;" />
+                                    
+                                    <!-- Search results dropdown -->
+                                    <div v-if="barcodeInput.length > 1" style="position:absolute;top:100%;left:0;right:0;background:#141426;border:1px solid rgba(255,255,255,0.1);border-radius:12px;overflow:hidden;z-index:20;margin-top:6px;max-height:200px;overflow-y:auto;">
+                                        <div v-for="b in books.filter(x => x.title.toLowerCase().includes(barcodeInput.toLowerCase()) || x.barcode.includes(barcodeInput)).slice(0,5)" 
+                                            :key="b.id" @mousedown="selectBook(b); barcodeInput=''"
+                                            style="padding:12px 16px;color:#fff;font-size:13px;cursor:pointer;border-bottom:1px solid rgba(255,255,255,0.05);display:flex;justify-content:space-between;">
+                                            <span>{{ b.title }}</span>
+                                            <span style="color:rgba(255,255,255,0.3);">{{ b.barcode }}</span>
+                                        </div>
+                                        <div @mousedown="form.is_new_book=true; form.barcode=barcodeInput; barcodeInput=''" 
+                                            style="padding:12px 16px;color:#a5b4fc;font-size:13px;cursor:pointer;background:rgba(99,102,241,0.1);text-align:center;font-weight:700;">
+                                            ＋ Yangi kitob sifatida qo'shish: "{{ barcodeInput }}"
+                                        </div>
                                     </div>
                                 </div>
-                                <div style="padding:10px;text-align:center;">
-                                    <button type="button" @click="form.is_new_book=true; bookSearch='Yangi kitob'" style="font-size:11px;color:#818cf8;border:none;background:none;cursor:pointer;">＋ Ro'yxatda yo'q (Yangi qo'shish)</button>
+
+                                <!-- Selected Book / New Book UI -->
+                                <div v-if="form.book_id || form.is_new_book" style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:16px;padding:20px;margin-bottom:20px;">
+                                    <div v-if="form.book_id" style="display:flex;justify-content:space-between;margin-bottom:15px;">
+                                        <div>
+                                            <div style="color:rgba(255,255,255,0.4);font-size:10px;text-transform:uppercase;font-weight:800;">Tanlangan kitob</div>
+                                            <div style="color:#fff;font-size:15px;font-weight:700;margin-top:2px;">{{ bookSearch }}</div>
+                                        </div>
+                                        <button type="button" @click="form.book_id=''; bookSearch=''" style="color:#fca5a5;font-size:11px;background:none;border:none;cursor:pointer;">O'zgartirish</button>
+                                    </div>
+
+                                    <div v-if="form.is_new_book">
+                                        <div style="display:flex;justify-content:space-between;margin-bottom:15px;">
+                                            <div style="color:#a5b4fc;font-size:10px;text-transform:uppercase;font-weight:800;">Yangi kitob ma'lumotlari</div>
+                                            <button type="button" @click="form.is_new_book=false; form.title=''" style="color:rgba(255,255,255,0.3);font-size:11px;background:none;border:none;cursor:pointer;">Bekor qilish</button>
+                                        </div>
+                                        <div style="margin-bottom:12px;">
+                                            <label style="display:block;color:rgba(255,255,255,0.3);font-size:10px;font-weight:700;margin-bottom:4px;">NOMI</label>
+                                            <input v-model="form.title" type="text" required style="width:100%;padding:10px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:8px;color:#fff;outline:none;" />
+                                        </div>
+                                        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;">
+                                            <div>
+                                                <label style="display:block;color:rgba(255,255,255,0.3);font-size:10px;font-weight:700;margin-bottom:4px;">barcode</label>
+                                                <input v-model="form.barcode" type="text" style="width:100%;padding:10px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:8px;color:#fff;outline:none;" />
+                                            </div>
+                                            <div>
+                                                <label style="display:block;color:rgba(255,255,255,0.3);font-size:10px;font-weight:700;margin-bottom:4px;">SOTISH NARXI</label>
+                                                <input v-model="form.price" type="number" required style="width:100%;padding:10px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:8px;color:#fff;outline:none;" />
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Common inputs for book arrival -->
+                                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+                                        <div>
+                                            <label style="display:block;color:rgba(255,255,255,0.3);font-size:10px;font-weight:700;margin-bottom:4px;">MIQDOR</label>
+                                            <input v-model="form.quantity" type="number" required min="1" style="width:100%;padding:10px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:8px;color:#fff;outline:none;" />
+                                        </div>
+                                        <div>
+                                            <label style="display:block;color:rgba(255,255,255,0.3);font-size:10px;font-weight:700;margin-bottom:4px;">KELISH NARXI</label>
+                                            <input v-model="form.cost_price" type="number" required style="width:100%;padding:10px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:8px;color:#fff;outline:none;" />
+                                        </div>
+                                    </div>
                                 </div>
-                                <div v-if="form.errors.book_id" style="color:#fca5a5;font-size:11px;margin-top:4px;">{{ form.errors.book_id }}</div>
                             </div>
 
-                            <!-- New Book Fields -->
-                            <div v-if="form.is_new_book" style="background:rgba(99,102,241,0.05);border:1px solid rgba(99,102,241,0.2);border-radius:16px;padding:16px;margin-bottom:18px;">
-                                <div style="display:flex;justify-content:space-between;margin-bottom:12px;align-items:center;">
-                                    <span style="color:#a5b4fc;font-size:12px;font-weight:700;">YANGI KITOB MA'LUMOTLARI</span>
-                                    <button type="button" @click="form.is_new_book=false; form.title=''" style="color:rgba(255,255,255,0.3);font-size:11px;">Bekor qilish</button>
+                            <!-- mode: EXPENSE -->
+                            <div v-if="activeTab==='expense'">
+                                <div style="margin-bottom:15px;">
+                                    <label style="display:block;color:rgba(255,255,255,0.3);font-size:10px;font-weight:700;margin-bottom:6px;">XARAJAT NOMI (Masalan: Ijara, Elektr...)</label>
+                                    <input v-model="form.note" type="text" required placeholder="Xarajat sarlavhasi..." style="width:100%;padding:12px 16px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:12px;color:#fff;outline:none;" />
                                 </div>
-                                <div style="margin-bottom:10px;">
-                                    <label style="display:block;color:rgba(255,255,255,0.3);font-size:9px;font-weight:700;text-transform:uppercase;margin-bottom:4px;">Nomi *</label>
-                                    <input v-model="form.title" type="text" required style="width:100%;padding:8px 12px;box-sizing:border-box;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:8px;color:#fff;font-size:13px;" />
-                                </div>
-                                <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;">
+                                <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:15px;">
                                     <div>
-                                        <label style="display:block;color:rgba(255,255,255,0.3);font-size:9px;font-weight:700;text-transform:uppercase;margin-bottom:4px;">Muallif</label>
-                                        <input v-model="form.author" type="text" style="width:100%;padding:8px 12px;box-sizing:border-box;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:8px;color:#fff;font-size:13px;" />
+                                        <label style="display:block;color:rgba(255,255,255,0.3);font-size:10px;font-weight:700;margin-bottom:6px;">SUMMA (so'm)</label>
+                                        <input v-model="form.cost_price" type="number" required style="width:100%;padding:12px 16px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:12px;color:#fff;outline:none;" @input="form.quantity=1" />
                                     </div>
                                     <div>
-                                        <label style="display:block;color:rgba(255,255,255,0.3);font-size:9px;font-weight:700;text-transform:uppercase;margin-bottom:4px;">Sotish narxi *</label>
-                                        <input v-model="form.price" type="number" required style="width:100%;padding:8px 12px;box-sizing:border-box;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:8px;color:#fff;font-size:13px;" />
+                                        <label style="display:block;color:rgba(255,255,255,0.3);font-size:10px;font-weight:700;margin-bottom:6px;">SANA</label>
+                                        <input v-model="form.arrived_at" type="date" required style="width:100%;padding:12px 16px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:12px;color:#fff;outline:none;" />
                                     </div>
                                 </div>
-                                <div>
-                                    <label style="display:block;color:rgba(255,255,255,0.3);font-size:9px;font-weight:700;text-transform:uppercase;margin-bottom:4px;">QR Barcode (Ixtiyoriy)</label>
-                                    <input v-model="form.barcode" type="text" style="width:100%;padding:8px 12px;box-sizing:border-box;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:8px;color:#fff;font-size:13px;" placeholder="Skanerlang yoki bo'sh qoldiring" />
+                            </div>
+
+                            <!-- Supplier etc -->
+                            <div v-if="activeTab==='book' && (form.book_id || form.is_new_book)" style="margin-bottom:20px;">
+                                <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;">
+                                    <div>
+                                        <label style="display:block;color:rgba(255,255,255,0.3);font-size:10px;font-weight:700;margin-bottom:4px;">YETKAZUVCHI</label>
+                                        <input v-model="form.supplier" type="text" style="width:100%;padding:10px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:8px;color:#fff;outline:none;" />
+                                    </div>
+                                    <div>
+                                        <label style="display:block;color:rgba(255,255,255,0.3);font-size:10px;font-weight:700;margin-bottom:4px;">SANA</label>
+                                        <input v-model="form.arrived_at" type="date" required style="width:100%;padding:10px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:8px;color:#fff;outline:none;" />
+                                    </div>
                                 </div>
+                                <label style="display:block;color:rgba(255,255,255,0.3);font-size:10px;font-weight:700;margin-bottom:4px;">IZOH</label>
+                                <textarea v-model="form.note" rows="2" style="width:100%;padding:10px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:8px;color:#fff;outline:none;resize:none;"></textarea>
                             </div>
 
-                            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px;">
-                                <div>
-                                    <label style="display:block;color:rgba(255,255,255,0.3);font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;margin-bottom:6px;">Miqdor *</label>
-                                    <input v-model="form.quantity" type="number" min="1" required style="width:100%;padding:10px 14px;box-sizing:border-box;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.08);border-radius:10px;color:#fff;font-size:13px;outline:none;" placeholder="50" />
-                                </div>
-                                <div>
-                                    <label style="display:block;color:rgba(255,255,255,0.3);font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;margin-bottom:6px;">Sotib olish narxi *</label>
-                                    <input v-model="form.cost_price" type="number" min="0" required style="width:100%;padding:10px 14px;box-sizing:border-box;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.08);border-radius:10px;color:#fff;font-size:13px;outline:none;" placeholder="25000" />
-                                </div>
-                            </div>
-
-                            <div style="margin-bottom:14px;">
-                                <label style="display:block;color:rgba(255,255,255,0.3);font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;margin-bottom:6px;">Kelgan sana *</label>
-                                <input v-model="form.arrived_at" type="date" required style="width:100%;padding:10px 14px;box-sizing:border-box;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.08);border-radius:10px;color:#fff;font-size:13px;outline:none;" />
-                            </div>
-
-                            <div style="margin-bottom:14px;">
-                                <label style="display:block;color:rgba(255,255,255,0.3);font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;margin-bottom:6px;">Yetkazuvchi</label>
-                                <input v-model="form.supplier" type="text" style="width:100%;padding:10px 14px;box-sizing:border-box;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.08);border-radius:10px;color:#fff;font-size:13px;outline:none;" placeholder="Mas: Kitob savdosi LLC" />
-                            </div>
-
-                            <div style="margin-bottom:18px;">
-                                <label style="display:block;color:rgba(255,255,255,0.3);font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;margin-bottom:6px;">Izoh</label>
-                                <textarea v-model="form.note" rows="2" style="width:100%;padding:10px 14px;box-sizing:border-box;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.08);border-radius:10px;color:#fff;font-size:13px;outline:none;resize:none;" placeholder="Ixtiyoriy..."></textarea>
-                            </div>
-
-                            <!-- Preview total -->
-                            <div v-if="form.quantity && form.cost_price" style="background:rgba(99,102,241,0.08);border:1px solid rgba(99,102,241,0.15);border-radius:10px;padding:12px 16px;margin-bottom:18px;display:flex;justify-content:space-between;">
-                                <span style="color:rgba(255,255,255,0.5);font-size:13px;">Jami xarajat</span>
-                                <span style="color:#a5b4fc;font-weight:800;font-size:14px;">{{ fmt(form.quantity * form.cost_price) }} so'm</span>
-                            </div>
-
-                            <div style="display:flex;gap:10px;">
-                                <button type="button" @click="showForm=false" style="flex:1;padding:12px;border-radius:10px;border:1px solid rgba(255,255,255,0.08);background:rgba(255,255,255,0.04);color:rgba(255,255,255,0.4);font-weight:600;font-size:13px;cursor:pointer;">Bekor</button>
-                                <button type="submit" :disabled="form.processing" style="flex:2;padding:12px;border-radius:10px;border:none;background:linear-gradient(135deg,#22c55e,#16a34a);color:#fff;font-weight:700;font-size:13px;cursor:pointer;opacity:1;" :style="form.processing?'opacity:0.5':''">
-                                    Saqlash va zaxirani yangilash
+                            <div style="display:flex;gap:12px;margin-top:10px;">
+                                <button type="button" @click="showForm=false" style="flex:1;padding:14px;border-radius:14px;border:1px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.04);color:rgba(255,255,255,0.5);font-weight:700;cursor:pointer;">Bekor qilish</button>
+                                <button type="submit" :disabled="form.processing || (activeTab==='book' && !form.book_id && !form.is_new_book)" 
+                                    :style="`flex:2;padding:14px;border-radius:14px;border:none;color:#fff;font-weight:800;cursor:pointer;background:${activeTab==='book'?'linear-gradient(135deg,#6366f1,#4f46e5)':'linear-gradient(135deg,#ef4444,#dc2626)'};opacity:${form.processing?0.6:1}`">
+                                    {{ activeTab==='book' ? 'Saqlash va Zaxirani yangilash' : 'Xarajatni qayd etish' }}
                                 </button>
                             </div>
                         </form>
@@ -320,6 +349,7 @@ onMounted(async () => {
                         <th style="padding:10px 22px;text-align:left;color:rgba(255,255,255,0.2);font-size:10px;font-weight:700;letter-spacing:0.07em;text-transform:uppercase;">Sana</th>
                         <th style="padding:10px 22px;text-align:left;color:rgba(255,255,255,0.2);font-size:10px;font-weight:700;letter-spacing:0.07em;text-transform:uppercase;">Kitob</th>
                         <th style="padding:10px 22px;text-align:left;color:rgba(255,255,255,0.2);font-size:10px;font-weight:700;letter-spacing:0.07em;text-transform:uppercase;">Miqdor</th>
+                        <th style="padding:10px 22px;text-align:left;color:rgba(255,255,255,0.2);font-size:10px;font-weight:700;letter-spacing:0.07em;text-transform:uppercase;">Qolgan</th>
                         <th style="padding:10px 22px;text-align:left;color:rgba(255,255,255,0.2);font-size:10px;font-weight:700;letter-spacing:0.07em;text-transform:uppercase;">Narxi</th>
                         <th style="padding:10px 22px;text-align:left;color:rgba(255,255,255,0.2);font-size:10px;font-weight:700;letter-spacing:0.07em;text-transform:uppercase;">Jami</th>
                         <th style="padding:10px 22px;text-align:left;color:rgba(255,255,255,0.2);font-size:10px;font-weight:700;letter-spacing:0.07em;text-transform:uppercase;">Yetkazuvchi</th>
@@ -339,6 +369,12 @@ onMounted(async () => {
                             </template>
                         </td>
                         <td style="padding:13px 22px;color:#fff;font-weight:700;font-size:13px;">{{ a.quantity }} <span style="color:rgba(255,255,255,0.3);font-weight:400;font-size:11px;">dona</span></td>
+                        <td style="padding:13px 22px;">
+                            <div v-if="a.book" :style="`font-size:13px;font-weight:700;${a.remaining_stock > 0 ? 'color:#86efac;' : 'color:rgba(255,255,255,0.2);text-decoration:line-through;'}`">
+                                {{ a.remaining_stock }} <span style="font-weight:400;font-size:11px;">qoldi</span>
+                            </div>
+                            <div v-else style="color:rgba(255,255,255,0.2);font-size:11px;">—</div>
+                        </td>
                         <td style="padding:13px 22px;color:#fff;font-size:13px;">{{ fmt(a.cost_price) }} <span style="color:rgba(255,255,255,0.3);font-size:11px;">so'm</span></td>
                         <td style="padding:13px 22px;color:#fca5a5;font-size:13px;font-weight:700;">{{ fmt(a.total_cost) }} <span style="color:rgba(239,68,68,0.4);font-weight:400;font-size:11px;">so'm</span></td>
                         <td style="padding:13px 22px;color:rgba(255,255,255,0.4);font-size:12px;">{{ a.supplier || '—' }}</td>

@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Inertia\Inertia;
 use App\Modules\Bookstore\Models\Book;
 use App\Modules\Bookstore\Models\Sale;
+use App\Modules\Bookstore\Models\Arrival;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 
@@ -76,17 +77,44 @@ class POSController extends Controller
                     throw new \Exception("Kitob zaxirasi yetarli emas: {$book->title}");
                 }
 
+                $remainingToDeduct = $itemData['quantity'];
+                
+                // FIFO: Deduct from oldest arrivals first
+                $arrivals = Arrival::where('book_id', $book->id)
+                    ->where('remaining_stock', '>', 0)
+                    ->orderBy('arrived_at', 'asc')
+                    ->orderBy('id', 'asc')
+                    ->get();
+
+                foreach ($arrivals as $arrival) {
+                    if ($remainingToDeduct <= 0) break;
+
+                    $deduct = min($remainingToDeduct, $arrival->remaining_stock);
+                    $arrival->decrement('remaining_stock', $deduct);
+                    $remainingToDeduct -= $deduct;
+
+                    $items[] = [
+                        'book_id'    => $book->id,
+                        'quantity'   => $deduct,
+                        'unit_price' => $book->price,
+                        'cost_price' => $arrival->cost_price,
+                        'total_price' => $book->price * $deduct,
+                    ];
+                }
+
+                // Fallback for missing arrival records
+                if ($remainingToDeduct > 0) {
+                    $items[] = [
+                        'book_id'    => $book->id,
+                        'quantity'   => $remainingToDeduct,
+                        'unit_price' => $book->price,
+                        'cost_price' => $book->cost_price,
+                        'total_price' => $book->price * $remainingToDeduct,
+                    ];
+                }
+
                 $book->decrement('stock', $itemData['quantity']);
-
-                $subtotal = $book->price * $itemData['quantity'];
-                $totalAmount += $subtotal;
-
-                $items[] = [
-                    'book_id' => $book->id,
-                    'quantity' => $itemData['quantity'],
-                    'unit_price' => $book->price,
-                    'total_price' => $subtotal,
-                ];
+                $totalAmount += $book->price * $itemData['quantity'];
             }
 
             $sale = Sale::create([
@@ -150,15 +178,41 @@ class POSController extends Controller
                 if ($book->stock < $itemData['quantity']) {
                     return response()->json(['error' => "Zaxira yetarli emas: {$book->title}"], 422);
                 }
+
+                $remainingToDeduct = $itemData['quantity'];
+                $arrivals = Arrival::where('book_id', $book->id)
+                    ->where('remaining_stock', '>', 0)
+                    ->orderBy('arrived_at', 'asc')
+                    ->orderBy('id', 'asc')
+                    ->get();
+
+                foreach ($arrivals as $arrival) {
+                    if ($remainingToDeduct <= 0) break;
+                    $deduct = min($remainingToDeduct, $arrival->remaining_stock);
+                    $arrival->decrement('remaining_stock', $deduct);
+                    $remainingToDeduct -= $deduct;
+
+                    $items[] = [
+                        'book_id'    => $book->id,
+                        'quantity'   => $deduct,
+                        'unit_price' => $book->price,
+                        'cost_price' => $arrival->cost_price,
+                        'total_price' => $book->price * $deduct,
+                    ];
+                }
+
+                if ($remainingToDeduct > 0) {
+                    $items[] = [
+                        'book_id'    => $book->id,
+                        'quantity'   => $remainingToDeduct,
+                        'unit_price' => $book->price,
+                        'cost_price' => $book->cost_price,
+                        'total_price' => $book->price * $remainingToDeduct,
+                    ];
+                }
+
                 $book->decrement('stock', $itemData['quantity']);
-                $subtotal = $book->price * $itemData['quantity'];
-                $totalAmount += $subtotal;
-                $items[] = [
-                    'book_id' => $book->id,
-                    'quantity' => $itemData['quantity'],
-                    'unit_price' => $book->price,
-                    'total_price' => $subtotal,
-                ];
+                $totalAmount += $book->price * $itemData['quantity'];
             }
 
             $sale = Sale::create([

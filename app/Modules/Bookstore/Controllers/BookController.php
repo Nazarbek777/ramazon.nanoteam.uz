@@ -36,6 +36,7 @@ class BookController extends Controller
                 Arrival::create([
                     'book_id'    => $book->id,
                     'quantity'   => $book->stock,
+                    'remaining_stock' => $book->stock,
                     'cost_price' => $book->cost_price,
                     'total_cost' => $book->stock * $book->cost_price,
                     'note'       => 'Initial stock on creation',
@@ -67,6 +68,7 @@ class BookController extends Controller
                 Arrival::create([
                     'book_id'    => $book->id,
                     'quantity'   => $diff,
+                    'remaining_stock' => $diff,
                     'cost_price' => $book->cost_price,
                     'total_cost' => $diff * $book->cost_price,
                     'note'       => 'Manual stock adjustment (increase)',

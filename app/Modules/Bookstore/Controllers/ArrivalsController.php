@@ -120,6 +120,7 @@ class ArrivalsController extends Controller
             $arrival = Arrival::create([
                 'book_id'    => $bookId,
                 'quantity'   => $data['quantity'],
+                'remaining_stock' => $data['quantity'],
                 'cost_price' => $data['cost_price'],
                 'total_cost' => $data['quantity'] * $data['cost_price'],
                 'supplier'   => $data['supplier'],
@@ -156,14 +157,14 @@ class ArrivalsController extends Controller
             ->whereBetween('arrived_at', [$from->toDateString(), $to->toDateString()])
             ->latest('arrived_at')->get();
 
-        $csv = "Sana,Kitob,Barcode,Miqdor,Narxi,Jami,Yetkazuvchi,Izoh\n";
+        $csv = "Sana,Kitob,Barcode,Miqdor,Qolgan,Narxi,Jami,Yetkazuvchi,Izoh\n";
         foreach ($arrivals as $a) {
             $title    = $a->book ? $a->book->title   : '?';
             $barcode  = $a->book ? $a->book->barcode : '';
             $supplier = $a->supplier ?? '';
             $note     = $a->note ?? '';
             $date     = Carbon::parse($a->arrived_at)->format('d.m.Y');
-            $csv .= "{$date},\"{$title}\",{$barcode},{$a->quantity},{$a->cost_price},{$a->total_cost},\"{$supplier}\",\"{$note}\"\n";
+            $csv .= "{$date},\"{$title}\",{$barcode},{$a->quantity},{$a->remaining_stock},{$a->cost_price},{$a->total_cost},\"{$supplier}\",\"{$note}\"\n";
         }
 
         return response($csv, 200, [

@@ -9,7 +9,7 @@ class Arrival extends Model
     protected $table = 'bookstore_arrivals';
 
     protected $fillable = [
-        'book_id', 'quantity', 'cost_price', 'total_cost',
+        'book_id', 'quantity', 'remaining_stock', 'cost_price', 'total_cost',
         'supplier', 'note', 'arrived_at',
     ];
 
