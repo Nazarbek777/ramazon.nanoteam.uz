@@ -59,6 +59,14 @@ const deleteBook = (book) => {
     if (!confirm(`"${book.title}" ni o'chirasizmi?`)) return;
     router.delete(`/bookstore/books/${book.id}`);
 };
+
+// QR code
+const showQr = ref(false);
+const qrBook = ref(null);
+const openQr = (book) => { qrBook.value = book; showQr.value = true; };
+const closeQr = () => { showQr.value = false; qrBook.value = null; };
+const qrUrl = (barcode) => `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(barcode)}&margin=10`;
+const printQr = () => window.print();
 </script>
 
 <template>
@@ -91,6 +99,7 @@ const deleteBook = (book) => {
                         <th class="px-7 py-4 text-xs font-bold uppercase tracking-widest" style="color: rgba(255,255,255,0.25);">Barcode</th>
                         <th class="px-7 py-4 text-xs font-bold uppercase tracking-widest" style="color: rgba(255,255,255,0.25);">Narx</th>
                         <th class="px-7 py-4 text-xs font-bold uppercase tracking-widest" style="color: rgba(255,255,255,0.25);">Zaxira</th>
+                        <th class="px-7 py-4 text-xs font-bold uppercase tracking-widest" style="color: rgba(255,255,255,0.25);">QR</th>
                         <th class="px-7 py-4 text-xs font-bold uppercase tracking-widest" style="color: rgba(255,255,255,0.25);">Amallar</th>
                     </tr>
                 </thead>
@@ -118,6 +127,14 @@ const deleteBook = (book) => {
                                         : 'background: rgba(233,69,96,0.12); color: #f87171;'">
                                 {{ book.stock }} ta
                             </span>
+                        </td>
+                        <td class="px-7 py-4">
+                            <!-- QR Button -->
+                            <button @click="openQr(book)"
+                                class="px-3 py-2 rounded-xl text-xs font-bold transition-all"
+                                style="background: rgba(15,52,96,0.3); color: #60a5fa;">
+                                📷 QR
+                            </button>
                         </td>
                         <td class="px-7 py-4">
                             <div class="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-all">
@@ -224,10 +241,49 @@ const deleteBook = (book) => {
                 </div>
             </Transition>
         </Teleport>
+        <!-- QR Modal -->
+        <Teleport to="body">
+            <Transition name="fade">
+                <div v-if="showQr" class="fixed inset-0 z-50 flex items-center justify-center p-4"
+                    style="background:rgba(0,0,0,0.75);backdrop-filter:blur(6px);" @click.self="closeQr">
+                    <div class="w-full max-w-xs rounded-3xl overflow-hidden"
+                        style="background:#1a1a2e;border:1px solid rgba(255,255,255,.1);">
+
+                        <!-- QR Print Area -->
+                        <div id="qr-print-area" class="p-8 text-center">
+                            <div class="font-extrabold text-white text-base mb-1">{{ qrBook?.title }}</div>
+                            <div class="text-xs mb-1" style="color:rgba(255,255,255,.4);">{{ qrBook?.author }}</div>
+                            <div class="font-mono text-xs mb-5" style="color:rgba(255,255,255,.3);">{{ qrBook?.barcode }}</div>
+                            <div class="flex justify-center mb-4">
+                                <img v-if="qrBook" :src="qrUrl(qrBook.barcode)" alt="QR Code"
+                                    class="rounded-2xl" style="width:200px;height:200px;background:white;padding:8px;" />
+                            </div>
+                            <div class="text-sm font-bold text-white">{{ Number(qrBook?.price).toLocaleString() }} so'm</div>
+                        </div>
+
+                        <div class="px-7 pb-7 flex gap-3">
+                            <button @click="printQr"
+                                class="flex-1 py-3.5 rounded-2xl font-bold text-white text-sm active:scale-95"
+                                style="background:linear-gradient(135deg,#3b82f6,#2563eb);">🖨️ Chop etish</button>
+                            <button @click="closeQr"
+                                class="flex-1 py-3.5 rounded-2xl font-bold text-sm"
+                                style="background:rgba(255,255,255,.06);color:rgba(255,255,255,.5);">Yopish</button>
+                        </div>
+                    </div>
+                </div>
+            </Transition>
+        </Teleport>
     </BookstoreLayout>
 </template>
 
 <style scoped>
 .fade-enter-active, .fade-leave-active { transition: opacity 0.2s; }
 .fade-enter-from, .fade-leave-to { opacity: 0; }
+</style>
+
+<style>
+@media print {
+    body > * { display: none !important; }
+    #qr-print-area { display: block !important; position: fixed; inset: 0; background: white; color: #000; padding: 40px; text-align: center; }
+}
 </style>

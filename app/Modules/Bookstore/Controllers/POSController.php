@@ -98,7 +98,78 @@ class POSController extends Controller
 
             $sale->items()->createMany($items);
 
-            return redirect()->back()->with('success', 'Sotuv muvaffaqiyatli amalga oshirildi!');
+            $saleWithItems = $sale->load('items.book', 'user');
+
+            return redirect('/bookstore/pos')->with('saleReceipt', [
+                'id' => $sale->id,
+                'total_amount' => $sale->total_amount,
+                'discount' => $sale->discount,
+                'payment_method' => $sale->payment_method,
+                'created_at' => $sale->created_at->format('d.m.Y H:i:s'),
+                'user' => $saleWithItems->user ? $saleWithItems->user->name : 'Xodim',
+                'items' => $saleWithItems->items->map(fn($i) => [
+                    'title' => $i->book->title,
+                    'quantity' => $i->quantity,
+                    'unit_price' => (float) $i->unit_price,
+                    'total_price' => (float) $i->total_price,
+                ])->toArray(),
+            ]);
+        });
+    }
+
+    // Returns all books for offline caching
+    public function booksCache()
+    {
+        return response()->json(
+            Book::select('id', 'title', 'author', 'barcode', 'price', 'stock')
+                ->get()
+                ->map(fn($b) => [
+                    ...$b->toArray(),
+                    'price' => (float) $b->price,
+                ])
+        );
+    }
+
+    // Sync a sale that was saved while offline
+    public function offlineSync(Request $request)
+    {
+        $validated = $request->validate([
+            'items' => 'required|array|min:1',
+            'items.*.id' => 'required|exists:bookstore_books,id',
+            'items.*.quantity' => 'required|integer|min:1',
+            'discount' => 'nullable|numeric|min:0',
+            'payment_method' => 'required|string',
+        ]);
+
+        return DB::transaction(function () use ($validated) {
+            $totalAmount = 0;
+            $items = [];
+
+            foreach ($validated['items'] as $itemData) {
+                $book = Book::lockForUpdate()->find($itemData['id']);
+                if ($book->stock < $itemData['quantity']) {
+                    return response()->json(['error' => "Zaxira yetarli emas: {$book->title}"], 422);
+                }
+                $book->decrement('stock', $itemData['quantity']);
+                $subtotal = $book->price * $itemData['quantity'];
+                $totalAmount += $subtotal;
+                $items[] = [
+                    'book_id' => $book->id,
+                    'quantity' => $itemData['quantity'],
+                    'unit_price' => $book->price,
+                    'total_price' => $subtotal,
+                ];
+            }
+
+            $sale = Sale::create([
+                'bookstore_user_id' => Auth::guard('bookstore')->id(),
+                'total_amount' => $totalAmount - ($validated['discount'] ?? 0),
+                'discount' => $validated['discount'] ?? 0,
+                'payment_method' => $validated['payment_method'],
+            ]);
+            $sale->items()->createMany($items);
+
+            return response()->json(['success' => true, 'sale_id' => $sale->id]);
         });
     }
 }
