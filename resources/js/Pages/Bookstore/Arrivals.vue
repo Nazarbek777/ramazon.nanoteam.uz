@@ -260,8 +260,8 @@ onMounted(async () => {
                                     </div>
                                 </div>
                                 <div>
-                                    <label style="display:block;color:rgba(255,255,255,0.3);font-size:9px;font-weight:700;text-transform:uppercase;margin-bottom:4px;">QR Barcode *</label>
-                                    <input v-model="form.barcode" type="text" required style="width:100%;padding:8px 12px;box-sizing:border-box;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:8px;color:#fff;font-size:13px;" />
+                                    <label style="display:block;color:rgba(255,255,255,0.3);font-size:9px;font-weight:700;text-transform:uppercase;margin-bottom:4px;">QR Barcode (Ixtiyoriy)</label>
+                                    <input v-model="form.barcode" type="text" style="width:100%;padding:8px 12px;box-sizing:border-box;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:8px;color:#fff;font-size:13px;" placeholder="Skanerlang yoki bo'sh qoldiring" />
                                 </div>
                             </div>
 

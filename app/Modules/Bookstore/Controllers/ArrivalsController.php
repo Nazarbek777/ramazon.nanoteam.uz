@@ -86,7 +86,7 @@ class ArrivalsController extends Controller
             'is_new_book'=> 'nullable|boolean',
             'title'      => 'nullable|string|max:255|required_if:is_new_book,true',
             'author'     => 'nullable|string|max:255',
-            'barcode'    => 'nullable|string|max:255|required_if:is_new_book,true',
+            'barcode'    => 'nullable|string|max:255',
             'price'      => 'nullable|numeric|min:0|required_if:is_new_book,true',
             'quantity'   => 'required|integer|min:1',
             'cost_price' => 'required|numeric|min:0',
@@ -99,13 +99,20 @@ class ArrivalsController extends Controller
             $bookId = $data['book_id'];
 
             if (!empty($data['is_new_book'])) {
+                $barcode = $data['barcode'] ?: 'BOOK-' . strtoupper(bin2hex(random_bytes(4)));
+                
+                // Ensure uniqueness
+                while (Book::where('barcode', $barcode)->exists()) {
+                    $barcode = 'BOOK-' . strtoupper(bin2hex(random_bytes(4)));
+                }
+
                 $book = Book::create([
                     'title'      => $data['title'],
                     'author'     => $data['author'],
-                    'barcode'    => $data['barcode'],
+                    'barcode'    => $barcode,
                     'price'      => $data['price'],
                     'cost_price' => $data['cost_price'],
-                    'stock'      => 0, // Will be incremented below
+                    'stock'      => 0,
                 ]);
                 $bookId = $book->id;
             }
