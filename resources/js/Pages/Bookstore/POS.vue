@@ -17,6 +17,16 @@ const isOnline = ref(navigator.onLine);
 const showReceipt = ref(false);
 const receipt = ref(null);
 let debounceTimer = null;
+const booksCache = ref(loadCache());
+const selectBook = (book) => {
+    const existing = cart.value.find(i => i.id === book.id);
+    if (existing) { existing.quantity++; }
+    else { cart.value.unshift({ ...book, quantity: 1 }); }
+    currentBarcode.value = '';
+    successFlash.value = true;
+    setTimeout(() => successFlash.value = false, 700);
+};
+
 
 // ─── Offline book cache (localStorage) ─────────────────────────────────────
 const CACHE_KEY = 'bookstore_books_cache';
@@ -37,6 +47,7 @@ const syncBooksCache = async () => {
     try {
         const { data } = await axios.get('/bookstore/books-cache');
         saveCache(data);
+        booksCache.value = data;
         console.log('[POS] Books cached offline:', data.length);
     } catch (e) {
         console.warn('[POS] Could not sync books cache:', e.message);
@@ -344,22 +355,43 @@ onUnmounted(() => {
                         : scanError
                             ? 'background:linear-gradient(135deg,rgba(233,69,96,.15),rgba(233,69,96,.05));border:1px solid rgba(233,69,96,.35);'
                             : 'background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);'">
-                    <div class="flex items-center gap-4">
+                    <div class="flex items-center gap-4 relative">
                         <div class="w-12 h-12 rounded-2xl flex items-center justify-center text-2xl flex-shrink-0"
                             :style="successFlash ? 'background:rgba(34,197,94,.2);' : isOnline ? 'background:rgba(255,255,255,.06);' : 'background:rgba(234,179,8,.12);'">
                             {{ successFlash ? '✅' : isScanning ? '⏳' : isOnline ? '📡' : '🔌' }}
                         </div>
-                        <input id="barcodeInput"
-                            v-model="currentBarcode"
-                            @keydown.enter.prevent="handleScan"
-                            type="text" autocomplete="off"
-                            placeholder="Barcode skanerlang yoki yozing..."
-                            class="flex-grow px-5 py-3.5 rounded-2xl text-white text-base font-mono focus:outline-none transition-all"
-                            style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);" />
+                        <div class="flex-grow relative">
+                            <input id="barcodeInput"
+                                v-model="currentBarcode"
+                                @keydown.enter.prevent="handleScan"
+                                type="text" autocomplete="off"
+                                placeholder="Barcode yoki kitob nomi..."
+                                class="w-full px-5 py-3.5 rounded-2xl text-white text-base font-mono focus:outline-none transition-all"
+                                style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);" />
+                            
+                            <!-- Search Results Dropdown -->
+                            <div v-if="currentBarcode.length > 1" 
+                                class="absolute top-full left-0 right-0 z-50 mt-2 rounded-2xl overflow-hidden shadow-2xl"
+                                style="background:#1a1a2e;border:1px solid rgba(255,255,255,.1);">
+                                <div v-for="b in booksCache.filter(x => x.title.toLowerCase().includes(currentBarcode.toLowerCase()) || x.barcode.includes(currentBarcode)).slice(0, 6)"
+                                    :key="b.id" @click="selectBook(b)"
+                                    class="px-5 py-3 flex items-center justify-between cursor-pointer hover:bg-white/5 border-b border-white/5 last:border-0">
+                                    <div class="min-w-0">
+                                        <div class="text-sm font-bold text-white truncate">{{ b.title }}</div>
+                                        <div class="text-[10px] text-white/30 font-mono">{{ b.barcode }}</div>
+                                    </div>
+                                    <div class="text-xs font-black text-indigo-400 ml-4">{{ Number(b.price).toLocaleString() }} so'm</div>
+                                </div>
+                                <div v-if="!booksCache.some(x => x.title.toLowerCase().includes(currentBarcode.toLowerCase()) || x.barcode.includes(currentBarcode))"
+                                    class="px-5 py-6 text-center text-xs text-white/20">
+                                    Hech narsa topilmadi 😕
+                                </div>
+                            </div>
+                        </div>
                         <button @click="handleScan"
                             class="px-6 py-3.5 rounded-2xl font-bold text-white text-sm flex-shrink-0 transition-all active:scale-95"
                             style="background:linear-gradient(135deg,#e94560,#533483);">
-                            Skanerlash
+                            Qidirish
                         </button>
                     </div>
                     <div v-if="scanError" class="mt-3 text-sm font-bold px-4 py-2 rounded-xl"

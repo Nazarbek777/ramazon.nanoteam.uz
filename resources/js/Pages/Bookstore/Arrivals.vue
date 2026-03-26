@@ -267,8 +267,14 @@ onMounted(async () => {
                                         </div>
                                         <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;">
                                             <div>
-                                                <label style="display:block;color:rgba(255,255,255,0.3);font-size:10px;font-weight:700;margin-bottom:4px;">barcode</label>
-                                                <input v-model="form.barcode" type="text" style="width:100%;padding:10px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:8px;color:#fff;outline:none;" />
+                                                <label style="display:block;color:rgba(255,255,255,0.3);font-size:10px;font-weight:700;margin-bottom:4px;">BARCODE (ixtiyoriy)</label>
+                                                <div style="display:flex;gap:4px;">
+                                                    <input v-model="form.barcode" type="text" placeholder="Skanerlang..." style="flex:1;padding:10px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:8px;color:#fff;outline:none;" />
+                                                    <button type="button" @click="form.barcode = 'BK-' + Math.random().toString(36).substring(2, 11).toUpperCase()"
+                                                        style="padding:0 10px;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.1);border-radius:8px;color:#a5b4fc;cursor:pointer;font-size:10px;font-weight:700;">
+                                                        Auto
+                                                    </button>
+                                                </div>
                                             </div>
                                             <div>
                                                 <label style="display:block;color:rgba(255,255,255,0.3);font-size:10px;font-weight:700;margin-bottom:4px;">SOTISH NARXI</label>
