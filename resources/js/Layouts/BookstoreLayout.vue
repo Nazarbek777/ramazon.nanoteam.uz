@@ -6,9 +6,11 @@ const page = usePage();
 const user = computed(() => page.props.auth?.user);
 
 const navItems = [
-    { href: '/bookstore', label: 'Dashboard', exact: true },
-    { href: '/bookstore/pos', label: 'Sotuv (POS)' },
-    { href: '/bookstore/books', label: 'Kitoblar' },
+    { href: '/bookstore',           label: 'Dashboard',  exact: true },
+    { href: '/bookstore/pos',       label: 'Sotuv (POS)' },
+    { href: '/bookstore/books',     label: 'Kitoblar' },
+    { href: '/bookstore/reports',   label: 'Hisobotlar' },
+    { href: '/bookstore/analytics', label: 'Analitika' },
 ];
 
 const isActive = (item) => item.exact ? page.url === item.href : page.url.startsWith(item.href);
@@ -48,38 +50,35 @@ const initials = computed(() => user.value?.name?.slice(0, 2).toUpperCase() || '
             <!-- Nav -->
             <nav style="flex-grow: 1; padding: 8px 12px; display: flex; flex-direction: column; gap: 4px;">
 
-                <!-- Dashboard -->
-                <Link :href="navItems[0].href"
-                    :style="isActive(navItems[0])
-                        ? 'background: rgba(99,102,241,0.15); border: 1px solid rgba(99,102,241,0.25); border-radius: 12px; padding: 11px 14px; display: flex; align-items: center; gap: 10px; color: #a5b4fc; font-weight: 600; font-size: 13px; text-decoration: none;'
-                        : 'background: transparent; border: 1px solid transparent; border-radius: 12px; padding: 11px 14px; display: flex; align-items: center; gap: 10px; color: rgba(255,255,255,0.4); font-weight: 500; font-size: 13px; text-decoration: none;'">
-                    <svg width="16" height="16" fill="none" viewBox="0 0 24 24" :stroke="isActive(navItems[0]) ? '#a5b4fc' : 'rgba(255,255,255,0.35)'" stroke-width="2">
-                        <rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/>
-                    </svg>
-                    Dashboard
-                </Link>
-
-                <!-- POS -->
-                <Link :href="navItems[1].href"
-                    :style="isActive(navItems[1])
-                        ? 'background: rgba(99,102,241,0.15); border: 1px solid rgba(99,102,241,0.25); border-radius: 12px; padding: 11px 14px; display: flex; align-items: center; gap: 10px; color: #a5b4fc; font-weight: 600; font-size: 13px; text-decoration: none;'
-                        : 'background: transparent; border: 1px solid transparent; border-radius: 12px; padding: 11px 14px; display: flex; align-items: center; gap: 10px; color: rgba(255,255,255,0.4); font-weight: 500; font-size: 13px; text-decoration: none;'">
-                    <svg width="16" height="16" fill="none" viewBox="0 0 24 24" :stroke="isActive(navItems[1]) ? '#a5b4fc' : 'rgba(255,255,255,0.35)'" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/>
-                    </svg>
-                    Sotuv (POS)
-                </Link>
-
-                <!-- Books -->
-                <Link :href="navItems[2].href"
-                    :style="isActive(navItems[2])
-                        ? 'background: rgba(99,102,241,0.15); border: 1px solid rgba(99,102,241,0.25); border-radius: 12px; padding: 11px 14px; display: flex; align-items: center; gap: 10px; color: #a5b4fc; font-weight: 600; font-size: 13px; text-decoration: none;'
-                        : 'background: transparent; border: 1px solid transparent; border-radius: 12px; padding: 11px 14px; display: flex; align-items: center; gap: 10px; color: rgba(255,255,255,0.4); font-weight: 500; font-size: 13px; text-decoration: none;'">
-                    <svg width="16" height="16" fill="none" viewBox="0 0 24 24" :stroke="isActive(navItems[2]) ? '#a5b4fc' : 'rgba(255,255,255,0.35)'" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
-                    </svg>
-                    Kitoblar
-                </Link>
+                <!-- Nav items loop -->
+                <template v-for="(item, i) in navItems" :key="item.href">
+                    <Link :href="item.href"
+                        :style="isActive(item)
+                            ? 'background:rgba(99,102,241,0.15);border:1px solid rgba(99,102,241,0.25);border-radius:12px;padding:11px 14px;display:flex;align-items:center;gap:10px;color:#a5b4fc;font-weight:600;font-size:13px;text-decoration:none;'
+                            : 'background:transparent;border:1px solid transparent;border-radius:12px;padding:11px 14px;display:flex;align-items:center;gap:10px;color:rgba(255,255,255,0.4);font-weight:500;font-size:13px;text-decoration:none;'">
+                        <!-- Dashboard icon -->
+                        <svg v-if="i===0" width="16" height="16" fill="none" viewBox="0 0 24 24" :stroke="isActive(item)?'#a5b4fc':'rgba(255,255,255,0.35)'" stroke-width="2">
+                            <rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/>
+                        </svg>
+                        <!-- POS icon -->
+                        <svg v-else-if="i===1" width="16" height="16" fill="none" viewBox="0 0 24 24" :stroke="isActive(item)?'#a5b4fc':'rgba(255,255,255,0.35)'" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/>
+                        </svg>
+                        <!-- Books icon -->
+                        <svg v-else-if="i===2" width="16" height="16" fill="none" viewBox="0 0 24 24" :stroke="isActive(item)?'#a5b4fc':'rgba(255,255,255,0.35)'" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
+                        </svg>
+                        <!-- Reports icon -->
+                        <svg v-else-if="i===3" width="16" height="16" fill="none" viewBox="0 0 24 24" :stroke="isActive(item)?'#a5b4fc':'rgba(255,255,255,0.35)'" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                        </svg>
+                        <!-- Analytics icon -->
+                        <svg v-else width="16" height="16" fill="none" viewBox="0 0 24 24" :stroke="isActive(item)?'#a5b4fc':'rgba(255,255,255,0.35)'" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/>
+                        </svg>
+                        {{ item.label }}
+                    </Link>
+                </template>
             </nav>
 
             <!-- User -->
