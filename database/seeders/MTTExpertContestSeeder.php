@@ -28,7 +28,7 @@ class MTTExpertContestSeeder extends Seeder
         $contest = Contest::updateOrCreate(
             ['contest_bot_id' => $bot->id, 'title' => $contestTitle],
             [
-                'description' => "MTT EXPERTI SITORA ABDULLAYEVNA SOVRINLI OʼYINIGA START BERDI\n\n1–Oʼrin: 300 ming soʼm pul mukofoti\n2–Oʼrin 200 ming soʼm pul mukofoti\n3–Oʼrin 100 ming soʼm pul mukofoti\n4–10- oʼringacha Maxsus test platformasida 5 ta 50 talik test uchun yangi ID kod taqdim etiladi.\n\nSovrinli oʼyin 24- martdan 5-aprelga qadar davom etadi\n\nShartlar juda oddiy\nBotga eng koʼp doʼstini taklif qilgan ishtirokchi gʼolib hisoblanadi\n\nGʼoliblar 6- aprel kuni Sitora Abdullayevnaning @attestatsiya_jamoa kanalida Jonli efirda eʼlon qilinadi va taqdirlanadi",
+                'description' => "MTT EXPERTI SITORA ABDULLAYEVNA SOVRINLI OʼYINIGA START BERDI\n\n1–Oʼrin: 300 ming soʼm pul mukofoti\n2–Oʼrin 200 ming soʼm pul mukofoti\n3–Oʼrin 100 ming soʼm pul mukofoti\n4–10- oʼringacha Maxsus test platformasida 5 ta 50 talik test uchun yangi ID kod taqdim etiladi.\n\nSovrinli oʼyin 28- martdan 20-aprelga qadar davom etadi\n\nShartlar juda oddiy\nBotga eng koʼp doʼstini taklif qilgan ishtirokchi gʼolib hisoblanadi\n\nGʼoliblar 21- aprel kuni Sitora Abdullayevnaning @attestatsiya_jamoa kanalida Jonli efirda eʼlon qilinadi va taqdirlanadi",
                 'start_text' => "👋 Assalomu alaykum!\n\n🏆 *MTT EXPERTI SITORA ABDULLAYEVNA* sovrinli o'yiniga xush kelibsiz!\n\n🎁 Konkursda qatnashish uchun quyidagi tugmalardan foydalaning. Do'stlarni taklif qiling va ballar yig'ing!",
                 'rules_text' => "📋 *Konkurs Qoidalari:*\n\n1. @attestatsiya_jamoa kanaliga a'zo bo'lish shart.\n2. Telefon raqamni tasdiqlash lozim.\n3. Botga eng koʼp doʼstini taklif qilgan ishtirokchi gʼolib hisoblanadi.\n4. Nakrutka taqiqlanadi!",
                 'referral_text' => "🔗 *Sizning referral havolangiz:*\n\n{link}\n\n👆 Ushbu havolani do'stlaringizga yuboring! Har bir qo'shilgan do'stingiz uchun sizga *{points} ball* beriladi. Omad!",
@@ -37,8 +37,8 @@ class MTTExpertContestSeeder extends Seeder
                 'require_referral' => true,
                 'referral_points' => 1,
                 'is_active' => true,
-                'start_date' => Carbon::create(2026, 3, 24),
-                'end_date' => Carbon::create(2026, 4, 5, 23, 59, 59),
+                'start_date' => Carbon::create(2026, 3, 28),
+                'end_date' => Carbon::create(2026, 4, 20, 23, 59, 59),
             ]
         );
 
