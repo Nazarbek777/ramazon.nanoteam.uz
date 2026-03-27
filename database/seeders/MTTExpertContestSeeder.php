@@ -85,7 +85,11 @@ class MTTExpertContestSeeder extends Seeder
 
         // 4. Majburiy kanallar
         $channels = [
-            ['channel_name' => 'MTT EXPERTI | SITORA ABDULLAYEVNA', 'channel_id' => '@attestatsiya_jamoa'],
+            [
+                'channel_name' => 'MTT EXPERTI | SITORA ABDULLAYEVNA',
+                'channel_id' => '@attestatsiya_jamoa',
+                'channel_url' => 'https://t.me/attestatsiya_jamoa'
+            ],
         ];
 
         foreach ($channels as $ch) {
