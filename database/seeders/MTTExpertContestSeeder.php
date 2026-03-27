@@ -28,7 +28,7 @@ class MTTExpertContestSeeder extends Seeder
         $contest = Contest::updateOrCreate(
             ['contest_bot_id' => $bot->id, 'title' => $contestTitle],
             [
-                'description' => "MTT EXPERTI SITORA ABDULLAYEVNA SOVRINLI OʼYINIGA START BERDI\n\n1–Oʼrin: 300 ming soʼm pul mukofoti\n2–Oʼrin 200 ming soʼm pul mukofoti\n3–Oʼrin 100 ming soʼm pul mukofoti\n4–10- oʼringacha Maxsus test platformasida 5 ta 50 talik test uchun yangi ID kod taqdim etiladi.\n\nSovrinli oʼyin 28- martdan 20-aprelga qadar davom etadi\n\nShartlar juda oddiy\nBotga eng koʼp doʼstini taklif qilgan ishtirokchi gʼolib hisoblanadi\n\nGʼoliblar 21- aprel kuni Sitora Abdullayevnaning @attestatsiya_jamoa kanalida Jonli efirda eʼlon qilinadi va taqdirlanadi",
+                'description' => "❗️ABDULLAYEVNA JAMOASI YUTUQLI OʻYINIDA QATNASHING.\n\n1-oʻrin: 300ming \n2-oʻrin: 200ming\n3-oʻrin: 100ming\n4-10-oʻrinlar attestatsiya ehtimoliy testlar yopiq guruhiga qoʻshilish imkoniyati.\n\n🎉Gʻoliblar kanalga eng koʻp obunachi taklif qilganlar orasidan tanlanadi.",
                 'start_text' => "👋 Assalomu alaykum!\n\n🏆 *MTT EXPERTI SITORA ABDULLAYEVNA* sovrinli o'yiniga xush kelibsiz!\n\n🎁 Konkursda qatnashish uchun quyidagi tugmalardan foydalaning. Do'stlarni taklif qiling va ballar yig'ing!",
                 'rules_text' => "📋 *Konkurs Qoidalari:*\n\n1. @attestatsiya_jamoa kanaliga a'zo bo'lish shart.\n2. Telefon raqamni tasdiqlash lozim.\n3. Botga eng koʼp doʼstini taklif qilgan ishtirokchi gʼolib hisoblanadi.\n4. Nakrutka taqiqlanadi!",
                 'referral_text' => "🔗 *Sizning referral havolangiz:*\n\n{link}\n\n👆 Ushbu havolani do'stlaringizga yuboring! Har bir qo'shilgan do'stingiz uchun sizga *{points} ball* beriladi. Omad!",
@@ -102,27 +102,27 @@ class MTTExpertContestSeeder extends Seeder
         // 5. Sovg'alar
         $prizes = [
             [
-                'title' => '1–Oʼrin',
+                'title' => '1-oʻrin',
                 'points_required' => 1,
-                'description' => '300 ming soʼm pul mukofoti',
+                'description' => '300ming',
                 'sort_order' => 1
             ],
             [
-                'title' => '2–Oʼrin',
+                'title' => '2-oʻrin',
                 'points_required' => 1,
-                'description' => '200 ming soʼm pul mukofoti',
+                'description' => '200ming',
                 'sort_order' => 2
             ],
             [
-                'title' => '3–Oʼrin',
+                'title' => '3-oʻrin',
                 'points_required' => 1,
-                'description' => '100 ming soʼm pul mukofoti',
+                'description' => '100ming',
                 'sort_order' => 3
             ],
             [
-                'title' => '4-10-Oʼrinlar',
+                'title' => '4-10-oʻrinlar',
                 'points_required' => 1,
-                'description' => 'Maxsus test platformasida 5 ta 50 talik test uchun yangi ID kod taqdim etiladi.',
+                'description' => 'attestatsiya ehtimoliy testlar yopiq guruhiga qoʻshilish imkoniyati.',
                 'sort_order' => 4
             ],
         ];
