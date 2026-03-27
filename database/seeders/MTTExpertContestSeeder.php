@@ -99,7 +99,8 @@ class MTTExpertContestSeeder extends Seeder
             );
         }
 
-        // 5. Sovg'alar
+        // 5. Sovg'alar (Eskilarini o'chirib, yangilarini kiritamiz)
+        $contest->prizes()->delete();
         $prizes = [
             [
                 'title' => '1-oʻrin',
