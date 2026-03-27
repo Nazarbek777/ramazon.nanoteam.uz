@@ -451,8 +451,7 @@ class ContestWebhookController
         $text = "🎁 <b>Konkurs sovg'alari:</b>\n\n";
         foreach ($prizes as $prize) {
             $text .= "<b>{$prize->title}</b>\n";
-            if ($prize->description) $text .= "📝 {$prize->description}\n";
-            $text .= "⭐ Kerakli ball: <b>{$prize->points_required}</b>\n\n";
+            if ($prize->description) $text .= "📝 {$prize->description}\n\n";
         }
 
         $this->telegram->sendMessage($chatId, $text);
