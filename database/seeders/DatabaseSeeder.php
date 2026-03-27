@@ -32,6 +32,7 @@ class DatabaseSeeder extends Seeder
             SubjectsSeeder::class,
             DemoSeeder::class,
             ContestBotSeeder::class,
+            MTTExpertContestSeeder::class,
         ]);
     }
 }
