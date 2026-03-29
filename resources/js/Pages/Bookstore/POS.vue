@@ -32,6 +32,7 @@ const successFlash = ref(false);
 const isOnline = ref(navigator.onLine);
 const showReceipt = ref(false);
 const receipt = ref(null);
+const searchMode = ref('barcode'); // 'barcode' or 'manual'
 let debounceTimer = null;
 const booksCache = ref(loadCache());
 const selectBook = (book) => {
@@ -45,6 +46,12 @@ const selectBook = (book) => {
 
 
 // ─── Offline book cache (localStorage) ─────────────────────────────────────
+
+watch(searchMode, () => {
+    setTimeout(() => {
+        document.getElementById('barcodeInput')?.focus();
+    }, 50);
+});
 
 const syncBooksCache = async () => {
     try {
@@ -358,6 +365,20 @@ onUnmounted(() => {
                         : scanError
                             ? 'background:linear-gradient(135deg,rgba(233,69,96,.15),rgba(233,69,96,.05));border:1px solid rgba(233,69,96,.35);'
                             : 'background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);'">
+                    <!-- Mode Toggles -->
+                    <div class="flex gap-2 mb-4 p-1 rounded-2xl bg-white/5 w-fit">
+                        <button @click="searchMode = 'barcode'; currentBarcode = '';" 
+                            class="px-4 py-2 rounded-xl text-xs font-bold transition-all"
+                            :class="searchMode === 'barcode' ? 'bg-indigo-500 text-white shadow-lg' : 'text-white/40 hover:text-white'">
+                            📑 Shtrix-kod
+                        </button>
+                        <button @click="searchMode = 'manual'; currentBarcode = '';" 
+                            class="px-4 py-2 rounded-xl text-xs font-bold transition-all"
+                            :class="searchMode === 'manual' ? 'bg-indigo-500 text-white shadow-lg' : 'text-white/40 hover:text-white'">
+                            🔍 Qidirish
+                        </button>
+                    </div>
+
                     <div class="flex items-center gap-4 relative">
                         <div class="w-12 h-12 rounded-2xl flex items-center justify-center text-2xl flex-shrink-0"
                             :style="successFlash ? 'background:rgba(34,197,94,.2);' : isOnline ? 'background:rgba(255,255,255,.06);' : 'background:rgba(234,179,8,.12);'">
@@ -368,12 +389,12 @@ onUnmounted(() => {
                                 v-model="currentBarcode"
                                 @keydown.enter.prevent="handleScan"
                                 type="text" autocomplete="off"
-                                placeholder="Barcode yoki kitob nomi..."
+                                :placeholder="searchMode === 'barcode' ? 'Shtrix-kodni skanerlang...' : 'Kitob nomi yoki muallifi...'"
                                 class="w-full px-5 py-3.5 rounded-2xl text-white text-base font-mono focus:outline-none transition-all"
                                 style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);" />
                             
-                            <!-- Search Results Dropdown -->
-                            <div v-if="currentBarcode.length > 1" 
+                            <!-- Search Results Dropdown (Only in Manual Mode) -->
+                            <div v-if="searchMode === 'manual' && currentBarcode.length > 1" 
                                 class="absolute top-full left-0 right-0 z-50 mt-2 rounded-2xl overflow-hidden shadow-2xl"
                                 style="background:#1a1a2e;border:1px solid rgba(255,255,255,.1);">
                                 <div v-for="b in booksCache.filter(x => x.title.toLowerCase().includes(currentBarcode.toLowerCase()) || x.barcode.includes(currentBarcode)).slice(0, 6)"
