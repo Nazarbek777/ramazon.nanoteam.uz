@@ -50,9 +50,6 @@ const selectBook = (book) => {
 
 // ─── Offline book cache (localStorage) ─────────────────────────────────────
 
-        document.getElementById('barcodeInput')?.focus();
-    }, 50);
-});
 
 const syncBooksCache = async () => {
     try {
