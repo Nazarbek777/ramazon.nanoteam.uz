@@ -8,6 +8,22 @@ import axios from 'axios';
 const page = usePage();
 
 // ─── State ───────────────────────────────────────────────────────────────────
+// ─── Offline book cache (localStorage) ─────────────────────────────────────
+const CACHE_KEY = 'bookstore_books_cache';
+const PENDING_KEY = 'bookstore_pending_sales';
+
+const loadCache = () => {
+    try { return JSON.parse(localStorage.getItem(CACHE_KEY) || '[]'); }
+    catch { return []; }
+};
+const saveCache = (books) => localStorage.setItem(CACHE_KEY, JSON.stringify(books));
+const loadPending = () => {
+    try { return JSON.parse(localStorage.getItem(PENDING_KEY) || '[]'); }
+    catch { return []; }
+};
+const savePending = (list) => localStorage.setItem(PENDING_KEY, JSON.stringify(list));
+
+// ─── State ───────────────────────────────────────────────────────────────────
 const cart = ref([]);
 const currentBarcode = ref('');
 const scanError = ref('');
@@ -29,19 +45,6 @@ const selectBook = (book) => {
 
 
 // ─── Offline book cache (localStorage) ─────────────────────────────────────
-const CACHE_KEY = 'bookstore_books_cache';
-const PENDING_KEY = 'bookstore_pending_sales';
-
-const loadCache = () => {
-    try { return JSON.parse(localStorage.getItem(CACHE_KEY) || '[]'); }
-    catch { return []; }
-};
-const saveCache = (books) => localStorage.setItem(CACHE_KEY, JSON.stringify(books));
-const loadPending = () => {
-    try { return JSON.parse(localStorage.getItem(PENDING_KEY) || '[]'); }
-    catch { return []; }
-};
-const savePending = (list) => localStorage.setItem(PENDING_KEY, JSON.stringify(list));
 
 const syncBooksCache = async () => {
     try {
