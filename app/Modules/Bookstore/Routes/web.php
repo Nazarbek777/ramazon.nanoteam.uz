@@ -20,6 +20,7 @@ Route::prefix('bookstore')->name('bookstore.')->group(function () {
         Route::post('/sales', [POSController::class, 'store'])->name('sales.store');
 
         Route::get('/book-find/{barcode}', [POSController::class, 'findBook'])->name('book.find');
+        Route::get('/book-search', [POSController::class, 'searchBooks'])->name('book.search');
         Route::get('/books-cache', [POSController::class, 'booksCache'])->name('books.cache');
         Route::post('/sales/offline-sync', [POSController::class, 'offlineSync'])->name('sales.offline-sync');
 

@@ -226,4 +226,27 @@ class POSController extends Controller
             return response()->json(['success' => true, 'sale_id' => $sale->id]);
         });
     }
+
+    public function searchBooks(Request $request)
+    {
+        $query = $request->get('q');
+        if (strlen($query) < 2) return response()->json([]);
+
+        $books = Book::where('title', 'like', "%{$query}%")
+            ->orWhere('author', 'like', "%{$query}%")
+            ->orWhere('barcode', 'like', "%{$query}%")
+            ->select('id', 'title', 'author', 'barcode', 'price', 'stock')
+            ->limit(15)
+            ->get()
+            ->map(fn($b) => [
+                'id' => $b->id,
+                'title' => $b->title,
+                'author' => $b->author,
+                'barcode' => $b->barcode,
+                'price' => (float) $b->price,
+                'stock' => $b->stock,
+            ]);
+
+        return response()->json($books);
+    }
 }

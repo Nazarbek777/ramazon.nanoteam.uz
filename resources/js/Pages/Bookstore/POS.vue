@@ -33,6 +33,9 @@ const isOnline = ref(navigator.onLine);
 const showReceipt = ref(false);
 const receipt = ref(null);
 const searchMode = ref('barcode'); // 'barcode' or 'manual'
+const manualSearchQuery = ref('');
+const manualSearchResults = ref([]);
+const isSearching = ref(false);
 let debounceTimer = null;
 const booksCache = ref(loadCache());
 const selectBook = (book) => {
@@ -47,8 +50,6 @@ const selectBook = (book) => {
 
 // ─── Offline book cache (localStorage) ─────────────────────────────────────
 
-watch(searchMode, () => {
-    setTimeout(() => {
         document.getElementById('barcodeInput')?.focus();
     }, 50);
 });
@@ -145,6 +146,38 @@ const handleScan = async () => {
         isScanning.value = false;
     }
 };
+
+// ─── Manual Search (AJAX) ────────────────────────────────────────────────────
+const handleManualSearch = async () => {
+    const q = manualSearchQuery.value.trim();
+    if (q.length < 2) {
+        manualSearchResults.value = [];
+        return;
+    }
+
+    isSearching.value = true;
+    try {
+        const { data } = await axios.get(`/bookstore/book-search?q=${encodeURIComponent(q)}`);
+        manualSearchResults.value = data;
+    } catch (e) {
+        console.error('[POS] Search failed:', e);
+    } finally {
+        isSearching.value = false;
+    }
+};
+
+const watchSearch = (val) => {
+    clearTimeout(debounceTimer);
+    debounceTimer = setTimeout(handleManualSearch, 300);
+};
+
+watch(manualSearchQuery, watchSearch);
+watch(searchMode, (newMode) => {
+    if (newMode === 'manual') manualSearchResults.value = [];
+    setTimeout(() => {
+        document.getElementById(newMode === 'barcode' ? 'barcodeInput' : 'manualSearchInput')?.focus();
+    }, 50);
+});
 
 // ─── Submit sale ─────────────────────────────────────────────────────────────
 const form = useForm({ items: [], discount: 0, payment_method: 'cash' });
@@ -385,34 +418,48 @@ onUnmounted(() => {
                             {{ successFlash ? '✅' : isScanning ? '⏳' : isOnline ? '📡' : '🔌' }}
                         </div>
                         <div class="flex-grow relative">
-                            <input id="barcodeInput"
+                            <input v-if="searchMode === 'barcode'"
+                                id="barcodeInput"
                                 v-model="currentBarcode"
                                 @keydown.enter.prevent="handleScan"
                                 type="text" autocomplete="off"
-                                :placeholder="searchMode === 'barcode' ? 'Shtrix-kodni skanerlang...' : 'Kitob nomi yoki muallifi...'"
+                                placeholder="Shtrix-kodni skanerlang..."
                                 class="w-full px-5 py-3.5 rounded-2xl text-white text-base font-mono focus:outline-none transition-all"
                                 style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);" />
+
+                            <input v-else
+                                id="manualSearchInput"
+                                v-model="manualSearchQuery"
+                                type="text" autocomplete="off"
+                                placeholder="Kitob nomi yoki muallifi..."
+                                class="w-full px-5 py-3.5 rounded-2xl text-white text-base focus:outline-none transition-all"
+                                style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);" />
                             
-                            <!-- Search Results Dropdown (Only in Manual Mode) -->
-                            <div v-if="searchMode === 'manual' && currentBarcode.length > 1" 
+                            <!-- Search Results Dropdown (AJAX Mode) -->
+                            <div v-if="searchMode === 'manual' && manualSearchQuery.length > 1" 
                                 class="absolute top-full left-0 right-0 z-50 mt-2 rounded-2xl overflow-hidden shadow-2xl"
                                 style="background:#1a1a2e;border:1px solid rgba(255,255,255,.1);">
-                                <div v-for="b in booksCache.filter(x => x.title.toLowerCase().includes(currentBarcode.toLowerCase()) || x.barcode.includes(currentBarcode)).slice(0, 6)"
-                                    :key="b.id" @click="selectBook(b)"
-                                    class="px-5 py-3 flex items-center justify-between cursor-pointer hover:bg-white/5 border-b border-white/5 last:border-0">
-                                    <div class="min-w-0">
-                                        <div class="text-sm font-bold text-white truncate">{{ b.title }}</div>
-                                        <div class="text-[10px] text-white/30 font-mono">{{ b.barcode }}</div>
+                                <div v-if="isSearching" class="px-5 py-4 text-center text-xs text-white/40">
+                                    Qidirilmoqda...
+                                </div>
+                                <template v-else>
+                                    <div v-for="b in manualSearchResults"
+                                        :key="b.id" @click="selectBook(b); manualSearchQuery = ''; manualSearchResults = [];"
+                                        class="px-5 py-3 flex items-center justify-between cursor-pointer hover:bg-white/5 border-b border-white/5 last:border-0">
+                                        <div class="min-w-0">
+                                            <div class="text-sm font-bold text-white truncate">{{ b.title }}</div>
+                                            <div class="text-[10px] text-white/30 font-mono">{{ b.author }} | {{ b.barcode }}</div>
+                                        </div>
+                                        <div class="text-xs font-black text-indigo-400 ml-4">{{ Number(b.price).toLocaleString() }} so'm</div>
                                     </div>
-                                    <div class="text-xs font-black text-indigo-400 ml-4">{{ Number(b.price).toLocaleString() }} so'm</div>
-                                </div>
-                                <div v-if="!booksCache.some(x => x.title.toLowerCase().includes(currentBarcode.toLowerCase()) || x.barcode.includes(currentBarcode))"
-                                    class="px-5 py-6 text-center text-xs text-white/20">
-                                    Hech narsa topilmadi 😕
-                                </div>
+                                    <div v-if="manualSearchResults.length === 0"
+                                        class="px-5 py-6 text-center text-xs text-white/20">
+                                        Hech narsa topilmadi 😕
+                                    </div>
+                                </template>
                             </div>
                         </div>
-                        <button @click="handleScan"
+                        <button v-if="searchMode === 'barcode'" @click="handleScan"
                             class="px-6 py-3.5 rounded-2xl font-bold text-white text-sm flex-shrink-0 transition-all active:scale-95"
                             style="background:linear-gradient(135deg,#e94560,#533483);">
                             Qidirish
