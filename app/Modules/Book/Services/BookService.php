@@ -94,31 +94,38 @@ class BookService
         $normalizedQuery = str_ireplace(array_keys($replacements), array_values($replacements), $query);
         Log::info("[BookSearch] Normalized Query: " . $normalizedQuery);
 
-        $latin = $this->transliterate($normalizedQuery, 'toLatin');
-        $cyrillic = $this->transliterate($normalizedQuery, 'toCyrillic');
+        // 2. So'zma-so'z qidiruv (Har bir so'z bo'yicha MUST match)
+        $terms = explode(' ', $normalizedQuery);
+        $terms = array_filter($terms, fn($t) => mb_strlen($t) > 1);
 
-        // 2. Lenient qidiruv patterni (apostrof muammosi uchun)
-        // o, g, o', g' harflarini % bilan almashtiramiz
-        $lenientPattern = str_replace(["o'", "g'", "o", "g", "'"], "%", $normalizedQuery);
-        $lenientLatin = $this->transliterate($lenientPattern, 'toLatin');
-        $lenientCyril = $this->transliterate($lenientPattern, 'toCyrillic');
+        if (empty($terms)) return collect();
 
-        Log::info("[BookSearch] Lenient Pattern: " . $lenientPattern);
+        $results = BookstoreBook::where(function ($q) use ($terms) {
+            foreach ($terms as $term) {
+                $tLatin = $this->transliterate($term, 'toLatin');
+                $tCyril = $this->transliterate($term, 'toCyrillic');
+                
+                // o, g, o', g' harflari uchun lenient variant
+                $tLenient = str_replace(["o'", "g'", "o", "g", "'"], "%", $term);
+                $tLenientLatin = $this->transliterate($tLenient, 'toLatin');
+                $tLenientCyril = $this->transliterate($tLenient, 'toCyrillic');
 
-        $results = BookstoreBook::where(function ($sub) use ($normalizedQuery, $latin, $cyrillic, $lenientPattern, $lenientLatin, $lenientCyril) {
-            $sub->where('title', 'like', "%{$normalizedQuery}%")
-                ->orWhere('title', 'like', "%{$latin}%")
-                ->orWhere('title', 'like', "%{$cyrillic}%")
-                ->orWhere('title', 'like', "%{$lenientPattern}%")
-                ->orWhere('title', 'like', "%{$lenientLatin}%")
-                ->orWhere('title', 'like', "%{$lenientCyril}%")
-                ->orWhere('author', 'like', "%{$normalizedQuery}%")
-                ->orWhere('author', 'like', "%{$lenientPattern}%");
+                $q->where(function ($sub) use ($term, $tLatin, $tCyril, $tLenient, $tLenientLatin, $tLenientCyril) {
+                    $sub->where('title', 'like', "%{$term}%")
+                        ->orWhere('title', 'like', "%{$tLatin}%")
+                        ->orWhere('title', 'like', "%{$tCyril}%")
+                        ->orWhere('title', 'like', "%{$tLenient}%")
+                        ->orWhere('title', 'like', "%{$tLenientLatin}%")
+                        ->orWhere('title', 'like', "%{$tLenientCyril}%")
+                        ->orWhere('author', 'like', "%{$term}%")
+                        ->orWhere('author', 'like', "%{$tLenient}%");
+                });
+            }
         })
         ->limit(10)
         ->get();
 
-        Log::info("[BookSearch] DB Results Count: " . count($results));
+        Log::info("[BookSearch] Word-based Results Count: " . count($results));
 
         return $results;
     }
