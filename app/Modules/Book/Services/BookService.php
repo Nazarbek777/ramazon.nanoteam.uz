@@ -5,6 +5,7 @@ namespace App\Modules\Book\Services;
 use App\Modules\Book\Models\BookUser;
 use App\Modules\Book\Models\Referral;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use App\Modules\Book\Services\TelegramService;
 use App\Modules\Bookstore\Models\Book as BookstoreBook;
 
