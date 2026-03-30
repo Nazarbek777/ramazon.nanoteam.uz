@@ -15,10 +15,20 @@ Route::post('/book-bot/webhook', [\App\Modules\Book\Controllers\WebhookControlle
 Route::get('/test-bot', function() {
     try {
         $controller = new \App\Modules\Book\Controllers\WebhookController();
+        $meiliHost = env('MEILISEARCH_HOST', 'http://127.0.0.1:7700');
+        $meiliStatus = false;
+        try {
+            $response = \Illuminate\Support\Facades\Http::timeout(2)->get($meiliHost . '/health');
+            $meiliStatus = $response->json();
+        } catch (\Exception $e) {
+            $meiliStatus = "Error: " . $e->getMessage();
+        }
+
         return response()->json([
             'ok' => true,
             'message' => 'Controller logic is operational',
-            'scout_installed' => class_exists('Laravel\Scout\Searchable')
+            'scout_installed' => class_exists('Laravel\Scout\Searchable'),
+            'meilisearch_connection' => $meiliStatus
         ]);
     } catch (\Exception $e) {
         return response()->json([
