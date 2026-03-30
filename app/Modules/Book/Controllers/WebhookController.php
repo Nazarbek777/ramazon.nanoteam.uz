@@ -78,23 +78,14 @@ class WebhookController
 
         Log::info("[BookBot] onMessage", ['chat_id' => $chatId, 'text' => $text, 'u_id' => $userId]);
 
-        if (str_contains($text, 'Reyting')) {
-            Log::info("[BookBot] Route: Reyting");
-            $this->onLeaderboard($chatId);
-        } elseif (str_contains($text, 'Profil')) {
+        if (str_contains($text, 'Profil')) {
             Log::info("[BookBot] Route: Profil");
             $this->onProfile($chatId, $from);
-        } elseif (str_contains($text, 'Taklif')) {
-            Log::info("[BookBot] Route: Taklif");
-            $this->onReferral($chatId, $from);
-        } elseif (str_contains($text, 'Sovrin')) {
-            Log::info("[BookBot] Route: Sovrin");
-            $this->sendAfisha($chatId);
-        } elseif (str_contains($text, 'riqnoma')) {
-            Log::info("[BookBot] Route: Yoriqnoma");
-            $this->sendYoriqnoma($chatId);
+        } elseif (str_contains($text, 'Reyting') || str_contains($text, 'Taklif') || str_contains($text, 'Sovrin') || str_contains($text, 'riqnoma')) {
+            $this->telegram->sendMessage($chatId, "⚠️ Hozirda faol konkurslar mavjud emas.");
         } else {
-            Log::info('[BookBot] Unmatched', ['text' => $text]);
+            Log::info("[BookBot] Route: Search", ['text' => $text]);
+            $this->onSearch($chatId, $text);
         }
     }
 
@@ -120,58 +111,8 @@ class WebhookController
 
     protected function onStart(int $chatId, string $text, array $from): void
     {
-        $now = now()->setTimezone('Asia/Tashkent');
-        $startTime = \Carbon\Carbon::create(2026, 3, 16, 10, 0, 0, 'Asia/Tashkent');
-        $endTime = \Carbon\Carbon::create(2026, 3, 21, 21, 0, 0, 'Asia/Tashkent');
-
-        if ($now->lt($startTime)) {
-            $this->telegram->sendMessage($chatId, "⏳ Konkursimiz hali boshlanmadi.\n\nBoshlanish vaqti: <b>Bugun 10:00 da</b>.\nIltimos, keyinroq qayta urinib ko'ring!");
-            return;
-        }
-
-        if ($now->gt($endTime)) {
-            $this->telegram->sendMessage($chatId, "🏁 Konkursimiz o'z nihoyasiga yetdi (21-mart 21:00).\n\nNatijalarni kutib qoling. Faolligingiz uchun rahmat!");
-            $this->sendMainKeyboard($chatId);
-            return;
-        }
-
-        $referrerId = null;
-        if (str_contains($text, ' ')) {
-            $parts = explode(' ', $text);
-            if (isset($parts[1]) && is_numeric($parts[1])) {
-                $referrerId = (int) $parts[1];
-            }
-        }
-
-        $user = $this->bookService->getOrCreateUser([
-            'id' => $from['id'] ?? $chatId,
-            'username' => $from['username'] ?? null,
-            'first_name' => $from['first_name'] ?? '',
-            'last_name' => $from['last_name'] ?? '',
-        ], $referrerId);
-
-        // Telefon yo'q — ro'yxatdan o'tish (Motivation + Contact)
-        if (empty($user->phone)) {
-            $this->telegram->sendContactRequest(
-                $chatId,
-                "🌙 <b>Ramazon hayiti munosabati bilan ajoyib konkurs!</b>\n\nAssalomu alaykum! 🎉\n\"Nur kitoblar\" doʻkoni konkursiga xush kelibsiz!\n\n🎁 Ishtirok etish va sovg'alarga ega bo'lish uchun telefon raqamingizni yuboring 👇"
-            );
-            return;
-        }
-
-        // Kanal tekshiruvi
-        $userId = $from['id'] ?? $chatId;
-        if (!$this->isJoinedAll($userId)) {
-            $this->askJoinChannel($chatId);
-            return;
-        }
-
-        if ($user && $user->referrer_id && !empty($user->phone)) {
-            $this->bookService->processReferral($user->referrer_id, $user->id);
-        }
-
         // Tayyor (mavjud foydalanuvchi uchun xush kelibsiz)
-        $text = "🌙 <b>Ramazon hayiti munosabati bilan ajoyib konkurs!</b>\n\nSiz ro'yxatdan o'tgansiz. Konkursda omad tilaymiz! 🎁";
+        $text = "📚 <b>\"Nur kitoblar\" do'konining rasmiy botiga xush kelibsiz!</b>\n\nBu yerda o'zingizga kerakli kitoblarni izlashingiz mumkin.\n\n🔍 <b>Qidiruv uchun kitob nomini yoki muallifni yozing.</b>";
         $this->sendMainKeyboard($chatId, $text);
     }
 
@@ -337,7 +278,7 @@ class WebhookController
 
     protected function sendMainKeyboard(int $chatId, string $text = null): void
     {
-        $message = $text ?? "� Kerakli bo'limni tanlang:";
+        $message = $text ?? "📚 Kerakli bo'limni tanlang:";
         $this->telegram->sendMessageWithReplyKeyboard($chatId, $message, [
             [['text' => '🏆 Reyting'], ['text' => '👤 Profil']],
             [['text' => '🔗 Taklif qilish']],
@@ -438,5 +379,33 @@ class WebhookController
         ]);
 
         $this->sendReferralLink($chatId, $user);
+    }
+
+    // ── QIDIRUV ──────────────────────────────────────────
+
+    protected function onSearch(int $chatId, string $query): void
+    {
+        if (strlen($query) < 2) {
+            $this->telegram->sendMessage($chatId, "⚠️ Qidiruv uchun kamida 2 ta belgi kiriting.");
+            return;
+        }
+
+        $books = $this->bookService->searchBooks($query);
+
+        if ($books->isEmpty()) {
+            $this->telegram->sendMessage($chatId, "😔 Kechirasiz, <b>\"{$query}\"</b> bo'yicha hech qanday kitob topilmadi.");
+            return;
+        }
+
+        $text = "🔍 <b>Qidiruv natijalari:</b>\n\n";
+        foreach ($books as $book) {
+            $text .= "📖 <b>{$book->title}</b>\n";
+            $text .= "👤 Muallif: {$book->author}\n";
+            $text .= "💰 Narxi: " . number_format($book->price, 0, '.', ' ') . " so'm\n";
+            $text .= "📦 Ombor: {$book->stock} ta\n";
+            $text .= "━━━━━━━━━━━━━━━━━━\n";
+        }
+
+        $this->telegram->sendMessage($chatId, $text);
     }
 }

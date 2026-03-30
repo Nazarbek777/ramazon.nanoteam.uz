@@ -142,8 +142,10 @@ class ContestWebhookController
 
         // Parse referral: /start ref_12345
         $referrerTelegramId = null;
+        Log::info('[ContestBot] Start text received', ['text' => $text]);
         if (preg_match('/\/start\s+ref_(\d+)/', $text, $m)) {
             $referrerTelegramId = (int) $m[1];
+            Log::info('[ContestBot] Referrer ID parsed', ['id' => $referrerTelegramId]);
         }
 
         // Find or create participant
@@ -249,13 +251,27 @@ class ContestWebhookController
 
     protected function creditReferral(ContestParticipant $participant): void
     {
+        Log::info('[ContestBot] Credit Referral check', [
+            'participant_id' => $participant->id,
+            'referrer_id' => $participant->referrer_id,
+        ]);
+
         if (!$participant->referrer_id) return;
 
         $referrer = ContestParticipant::find($participant->referrer_id);
-        if (!$referrer) return;
+        if (!$referrer) {
+            Log::warning('[ContestBot] Referrer not found', ['id' => $participant->referrer_id]);
+            return;
+        }
+
+        $points = $this->contest->referral_points ?? 1;
+        Log::info('[ContestBot] Crediting points', [
+            'referrer_id' => $referrer->id,
+            'points' => $points,
+        ]);
 
         $referrer->increment('referral_count');
-        $referrer->increment('points', $this->contest->referral_points);
+        $referrer->increment('points', $points);
 
         // Notify referrer
         $this->telegram->sendMessage(

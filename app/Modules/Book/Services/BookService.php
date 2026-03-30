@@ -6,6 +6,7 @@ use App\Modules\Book\Models\BookUser;
 use App\Modules\Book\Models\Referral;
 use Illuminate\Support\Facades\DB;
 use App\Modules\Book\Services\TelegramService;
+use App\Modules\Bookstore\Models\Book as BookstoreBook;
 
 class BookService
 {
@@ -76,5 +77,13 @@ class BookService
     public function getLeaderboard(int $limit = 10)
     {
         return BookUser::orderByDesc('points')->limit($limit)->get();
+    }
+
+    public function searchBooks(string $query)
+    {
+        return BookstoreBook::where('title', 'like', "%{$query}%")
+            ->orWhere('author', 'like', "%{$query}%")
+            ->limit(10)
+            ->get();
     }
 }
