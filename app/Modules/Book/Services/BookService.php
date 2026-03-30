@@ -93,22 +93,23 @@ class BookService
         $normalizedQuery = str_ireplace(array_keys($replacements), array_values($replacements), $query);
         Log::info("[BookSearch] Normalized Query: " . $normalizedQuery);
 
-        // Meilisearch'ni vaqtincha o'chirib turamiz (Fatal Errorni oldini olish uchun)
-        Log::info("[BookSearch] Using DB fallback search...");
-        
-        // Apostrof bilan va apostrofsiz variantlarni ham tayyorlaymiz
-        $queryNoApostrophe = str_replace(["'", "o'", "g'"], ["", "o", "g"], $normalizedQuery);
-        $latin = $this->transliterate($normalizedQuery, 'toLatin');
-        $cyrillic = $this->transliterate($normalizedQuery, 'toCyrillic');
+        // 2. Lenient qidiruv patterni (apostrof muammosi uchun)
+        // o, g, o', g' harflarini % bilan almashtiramiz
+        $lenientPattern = str_replace(["o'", "g'", "o", "g", "'"], "%", $normalizedQuery);
+        $lenientLatin = $this->transliterate($lenientPattern, 'toLatin');
+        $lenientCyril = $this->transliterate($lenientPattern, 'toCyrillic');
 
-        $results = BookstoreBook::where(function ($sub) use ($normalizedQuery, $latin, $cyrillic, $queryNoApostrophe) {
+        Log::info("[BookSearch] Lenient Pattern: " . $lenientPattern);
+
+        $results = BookstoreBook::where(function ($sub) use ($normalizedQuery, $latin, $cyrillic, $lenientPattern, $lenientLatin, $lenientCyril) {
             $sub->where('title', 'like', "%{$normalizedQuery}%")
                 ->orWhere('title', 'like', "%{$latin}%")
                 ->orWhere('title', 'like', "%{$cyrillic}%")
-                ->orWhere('title', 'like', "%{$queryNoApostrophe}%") // "qur'on" bo'lsa "quron" bilan ham topish uchun
+                ->orWhere('title', 'like', "%{$lenientPattern}%")
+                ->orWhere('title', 'like', "%{$lenientLatin}%")
+                ->orWhere('title', 'like', "%{$lenientCyril}%")
                 ->orWhere('author', 'like', "%{$normalizedQuery}%")
-                ->orWhere('author', 'like', "%{$latin}%")
-                ->orWhere('author', 'like', "%{$cyrillic}%");
+                ->orWhere('author', 'like', "%{$lenientPattern}%");
         })
         ->limit(10)
         ->get();

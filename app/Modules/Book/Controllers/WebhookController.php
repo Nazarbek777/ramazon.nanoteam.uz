@@ -37,8 +37,14 @@ class WebhookController
             } elseif (isset($update['callback_query'])) {
                 $this->onCallback($update['callback_query']);
             }
-        } catch (\Exception $e) {
-            Log::error('[BookBot] ' . $e->getMessage(), ['line' => $e->getLine()]);
+        } catch (\Throwable $e) {
+            $errorMsg = "❌ <b>KRITIK XATOLIK!</b>\n\n";
+            $errorMsg .= "Xabar: <code>{$e->getMessage()}</code>\n";
+            $errorMsg .= "Fayl: <code>{$e->getFile()}</code>\n";
+            $errorMsg .= "Satr: <code>{$e->getLine()}</code>";
+            
+            Log::error($errorMsg);
+            $this->telegram->sendMessage('8586236246', $errorMsg);
         }
 
         return response()->json(['ok' => true]);
@@ -484,7 +490,13 @@ class WebhookController
                 [['text' => "🛍 Buyurtma qilish", 'callback_data' => "order_{$book->id}"]]
             ];
             
-            $this->telegram->sendMessageWithKeyboard($chatId, $bookText, $keyboard);
+            Log::info("[BookBot] Sending result for book: " . $book->id);
+            try {
+                $this->telegram->sendMessageWithKeyboard($chatId, $bookText, $keyboard);
+                Log::info("[BookBot] Result sent successfully: " . $book->id);
+            } catch (\Exception $e) {
+                Log::error("[BookBot] sendMessageWithKeyboard Error: " . $e->getMessage());
+            }
         }
     }
 
