@@ -5,7 +5,7 @@ namespace App\Modules\Book\Services;
 use App\Modules\Book\Models\BookUser;
 use App\Modules\Book\Models\Referral;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
+                                                                                                                        use Illuminate\Support\Facades\Log;
 use App\Modules\Book\Services\TelegramService;
 use App\Modules\Bookstore\Models\Book as BookstoreBook;
 
@@ -93,6 +93,9 @@ class BookService
         ];
         $normalizedQuery = str_ireplace(array_keys($replacements), array_values($replacements), $query);
         Log::info("[BookSearch] Normalized Query: " . $normalizedQuery);
+
+        $latin = $this->transliterate($normalizedQuery, 'toLatin');
+        $cyrillic = $this->transliterate($normalizedQuery, 'toCyrillic');
 
         // 2. Lenient qidiruv patterni (apostrof muammosi uchun)
         // o, g, o', g' harflarini % bilan almashtiramiz
