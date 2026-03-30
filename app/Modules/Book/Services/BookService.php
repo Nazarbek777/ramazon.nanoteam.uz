@@ -92,17 +92,27 @@ class BookService
         ];
         $normalizedQuery = str_ireplace(array_keys($replacements), array_values($replacements), $query);
 
-        // 2. Meilisearch orqali qidiruv
-        $results = BookstoreBook::search($normalizedQuery)
-            ->take(10)
-            ->get();
+        // 2. Meilisearch orqali qidiruv (Xatolik bo'lsa zaxiraga o'tish uchun try-catch)
+        $results = collect();
+        try {
+            $results = BookstoreBook::search($normalizedQuery)
+                ->take(10)
+                ->get();
+        } catch (\Exception $e) {
+            Log::error("[BookSearch] Meilisearch error: " . $e->getMessage());
+        }
 
-        // 3. Fallback: Agar Meilisearch topmasa, bazadan qidirish
+        // 3. Fallback: Agar Meilisearch topmasa yoki xato bersa, bazadan qidirish
         if ($results->isEmpty()) {
-            $results = BookstoreBook::where(function ($sub) use ($normalizedQuery, $latin, $cyrillic) {
+            // Apostrof bilan va apostrofsiz variantlarni ham tayyorlaymiz
+            $queryNoApostrophe = str_replace(["'", "o'", "g'"], ["", "o", "g"], $normalizedQuery);
+            $queryWithApostrophe = str_replace(["o", "g"], ["o'", "g'"], $normalizedQuery); // Juda umumiy, lekin yordam berishi mumkin
+
+            $results = BookstoreBook::where(function ($sub) use ($normalizedQuery, $latin, $cyrillic, $queryNoApostrophe) {
                 $sub->where('title', 'like', "%{$normalizedQuery}%")
                     ->orWhere('title', 'like', "%{$latin}%")
                     ->orWhere('title', 'like', "%{$cyrillic}%")
+                    ->orWhere('title', 'like', "%{$queryNoApostrophe}%") // "qur'on" bo'lsa "quron" bilan ham topish uchun
                     ->orWhere('author', 'like', "%{$normalizedQuery}%")
                     ->orWhere('author', 'like', "%{$latin}%")
                     ->orWhere('author', 'like', "%{$cyrillic}%");
