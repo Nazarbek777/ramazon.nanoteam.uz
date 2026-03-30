@@ -136,7 +136,7 @@ class WebhookController
         ]);
 
         // Tayyor (mavjud foydalanuvchi uchun xush kelibsiz)
-        $text = "📚 <b>\"Nur kitoblar\" do'konining rasmiy botiga xush kelibsiz!</b>\n\nBu yerda o'zingizga kerakli kitoblarni izlashingiz mumkin.\n\n🔍 <b>Qidiruv uchun kitob nomini yoki muallifni yozing.</b>";
+        $text = "📚 <b>\"Nur kitoblar\" do'konining rasmiy botiga xush kelibsiz!</b>\n\nBu yerda o'zingizga kerakli kitoblarni izlashingiz va buyurtma berishingiz mumkin. Buyurtmangizni qoldiring, siz bilan o'zimiz bog'lanamiz!\n\n🔍 <b>Qidiruv uchun kitob nomini yozing.</b>";
         $this->sendMainKeyboard($chatId, $text);
     }
 
@@ -459,7 +459,7 @@ class WebhookController
         if (!$user || empty($user->phone)) {
             $this->telegram->sendContactRequest(
                 $chatId,
-                "📞 Buyurtmani rasmiylashtirish uchun pastdagi <b>\"📱 Raqamni yuborish\"</b> tugmasi orqali telefon raqamingizni yuboring:"
+                "📞 Buyurtmani rasmiylashtirish uchun pastdagi <b>\"📱 Raqamni yuborish\"</b> tugmasi orqali telefon raqamingizni yuboring. Buyurtmangizni qoldiring, siz bilan o'zimiz bog'lanamiz!"
             );
             return;
         }
