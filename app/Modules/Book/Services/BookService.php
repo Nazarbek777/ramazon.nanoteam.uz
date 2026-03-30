@@ -89,12 +89,11 @@ class BookService
         $replacements = [
             'õ' => "o'", 'ö' => "o'", 'o‘' => "o'", 'o’' => "o'", 'o`' => "o'",
             'ğ' => "g'", 'g‘' => "g'", 'g’' => "g'", 'g`' => "g'",
-            '«' => '', '»' => '', '"' => '', "'" => "o'", '’' => "o'", '‘' => "o'"
+            '«' => '', '»' => '', '"' => '',
         ];
         $normalizedQuery = str_ireplace(array_keys($replacements), array_values($replacements), $query);
-        Log::info("[BookSearch] Normalized Query: " . $normalizedQuery);
 
-        // 2. So'zma-so'z qidiruv (Har bir so'z bo'yicha MUST match)
+        // 2. So'zma-so'z qidiruv (Har bir so'z bo'yicha super-fuzzy match)
         $terms = explode(' ', $normalizedQuery);
         $terms = array_filter($terms, fn($t) => mb_strlen($t) > 1);
 
@@ -105,27 +104,26 @@ class BookService
                 $tLatin = $this->transliterate($term, 'toLatin');
                 $tCyril = $this->transliterate($term, 'toCyrillic');
                 
-                // o, g, o', g' harflari uchun lenient variant
-                $tLenient = str_replace(["o'", "g'", "o", "g", "'"], "%", $term);
-                $tLenientLatin = $this->transliterate($tLenient, 'toLatin');
-                $tLenientCyril = $this->transliterate($tLenient, 'toCyrillic');
+                // Super-fuzzy pattern: Har bir harf orasiga % qo'yamiz (User so'raganidek "har bir harf qidirish")
+                $superFuzzy = '%' . implode('%', mb_str_split($term)) . '%';
+                $superFuzzyLatin = '%' . implode('%', mb_str_split($tLatin)) . '%';
+                $superFuzzyCyril = '%' . implode('%', mb_str_split($tCyril)) . '%';
 
-                $q->where(function ($sub) use ($term, $tLatin, $tCyril, $tLenient, $tLenientLatin, $tLenientCyril) {
+                $q->where(function ($sub) use ($term, $tLatin, $tCyril, $superFuzzy, $superFuzzyLatin, $superFuzzyCyril) {
                     $sub->where('title', 'like', "%{$term}%")
                         ->orWhere('title', 'like', "%{$tLatin}%")
                         ->orWhere('title', 'like', "%{$tCyril}%")
-                        ->orWhere('title', 'like', "%{$tLenient}%")
-                        ->orWhere('title', 'like', "%{$tLenientLatin}%")
-                        ->orWhere('title', 'like', "%{$tLenientCyril}%")
-                        ->orWhere('author', 'like', "%{$term}%")
-                        ->orWhere('author', 'like', "%{$tLenient}%");
+                        ->orWhere('title', 'like', $superFuzzy)
+                        ->orWhere('title', 'like', $superFuzzyLatin)
+                        ->orWhere('title', 'like', $superFuzzyCyril)
+                        ->orWhere('author', 'like', $superFuzzy);
                 });
             }
         })
         ->limit(10)
         ->get();
 
-        Log::info("[BookSearch] Word-based Results Count: " . count($results));
+        Log::info("[BookSearch] Super-Fuzzy Results Count: " . count($results));
 
         return $results;
     }
