@@ -28,6 +28,7 @@ class WebhookController
 
     public function handle(Request $request): JsonResponse
     {
+        Log::info("[BookBot] Webhook received", ['payload' => $request->all()]);
         $update = $request->all();
 
         try {

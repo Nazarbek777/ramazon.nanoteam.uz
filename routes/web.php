@@ -1,6 +1,9 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Log;
+
+Log::info("[Global] Accessing routes/web.php", ['url' => request()->fullUrl(), 'method' => request()->method()]);
 use App\Http\Controllers\Admin\SubjectController;
 use App\Http\Controllers\Admin\QuestionController;
 use App\Http\Controllers\Admin\QuizController;
