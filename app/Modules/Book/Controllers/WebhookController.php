@@ -8,6 +8,8 @@ use Illuminate\Support\Facades\Log;
 use App\Modules\Book\Models\BookUser;
 use App\Modules\Bookstore\Models\Book as BookstoreBook;
 use Illuminate\Support\Facades\Cache;
+use App\Modules\Book\Services\TelegramService;
+use App\Modules\Book\Services\BookService;
 
 class WebhookController
 {
@@ -126,6 +128,13 @@ class WebhookController
 
     protected function onStart(int $chatId, string $text, array $from): void
     {
+        $user = $this->bookService->getOrCreateUser([
+            'id' => $from['id'] ?? $chatId,
+            'username' => $from['username'] ?? null,
+            'first_name' => $from['first_name'] ?? '',
+            'last_name' => $from['last_name'] ?? '',
+        ]);
+
         // Tayyor (mavjud foydalanuvchi uchun xush kelibsiz)
         $text = "📚 <b>\"Nur kitoblar\" do'konining rasmiy botiga xush kelibsiz!</b>\n\nBu yerda o'zingizga kerakli kitoblarni izlashingiz mumkin.\n\n🔍 <b>Qidiruv uchun kitob nomini yoki muallifni yozing.</b>";
         $this->sendMainKeyboard($chatId, $text);
