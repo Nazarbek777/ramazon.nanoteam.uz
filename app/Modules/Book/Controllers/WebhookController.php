@@ -5,9 +5,9 @@ namespace App\Modules\Book\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Log;
-use App\Modules\Book\Services\TelegramService;
-use App\Modules\Book\Services\BookService;
 use App\Modules\Book\Models\BookUser;
+use App\Modules\Bookstore\Models\Book as BookstoreBook;
+use Illuminate\Support\Facades\Cache;
 
 class WebhookController
 {
@@ -81,9 +81,18 @@ class WebhookController
         if (str_contains($text, 'Profil')) {
             Log::info("[BookBot] Route: Profil");
             $this->onProfile($chatId, $from);
+        } elseif (str_contains($text, 'Kitob qidirish')) {
+            $this->telegram->sendMessage($chatId, "🔍 <b>Kitob izlash uchun uning nomini yoki muallifini yozib yuboring.</b>\n\nMasalan: <i>Sariq devni minib</i>");
         } elseif (str_contains($text, 'Reyting') || str_contains($text, 'Taklif') || str_contains($text, 'Sovrin') || str_contains($text, 'riqnoma')) {
             $this->telegram->sendMessage($chatId, "⚠️ Hozirda faol konkurslar mavjud emas.");
         } else {
+            // Manzilni qabul qilish holatini tekshirish
+            $state = Cache::get("book_bot_state_{$chatId}");
+            if ($state && ($state['step'] ?? '') === 'address') {
+                $this->onAddress($chatId, $text, $from);
+                return;
+            }
+
             Log::info("[BookBot] Route: Search", ['text' => $text]);
             $this->onSearch($chatId, $text);
         }
@@ -104,6 +113,12 @@ class WebhookController
 
         if ($data === 'check_channels') {
             $this->onCheckChannels($chatId, $from);
+        } elseif (str_starts_with($data, 'order_')) {
+            $bookId = (int) str_replace('order_', '', $data);
+            $this->onOrder($chatId, $bookId, $from);
+        } elseif (str_starts_with($data, 'delivery_')) {
+            $type = str_replace('delivery_', '', $data);
+            $this->onDeliveryTypeSelect($chatId, $type, $from);
         }
     }
 
@@ -166,7 +181,14 @@ class WebhookController
             $this->bookService->processReferral($user->referrer_id, $user->id);
         }
 
-        $text = "✅ Raqam saqlandi! Konkursda ishtirok etishni boshlashingiz mumkin.";
+        // Buyurtma jarayonida bo'lsa
+        $state = Cache::get("book_bot_state_{$chatId}");
+        if ($state && ($state['step'] ?? '') === 'phone') {
+            $this->askDeliveryType($chatId);
+            return;
+        }
+
+        $text = "✅ Raqam saqlandi! Botdan to'liq foydalanishingiz mumkin.";
         $this->sendMainKeyboard($chatId, $text);
     }
 
@@ -283,6 +305,7 @@ class WebhookController
             [['text' => '🏆 Reyting'], ['text' => '👤 Profil']],
             [['text' => '🔗 Taklif qilish']],
             [['text' => '🎁 Sovrinlar'], ['text' => '📋 Yoʻriqnoma']],
+            [['text' => '🔍 Kitob qidirish']],
         ]);
     }
 
@@ -399,13 +422,116 @@ class WebhookController
 
         $text = "🔍 <b>Qidiruv natijalari:</b>\n\n";
         foreach ($books as $book) {
-            $text .= "📖 <b>{$book->title}</b>\n";
-            $text .= "👤 Muallif: {$book->author}\n";
-            $text .= "💰 Narxi: " . number_format($book->price, 0, '.', ' ') . " so'm\n";
-            $text .= "📦 Ombor: {$book->stock} ta\n";
-            $text .= "━━━━━━━━━━━━━━━━━━\n";
+            $bookText = "📖 <b>{$book->title}</b>\n";
+            $bookText .= "💰 Narxi: " . number_format($book->price, 0, '.', ' ') . " so'm\n";
+            $bookText .= "📦 Mavjud: {$book->stock} ta\n";
+            $bookText .= "━━━━━━━━━━━━━━━━━━\n";
+            
+            $keyboard = [
+                [['text' => "🛍 Buyurtma qilish", 'callback_data' => "order_{$book->id}"]]
+            ];
+            
+            $this->telegram->sendMessageWithKeyboard($chatId, $bookText, $keyboard);
+        }
+    }
+
+    // ── BUYURTMA ─────────────────────────────────────────
+
+    protected function onOrder(int $chatId, int $bookId, array $from): void
+    {
+        $userId = $from['id'] ?? $chatId;
+        $user = BookUser::where('telegram_id', $userId)->first();
+        
+        Cache::put("book_bot_state_{$chatId}", [
+            'book_id' => $bookId,
+            'step' => 'phone'
+        ], now()->addMinutes(30));
+
+        if (!$user || empty($user->phone)) {
+            $this->telegram->sendContactRequest(
+                $chatId,
+                "📞 Buyurtmani rasmiylashtirish uchun pastdagi <b>\"📱 Raqamni yuborish\"</b> tugmasi orqali telefon raqamingizni yuboring:"
+            );
+            return;
         }
 
-        $this->telegram->sendMessage($chatId, $text);
+        $this->askDeliveryType($chatId);
+    }
+
+    protected function askDeliveryType(int $chatId): void
+    {
+        Cache::put("book_bot_state_{$chatId}", array_merge(
+            Cache::get("book_bot_state_{$chatId}", []),
+            ['step' => 'delivery_type']
+        ), now()->addMinutes(30));
+
+        $keyboard = [
+            [
+                ['text' => "🚚 Yetkazib berish", 'callback_data' => "delivery_courier"],
+                ['text' => "🏃 Borib olish", 'callback_data' => "delivery_pickup"]
+            ]
+        ];
+
+        $this->telegram->sendMessageWithKeyboard($chatId, "🚚 Kitobni qanday usulda qabul qilib olasiz?", $keyboard);
+    }
+
+    protected function onDeliveryTypeSelect(int $chatId, string $type, array $from): void
+    {
+        $state = Cache::get("book_bot_state_{$chatId}");
+        if (!$state) return;
+
+        $state['delivery_type'] = $type;
+        
+        if ($type === 'courier') {
+            $state['step'] = 'address';
+            Cache::put("book_bot_state_{$chatId}", $state, now()->addMinutes(30));
+            $this->telegram->sendMessage($chatId, "📍 Iltimos, manzilingizni to'liq yozib yuboring (shahar, tuman, ko'cha, uy):");
+        } else {
+            $state['delivery_address'] = "Do'kondan olib ketish";
+            Cache::put("book_bot_state_{$chatId}", $state, now()->addMinutes(30));
+            $this->sendFinalOrder($chatId, $state, $from);
+        }
+    }
+
+    protected function onAddress(int $chatId, string $address, array $from): void
+    {
+        $state = Cache::get("book_bot_state_{$chatId}");
+        if (!$state) return;
+
+        $state['delivery_address'] = $address;
+        $this->sendFinalOrder($chatId, $state, $from);
+    }
+
+    protected function sendFinalOrder(int $chatId, array $state, array $from): void
+    {
+        $userId = $from['id'] ?? $chatId;
+        $user = BookUser::where('telegram_id', $userId)->first();
+        $book = BookstoreBook::find($state['book_id']);
+        
+        if (!$book) {
+            $this->telegram->sendMessage($chatId, "⚠️ Xatolik yuz berdi. Iltimos qaytadan urinib ko'ring.");
+            Cache::forget("book_bot_state_{$chatId}");
+            return;
+        }
+
+        $deliveryText = ($state['delivery_type'] === 'courier') ? "🚚 Yetkazib berish" : "🏃 Borib olish";
+
+        // Adminni xabardor qilish
+        $adminChatId = '8586236246';
+        $adminMsg = "🆕 <b>YANGI BUYURTMA!</b>\n\n";
+        $adminMsg .= "📚 Kitob: <b>{$book->title}</b>\n";
+        $adminMsg .= "💰 Narxi: " . number_format($book->price, 0, '.', ' ') . " so'm\n\n";
+        $adminMsg .= "👤 Kimdan: {$user->first_name} {$user->last_name} (@" . ($user->username ?? 'yo\'q') . ")\n";
+        $adminMsg .= "📞 Tel: +{$user->phone}\n";
+        $adminMsg .= "📦 Usul: {$deliveryText}\n";
+        $adminMsg .= "📍 Manzil: {$state['delivery_address']}\n\n";
+        $adminMsg .= "🆔 Chat ID: <code>{$userId}</code>";
+
+        $this->telegram->sendMessage($adminChatId, $adminMsg);
+
+        // Foydalanuvchiga tasdiqlash
+        $this->telegram->sendMessage($chatId, "✅ <b>Buyurtmangiz qabul qilindi!</b>\n\nSiz bilan bog'lanamiz. Rahmat!");
+        
+        Cache::forget("book_bot_state_{$chatId}");
     }
 }

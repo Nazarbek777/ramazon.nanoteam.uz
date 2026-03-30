@@ -81,9 +81,50 @@ class BookService
 
     public function searchBooks(string $query)
     {
-        return BookstoreBook::where('title', 'like', "%{$query}%")
-            ->orWhere('author', 'like', "%{$query}%")
+        $latin = $this->transliterate($query, 'toLatin');
+        $cyrillic = $this->transliterate($query, 'toCyrillic');
+
+        return BookstoreBook::where(function ($q) use ($query, $latin, $cyrillic) {
+                $q->where('title', 'like', "%{$query}%")
+                  ->orWhere('title', 'like', "%{$latin}%")
+                  ->orWhere('title', 'like', "%{$cyrillic}%")
+                  ->orWhere('author', 'like', "%{$query}%")
+                  ->orWhere('author', 'like', "%{$latin}%")
+                  ->orWhere('author', 'like', "%{$cyrillic}%");
+            })
             ->limit(10)
             ->get();
+    }
+
+    protected function transliterate(string $text, string $mode): string
+    {
+        $cyrillic = [
+            'Ё', 'Й', 'Ц', 'У', 'К', 'Е', 'Н', 'Г', 'Ш', 'Щ', 'З', 'Х', 'Ъ',
+            'ё', 'й', 'ц', 'у', 'k', 'е', 'н', 'г', 'ш', 'щ', 'з', 'х', 'ъ',
+            'Ф', 'Ы', 'В', 'А', 'П', 'Р', 'О', 'Л', 'Д', 'Ж', 'Э',
+            'ф', 'ы', 'в', 'а', 'п', 'р', 'о', 'л', 'д', 'ж', 'э',
+            'Я', 'Ч', 'С', 'М', 'И', 'Т', 'Ь', 'Б', 'Ю',
+            'я', 'ч', 'с', 'м', 'и', 'т', 'ь', 'б', 'ю'
+        ];
+        $latin = [
+            'Yo', 'Y', 'Ts', 'U', 'K', 'E', 'N', 'G', 'Sh', 'Sch', 'Z', 'X', "'",
+            'yo', 'y', 'ts', 'u', 'k', 'e', 'n', 'g', 'sh', 'sch', 'z', 'x', "'",
+            'F', 'I', 'V', 'A', 'P', 'R', 'O', 'L', 'D', 'J', 'E',
+            'f', 'i', 'v', 'a', 'p', 'r', 'o', 'l', 'd', 'j', 'e',
+            'Ya', 'Ch', 'S', 'M', 'I', 'T', "'", 'B', 'Yu',
+            'ya', 'ch', 's', 'm', 'i', 't', "'", 'b', 'yu'
+        ];
+
+        // O'zbekcha maxsus harflar (sh, ch, yo, yu, ya)
+        $cyrSpec = ['Ў', 'ў', 'Қ', 'қ', 'Ғ', 'ғ', 'Ҳ', 'ҳ'];
+        $latSpec = ["O'", "o'", 'Q', 'q', 'G', 'g', 'H', 'h'];
+
+        if ($mode === 'toLatin') {
+            $text = str_replace($cyrSpec, $latSpec, $text);
+            return str_replace($cyrillic, $latin, $text);
+        } else {
+            $text = str_replace($latSpec, $cyrSpec, $text);
+            return str_replace($latin, $cyrillic, $text);
+        }
     }
 }
