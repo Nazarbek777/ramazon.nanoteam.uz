@@ -92,13 +92,26 @@ class BookService
         ];
         $normalizedQuery = str_ireplace(array_keys($replacements), array_values($replacements), $query);
 
-        $latin = $this->transliterate($normalizedQuery, 'toLatin');
-        $cyrillic = $this->transliterate($normalizedQuery, 'toCyrillic');
-
-        // Meilisearch orqali qidiruv
-        return BookstoreBook::search($normalizedQuery)
+        // 2. Meilisearch orqali qidiruv
+        $results = BookstoreBook::search($normalizedQuery)
             ->take(10)
             ->get();
+
+        // 3. Fallback: Agar Meilisearch topmasa, bazadan qidirish
+        if ($results->isEmpty()) {
+            $results = BookstoreBook::where(function ($sub) use ($normalizedQuery, $latin, $cyrillic) {
+                $sub->where('title', 'like', "%{$normalizedQuery}%")
+                    ->orWhere('title', 'like', "%{$latin}%")
+                    ->orWhere('title', 'like', "%{$cyrillic}%")
+                    ->orWhere('author', 'like', "%{$normalizedQuery}%")
+                    ->orWhere('author', 'like', "%{$latin}%")
+                    ->orWhere('author', 'like', "%{$cyrillic}%");
+            })
+            ->limit(10)
+            ->get();
+        }
+
+        return $results;
     }
 
     protected function transliterate(string $text, string $mode): string
