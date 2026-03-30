@@ -81,18 +81,23 @@ class BookService
 
     public function searchBooks(string $query)
     {
-        $latin = $this->transliterate($query, 'toLatin');
-        $cyrillic = $this->transliterate($query, 'toCyrillic');
+        $query = trim($query);
+        if (empty($query)) return collect();
 
-        return BookstoreBook::where(function ($q) use ($query, $latin, $cyrillic) {
-                $q->where('title', 'like', "%{$query}%")
-                  ->orWhere('title', 'like', "%{$latin}%")
-                  ->orWhere('title', 'like', "%{$cyrillic}%")
-                  ->orWhere('author', 'like', "%{$query}%")
-                  ->orWhere('author', 'like', "%{$latin}%")
-                  ->orWhere('author', 'like', "%{$cyrillic}%");
-            })
-            ->limit(10)
+        // 1. Simvollarni normalizatsiya qilish
+        $replacements = [
+            'õ' => "o'", 'ö' => "o'", 'o‘' => "o'", 'o’' => "o'", 'o`' => "o'",
+            'ğ' => "g'", 'g‘' => "g'", 'g’' => "g'", 'g`' => "g'",
+            '«' => '', '»' => '', '"' => '', "'" => "o'", '’' => "o'", '‘' => "o'"
+        ];
+        $normalizedQuery = str_ireplace(array_keys($replacements), array_values($replacements), $query);
+
+        $latin = $this->transliterate($normalizedQuery, 'toLatin');
+        $cyrillic = $this->transliterate($normalizedQuery, 'toCyrillic');
+
+        // Meilisearch orqali qidiruv
+        return BookstoreBook::search($normalizedQuery)
+            ->take(10)
             ->get();
     }
 
