@@ -91,19 +91,23 @@ class BookService
             '«' => '', '»' => '', '"' => '', "'" => "o'", '’' => "o'", '‘' => "o'"
         ];
         $normalizedQuery = str_ireplace(array_keys($replacements), array_values($replacements), $query);
+        Log::info("[BookSearch] Normalized Query: " . $normalizedQuery);
 
         // 2. Meilisearch orqali qidiruv (Xatolik bo'lsa zaxiraga o'tish uchun try-catch)
         $results = collect();
         try {
+            Log::info("[BookSearch] Attempting Meilisearch...");
             $results = BookstoreBook::search($normalizedQuery)
                 ->take(10)
                 ->get();
+            Log::info("[BookSearch] Meilisearch Results: " . count($results));
         } catch (\Exception $e) {
             Log::error("[BookSearch] Meilisearch error: " . $e->getMessage());
         }
 
         // 3. Fallback: Agar Meilisearch topmasa yoki xato bersa, bazadan qidirish
         if ($results->isEmpty()) {
+            Log::info("[BookSearch] Meilisearch empty/failed, falling back to DB...");
             // Apostrof bilan va apostrofsiz variantlarni ham tayyorlaymiz
             $queryNoApostrophe = str_replace(["'", "o'", "g'"], ["", "o", "g"], $normalizedQuery);
             $queryWithApostrophe = str_replace(["o", "g"], ["o'", "g'"], $normalizedQuery); // Juda umumiy, lekin yordam berishi mumkin

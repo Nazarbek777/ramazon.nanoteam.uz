@@ -122,7 +122,11 @@ class WebhookController
 
             Log::info("[BookBot] Route: Search", ['text' => $text]);
             $this->notifyAdmin($userId, "Qidiruv", $text);
-            $this->onSearch($chatId, $text);
+            try {
+                $this->onSearch($chatId, $text);
+            } catch (\Exception $e) {
+                Log::error("[BookBot] onSearch Error: " . $e->getMessage(), ['trace' => $e->getTraceAsString()]);
+            }
         }
     }
 
@@ -448,12 +452,20 @@ class WebhookController
 
     protected function onSearch(int $chatId, string $query): void
     {
+        Log::info("[BookBot] onSearch Start: " . $query);
         if (strlen($query) < 2) {
             $this->telegram->sendMessage($chatId, "⚠️ Qidiruv uchun kamida 2 ta belgi kiriting.");
             return;
         }
 
-        $books = $this->bookService->searchBooks($query);
+        try {
+            $books = $this->bookService->searchBooks($query);
+            Log::info("[BookBot] Search Results Count: " . count($books));
+        } catch (\Exception $e) {
+            Log::error("[BookBot] searchBooks Exception: " . $e->getMessage());
+            $this->telegram->sendMessage($chatId, "⚠️ Qidiruvda texnik xatolik yuz berdi. Iltimos qaytadan urinib ko'ring.");
+            return;
+        }
 
         if ($books->isEmpty()) {
             $this->telegram->sendMessage($chatId, "😔 Kechirasiz, <b>\"{$query}\"</b> bo'yicha hech qanday kitob topilmadi.");
