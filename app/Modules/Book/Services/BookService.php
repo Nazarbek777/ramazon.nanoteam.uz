@@ -7,15 +7,18 @@ use App\Modules\Book\Models\Referral;
 use Illuminate\Support\Facades\DB;
                                                                                                                         use Illuminate\Support\Facades\Log;
 use App\Modules\Book\Services\TelegramService;
+use App\Modules\Book\Services\MeilisearchService;
 use App\Modules\Bookstore\Models\Book as BookstoreBook;
 
 class BookService
 {
     protected TelegramService $telegram;
+    protected MeilisearchService $meilisearch;
 
     public function __construct()
     {
         $this->telegram = new TelegramService();
+        $this->meilisearch = new MeilisearchService();
     }
 
     public function getOrCreateUser(array $tgUser, ?int $referrerTgId = null): BookUser
@@ -85,7 +88,18 @@ class BookService
         $query = trim($query);
         if (empty($query)) return collect();
 
-        // 1. Simvollarni normalizatsiya qilish
+        // 1. Meilisearch orqali qidiruv (Asosiy)
+        $hits = $this->meilisearch->search($query);
+        if (!empty($hits)) {
+            $ids = collect($hits)->pluck('id')->toArray();
+            return BookstoreBook::whereIn('id', $ids)
+                ->orderByRaw("FIELD(id, " . implode(',', $ids) . ")")
+                ->get();
+        }
+
+        // 2. Fallback: DB qidiruv
+        Log::info("[BookSearch] Meili no hits, using DB fallback...");
+
         $replacements = [
             'õ' => "o'", 'ö' => "o'", 'o‘' => "o'", 'o’' => "o'", 'o`' => "o'",
             'ğ' => "g'", 'g‘' => "g'", 'g’' => "g'", 'g`' => "g'",
@@ -126,6 +140,21 @@ class BookService
         Log::info("[BookSearch] Super-Fuzzy Results Count: " . count($results));
 
         return $results;
+    }
+
+    public function syncBooks(): bool
+    {
+        $books = BookstoreBook::all()->map(function ($book) {
+            return [
+                'id' => $book->id,
+                'title' => $book->title,
+                'author' => $book->author,
+                'price' => $book->price,
+                'stock' => $book->stock,
+            ];
+        })->toArray();
+
+        return $this->meilisearch->syncDocuments($books);
     }
 
     protected function transliterate(string $text, string $mode): string

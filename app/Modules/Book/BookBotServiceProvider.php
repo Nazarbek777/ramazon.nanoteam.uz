@@ -16,6 +16,7 @@ class BookBotServiceProvider extends ServiceProvider
         if ($this->app->runningInConsole()) {
             $this->commands([
                 \App\Modules\Book\Commands\BroadcastCommand::class,
+                \App\Modules\Book\Commands\SyncBooksCommand::class,
             ]);
         }
     }
