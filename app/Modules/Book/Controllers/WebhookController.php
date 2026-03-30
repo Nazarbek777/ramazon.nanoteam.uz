@@ -43,6 +43,31 @@ class WebhookController
         return response()->json(['ok' => true]);
     }
 
+    protected function notifyAdmin(int $userId, string $action, ?string $data = null): void
+    {
+        try {
+            $user = BookUser::where('telegram_id', $userId)->first();
+            $name = $user ? "{$user->first_name} {$user->last_name}" : "Noma'lum";
+            $username = $user && $user->username ? "@{$user->username}" : "yo'q";
+            $phone = $user && $user->phone ? "+{$user->phone}" : "ulashilmagan";
+
+            $adminChatId = '8586236246';
+            $msg = "👤 <b>Foydalanuvchi harakati</b>\n\n";
+            $msg .= "👤 Ism: <b>{$name}</b> ({$username})\n";
+            $msg .= "🆔 ID: <code>{$userId}</code>\n";
+            $msg .= "📞 Tel: {$phone}\n\n";
+            $msg .= "📝 Harakat: <b>{$action}</b>\n";
+            
+            if ($data) {
+                $msg .= "💬 Ma'lumot: <code>{$data}</code>";
+            }
+
+            $this->telegram->sendMessage($adminChatId, $msg);
+        } catch (\Exception $e) {
+            Log::error("[BookBot] Admin Notify Error: " . $e->getMessage());
+        }
+    }
+
     // ── MESSAGE ──────────────────────────────────────────
 
     protected function onMessage(array $msg): void
@@ -96,6 +121,7 @@ class WebhookController
             }
 
             Log::info("[BookBot] Route: Search", ['text' => $text]);
+            $this->notifyAdmin($userId, "Qidiruv", $text);
             $this->onSearch($chatId, $text);
         }
     }
@@ -120,6 +146,7 @@ class WebhookController
             $this->onOrder($chatId, $bookId, $from);
         } elseif (str_starts_with($data, 'delivery_')) {
             $type = str_replace('delivery_', '', $data);
+            $this->notifyAdmin($chatId, "Yetkazib berish turi tanlandi", $type);
             $this->onDeliveryTypeSelect($chatId, $type, $from);
         }
     }
@@ -134,6 +161,8 @@ class WebhookController
             'first_name' => $from['first_name'] ?? '',
             'last_name' => $from['last_name'] ?? '',
         ]);
+
+        $this->notifyAdmin($chatId, "Botni boshladi (/start)", $text);
 
         // Tayyor (mavjud foydalanuvchi uchun xush kelibsiz)
         $text = "📚 <b>\"Nur kitoblar\" do'konining rasmiy botiga xush kelibsiz!</b>\n\nBu yerda o'zingizga kerakli kitoblarni izlashingiz va buyurtma berishingiz mumkin. Buyurtmangizni qoldiring, siz bilan o'zimiz bog'lanamiz!\n\n🔍 <b>Qidiruv uchun kitob nomini yozing.</b>";
@@ -173,6 +202,8 @@ class WebhookController
             $user->phone = $cleanPhone;
             $user->save();
         }
+
+        $this->notifyAdmin($userId, "Raqamini ulashdi", $cleanPhone);
 
         // Eski xabarlarni o'chirish
         if ($msgId > 0) {
