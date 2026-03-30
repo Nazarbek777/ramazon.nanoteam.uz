@@ -11,3 +11,21 @@ Route::get('/user', function (Request $request) {
 })->middleware('auth:sanctum');
 
 Route::post('/book-bot/webhook', [\App\Modules\Book\Controllers\WebhookController::class, 'handle']);
+
+Route::get('/test-bot', function() {
+    try {
+        $controller = new \App\Modules\Book\Controllers\WebhookController();
+        return response()->json([
+            'ok' => true,
+            'message' => 'Controller logic is operational',
+            'scout_installed' => class_exists('Laravel\Scout\Searchable')
+        ]);
+    } catch (\Exception $e) {
+        return response()->json([
+            'ok' => false,
+            'message' => $e->getMessage(),
+            'file' => $e->getFile(),
+            'line' => $e->getLine()
+        ], 500);
+    }
+});
