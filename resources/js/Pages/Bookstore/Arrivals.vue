@@ -172,7 +172,7 @@ onMounted(async () => {
                 <div style="color:#fca5a5;font-size:20px;font-weight:800;">{{ fmt(periodPurchases) }}</div>
                 <div style="color:rgba(255,255,255,0.2);font-size:11px;">so'm · <b>{{ periodArrivedQty }} ta</b> kitob</div>
             </div>
-            <div :style="`background:#0d0d1f;border:1px solid ${periodProfit>=0?'rgba(34,197,94,0.15)':'rgba(239,68,68,0.15)'};border-radius:16px;padding:18px 20px;`|">
+            <div :style="`background:#0d0d1f;border:1px solid ${periodProfit>=0?'rgba(34,197,94,0.15)':'rgba(239,68,68,0.15)'};border-radius:16px;padding:18px 20px;` ">
                 <div style="color:rgba(255,255,255,0.3);font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;margin-bottom:6px;">💰 Sof foyda</div>
                 <div :style="`font-size:20px;font-weight:800;${periodProfit>=0?'color:#86efac;':'color:#fca5a5;'}`">{{ periodProfit >= 0 ? '+' : '' }}{{ fmt(periodProfit) }}</div>
                 <div style="color:rgba(255,255,255,0.2);font-size:11px;">{{ (periodRevenue - periodProfit) > 0 ? Math.round(periodProfit / (periodRevenue - periodProfit) * 100) : 0 }}% marja</div>
