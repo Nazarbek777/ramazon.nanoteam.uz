@@ -30,9 +30,14 @@ class AnalyticsController extends Controller
                 'author'        => $i->book ? $i->book->author : '',
                 'barcode'       => $i->book ? $i->book->barcode: '',
                 'price'         => $i->book ? (float) $i->book->price : 0,
+                'cost_price'    => $i->book ? (float) $i->book->cost_price : 0,
                 'stock'         => $i->book ? $i->book->stock  : 0,
                 'total_sold'    => (int) $i->total_sold,
                 'total_revenue' => (float) $i->total_revenue,
+                'total_profit'  => (float) ($i->total_revenue - ($i->total_sold * ($i->book ? $i->book->cost_price : 0))),
+                'margin'        => $i->total_revenue > 0 
+                                    ? round((($i->total_revenue - ($i->total_sold * ($i->book ? $i->book->cost_price : 0))) / $i->total_revenue) * 100, 1) 
+                                    : 0,
             ]);
 
         // Low stock books (stock <= 10)

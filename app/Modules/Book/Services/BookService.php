@@ -88,18 +88,7 @@ class BookService
         $query = trim($query);
         if (empty($query)) return collect();
 
-        // 1. Meilisearch orqali qidiruv (Asosiy)
-        $hits = $this->meilisearch->search($query);
-        if (!empty($hits)) {
-            $ids = collect($hits)->pluck('id')->toArray();
-            return BookstoreBook::whereIn('id', $ids)
-                ->orderByRaw("FIELD(id, " . implode(',', $ids) . ")")
-                ->get();
-        }
-
-        // 2. Fallback: DB qidiruv
-        Log::info("[BookSearch] Meili no hits, using DB fallback...");
-
+        // 1. Simvollarni normalizatsiya qilish
         $replacements = [
             'õ' => "o'", 'ö' => "o'", 'o‘' => "o'", 'o’' => "o'", 'o`' => "o'",
             'ğ' => "g'", 'g‘' => "g'", 'g’' => "g'", 'g`' => "g'",
@@ -107,7 +96,18 @@ class BookService
         ];
         $normalizedQuery = str_ireplace(array_keys($replacements), array_values($replacements), $query);
 
+        // 2. Meilisearch orqali qidiruv (Asosiy)
+        $hits = $this->meilisearch->search($normalizedQuery);
+        if (!empty($hits)) {
+            $ids = collect($hits)->pluck('id')->toArray();
+            return BookstoreBook::whereIn('id', $ids)
+                ->orderByRaw("FIELD(id, " . implode(',', $ids) . ")")
+                ->get();
+        }
+
         // 2. So'zma-so'z qidiruv (Har bir so'z bo'yicha super-fuzzy match)
+        Log::info("[BookSearch] Meili no hits, using DB fallback...");
+
         $terms = explode(' ', $normalizedQuery);
         $terms = array_filter($terms, fn($t) => mb_strlen($t) > 1);
 

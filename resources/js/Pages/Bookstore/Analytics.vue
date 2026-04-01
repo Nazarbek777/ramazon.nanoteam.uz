@@ -123,7 +123,9 @@ onMounted(async () => {
                         <th style="padding:10px 24px;text-align:left;color:rgba(255,255,255,0.2);font-size:10px;font-weight:700;letter-spacing:0.07em;text-transform:uppercase;">#</th>
                         <th style="padding:10px 24px;text-align:left;color:rgba(255,255,255,0.2);font-size:10px;font-weight:700;letter-spacing:0.07em;text-transform:uppercase;">Kitob</th>
                         <th style="padding:10px 24px;text-align:left;color:rgba(255,255,255,0.2);font-size:10px;font-weight:700;letter-spacing:0.07em;text-transform:uppercase;">Sotilgan</th>
+                        <th style="padding:10px 24px;text-align:left;color:rgba(255,255,255,0.2);font-size:10px;font-weight:700;letter-spacing:0.07em;text-transform:uppercase;">Xarid narxi</th>
                         <th style="padding:10px 24px;text-align:left;color:rgba(255,255,255,0.2);font-size:10px;font-weight:700;letter-spacing:0.07em;text-transform:uppercase;">Daromad</th>
+                        <th style="padding:10px 24px;text-align:left;color:rgba(255,255,255,0.2);font-size:10px;font-weight:700;letter-spacing:0.07em;text-transform:uppercase;">Sof foyda</th>
                         <th style="padding:10px 24px;text-align:left;color:rgba(255,255,255,0.2);font-size:10px;font-weight:700;letter-spacing:0.07em;text-transform:uppercase;">Zaxira</th>
                     </tr>
                 </thead>
@@ -137,7 +139,12 @@ onMounted(async () => {
                             <div style="color:rgba(255,255,255,0.3);font-size:11px;margin-top:1px;">{{ book.author }}</div>
                         </td>
                         <td style="padding:12px 24px;color:#fff;font-size:13px;font-weight:700;">{{ book.total_sold }} <span style="color:rgba(255,255,255,0.3);font-weight:400;font-size:11px;">dona</span></td>
+                        <td style="padding:12px 24px;color:rgba(255,255,255,0.5);font-size:12px;">{{ fmt(book.cost_price) }} <span style="font-size:10px;">so'm</span></td>
                         <td style="padding:12px 24px;color:#fff;font-size:13px;font-weight:700;">{{ fmt(book.total_revenue) }} <span style="color:rgba(255,255,255,0.3);font-weight:400;font-size:11px;">so'm</span></td>
+                        <td style="padding:12px 24px;">
+                            <div style="color:#86efac;font-size:13px;font-weight:800;">+{{ fmt(book.total_profit) }}</div>
+                            <div style="color:rgba(134,239,172,0.4);font-size:10px;">{{ book.margin }}% marja</div>
+                        </td>
                         <td style="padding:12px 24px;">
                             <span :style="`padding:2px 9px;border-radius:5px;font-size:11px;font-weight:700;${book.stock<=0?'background:rgba(239,68,68,0.12);color:#fca5a5;':book.stock<=5?'background:rgba(245,158,11,0.12);color:#fcd34d;':'background:rgba(34,197,94,0.1);color:#86efac;'}`">
                                 {{ book.stock }} ta

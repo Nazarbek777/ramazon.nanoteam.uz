@@ -8,6 +8,7 @@ const props = defineProps({
     books:         { type: Array,  default: () => [] },
     periodRevenue: { type: Number, default: 0 },
     periodCost:    { type: Number, default: 0 },
+    periodProfit:  { type: Number, default: 0 },
     plData:        { type: Array,  default: () => [] },
     filters:       { type: Object, default: () => ({}) },
 });
@@ -167,14 +168,14 @@ onMounted(async () => {
                 <div style="color:#fca5a5;font-size:20px;font-weight:800;">{{ fmt(periodCost) }}</div>
                 <div style="color:rgba(255,255,255,0.2);font-size:11px;">so'm</div>
             </div>
-            <div :style="`background:#0d0d1f;border:1px solid ${profit>=0?'rgba(34,197,94,0.15)':'rgba(239,68,68,0.15)'};border-radius:16px;padding:18px 20px;`">
+            <div :style="`background:#0d0d1f;border:1px solid ${periodProfit>=0?'rgba(34,197,94,0.15)':'rgba(239,68,68,0.15)'};border-radius:16px;padding:18px 20px;`">
                 <div style="color:rgba(255,255,255,0.3);font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;margin-bottom:6px;">Sof foyda</div>
-                <div :style="`font-size:20px;font-weight:800;${profit>=0?'color:#86efac;':'color:#fca5a5;'}`">{{ profit >= 0 ? '+' : '' }}{{ fmt(profit) }}</div>
+                <div :style="`font-size:20px;font-weight:800;${periodProfit>=0?'color:#86efac;':'color:#fca5a5;'}`">{{ periodProfit >= 0 ? '+' : '' }}{{ fmt(periodProfit) }}</div>
                 <div style="color:rgba(255,255,255,0.2);font-size:11px;">so'm</div>
             </div>
             <div style="background:#0d0d1f;border:1px solid rgba(255,255,255,0.07);border-radius:16px;padding:18px 20px;">
                 <div style="color:rgba(255,255,255,0.3);font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;margin-bottom:6px;">Rentabellik</div>
-                <div style="color:#fcd34d;font-size:20px;font-weight:800;">{{ periodCost > 0 ? Math.round(profit / periodCost * 100) : 0 }}%</div>
+                <div style="color:#fcd34d;font-size:20px;font-weight:800;">{{ (periodRevenue - periodProfit) > 0 ? Math.round(periodProfit / (periodRevenue - periodProfit) * 100) : 0 }}%</div>
                 <div style="color:rgba(255,255,255,0.2);font-size:11px;">marja</div>
             </div>
         </div>

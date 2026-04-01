@@ -36,15 +36,36 @@ class ArrivalsController extends Controller
 
         // Revenue for same period
         $periodRevenue = (float) Sale::whereBetween('created_at', [$from, $to])->sum('total_amount');
-        $periodCost    = (float) Arrival::whereBetween('arrived_at', [$from->toDateString(), $to->toDateString()])->sum('total_cost');
+        $periodDiscounts = (float) Sale::whereBetween('created_at', [$from, $to])->sum('discount');
+
+        // Total COGS for the sales in this period
+        $periodCOGS = (float) DB::table('bookstore_sale_items')
+            ->join('bookstore_sales', 'bookstore_sale_items.sale_id', '=', 'bookstore_sales.id')
+            ->whereBetween('bookstore_sales.created_at', [$from->toDateTimeString(), $to->toDateTimeString()])
+            ->select(DB::raw('SUM(quantity * cost_price) as cogs'))
+            ->value('cogs');
+
+        // Total Expenses (External + Inventory Purchase) - Showing what was spent
+        $periodSpent = (float) Arrival::whereBetween('arrived_at', [$from->toDateString(), $to->toDateString()])->sum('total_cost');
+
+        // External Expenses for Net Profit calculation (book_id is null)
+        $externalExpenses = (float) Arrival::whereNull('book_id')
+            ->whereBetween('arrived_at', [$from->toDateString(), $to->toDateString()])
+            ->sum('total_cost');
+
+        // Real profit for this period
+        $periodProfit = $periodRevenue - $periodCOGS - $externalExpenses;
 
         // Monthly P&L for current year
         $months = ['Yan','Fev','Mar','Apr','May','Iyn','Iyl','Avg','Sen','Okt','Noy','Dek'];
-        $monthlyCosts = Arrival::select(
-                DB::raw('MONTH(arrived_at) as month'),
-                DB::raw('SUM(total_cost) as total')
+        
+        $monthlyCOGS = DB::table('bookstore_sale_items')
+            ->join('bookstore_sales', 'bookstore_sale_items.sale_id', '=', 'bookstore_sales.id')
+            ->whereYear('bookstore_sales.created_at', Carbon::now()->year)
+            ->select(
+                DB::raw('MONTH(bookstore_sales.created_at) as month'),
+                DB::raw('SUM(quantity * cost_price) as total')
             )
-            ->whereYear('arrived_at', Carbon::now()->year)
             ->groupBy('month')->get()->keyBy('month');
 
         $monthlyRevenues = Sale::select(
@@ -54,15 +75,25 @@ class ArrivalsController extends Controller
             ->whereYear('created_at', Carbon::now()->year)
             ->groupBy('month')->get()->keyBy('month');
 
+        $monthlyExternalExpenses = Arrival::select(
+                DB::raw('MONTH(arrived_at) as month'),
+                DB::raw('SUM(total_cost) as total')
+            )
+            ->whereYear('arrived_at', Carbon::now()->year)
+            ->whereNull('book_id')
+            ->groupBy('month')->get()->keyBy('month');
+
         $plData = [];
         for ($m = 1; $m <= 12; $m++) {
             $rev  = $monthlyRevenues->has($m) ? (float) $monthlyRevenues[$m]->total : 0;
-            $cost = $monthlyCosts->has($m)    ? (float) $monthlyCosts[$m]->total    : 0;
+            $cogs = $monthlyCOGS->has($m)     ? (float) $monthlyCOGS[$m]->total     : 0;
+            $ext  = $monthlyExternalExpenses->has($m) ? (float) $monthlyExternalExpenses[$m]->total : 0;
+            
             $plData[] = [
                 'month'   => $months[$m - 1],
                 'revenue' => $rev,
-                'cost'    => $cost,
-                'profit'  => $rev - $cost,
+                'cost'    => $cogs + $ext, // Total business cost for that month
+                'profit'  => $rev - $cogs - $ext,
             ];
         }
 
@@ -70,7 +101,8 @@ class ArrivalsController extends Controller
             'arrivals'      => $arrivals,
             'books'         => Book::select('id', 'title', 'barcode', 'cost_price')->orderBy('title')->get(),
             'periodRevenue' => $periodRevenue,
-            'periodCost'    => $periodCost,
+            'periodCost'    => $periodSpent, // This shows how much money left the pocket
+            'periodProfit'  => $periodProfit, // This shows real business profit
             'plData'        => $plData,
             'filters'       => [
                 'from' => $request->input('from', $from->format('Y-m-d')),

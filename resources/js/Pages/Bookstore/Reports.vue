@@ -178,7 +178,7 @@ const exportCsv = () => {
                             <td colspan="6" style="padding:14px 22px 14px 40px;">
                                 <div v-for="item in sale.items" :key="item.title" style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid rgba(255,255,255,0.03);">
                                     <span style="color:rgba(255,255,255,0.65);font-size:12px;">{{ item.title }}</span>
-                                    <span style="color:rgba(255,255,255,0.4);font-size:11px;">{{ item.quantity }} × {{ fmt(item.price) }} = <b style="color:#fff;">{{ fmt(item.total) }}</b></span>
+                                    <span style="color:rgba(255,255,255,0.4);font-size:11px;">{{ item.quantity }} dona × (Sotuv: {{ fmt(item.price) }} / Xarid: {{ fmt(item.cost_price) }}) = <b style="color:#fff;">{{ fmt(item.total) }}</b></span>
                                 </div>
                                 <div v-if="sale.discount" style="margin-top:6px;display:flex;justify-content:space-between;color:rgba(255,255,255,0.3);font-size:11px;">
                                     <span>Chegirma</span><span>−{{ fmt(sale.discount) }} so'm</span>
