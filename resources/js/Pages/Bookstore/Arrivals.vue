@@ -160,6 +160,26 @@ onMounted(async () => {
             Keldi / Inventar
         </template>
 
+        <!-- Period Insights Description -->
+        <div style="background:linear-gradient(135deg, rgba(99,102,241,0.1), rgba(139,92,246,0.1)); border:1px border:1px solid rgba(99,102,241,0.2); border-radius:18px; padding:20px; margin-bottom:18px; display:flex; align-items:flex-start; gap:16px;">
+            <div style="background:rgba(99,102,241,0.2); padding:10px; border-radius:12px;">
+                <svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="#a5b4fc" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+            </div>
+            <div style="flex:1;">
+                <h4 style="color:#fff; font-size:14px; font-weight:700; margin:0 0 4px;">Davr bo'yicha qisqacha tavsir (Insights)</h4>
+                <p style="color:rgba(255,255,255,0.6); font-size:13px; line-height:1.6; margin:0;">
+                    Tanlangan davr mobaynida bazaga jami <b style="color:#fff;">{{ periodArrivedQty }} ta</b> kitob (tannarxi {{ fmt(periodPurchases) }} so'm) qo'shildi. 
+                    Shu vaqt ichida <b style="color:#fff;">{{ periodSoldQty }} ta</b> kitob sotilib, do'kon g'aznasiga <b style="color:#fff;">{{ fmt(periodRevenue) }} so'm</b> tushum keltirdi. 
+                    Barcha xarajatlar va kitob tannarxi chegirilganda, ushbu davr uchun <b :style="`color:${periodProfit>=0?'#86efac':'#fca5a5'}`">sof foyda {{ fmt(periodProfit) }} so'm</b>ni tashkil etmoqda.
+                    <span v-if="periodProfit > 0 && periodRevenue > 0" style="margin-left:4px;">
+                        Bu esa umumiy tushumning <b style="color:#86efac;">{{ Math.round(periodProfit / periodRevenue * 100) }}%</b> qismini tashkil qiladi.
+                    </span>
+                </p>
+            </div>
+        </div>
+
         <!-- Summary Cards Row 1 -->
         <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:14px;">
             <div style="background:#0d0d1f;border:1px solid rgba(255,255,255,0.07);border-radius:16px;padding:18px 20px;">
