@@ -45,6 +45,22 @@ class ArrivalsController extends Controller
             ->select(DB::raw('SUM(quantity * cost_price) as cogs'))
             ->value('cogs');
 
+        // Total Sold Quantity
+        $periodSoldQty = (int) DB::table('bookstore_sale_items')
+            ->join('bookstore_sales', 'bookstore_sale_items.sale_id', '=', 'bookstore_sales.id')
+            ->whereBetween('bookstore_sales.created_at', [$from->toDateTimeString(), $to->toDateTimeString()])
+            ->sum('quantity');
+
+        // Total Inventory Purchase Cost (excluding external expenses)
+        $periodPurchases = (float) Arrival::whereNotNull('book_id')
+            ->whereBetween('arrived_at', [$from->toDateString(), $to->toDateString()])
+            ->sum('total_cost');
+
+        // Total Arrived Book Quantity
+        $periodArrivedQty = (int) Arrival::whereNotNull('book_id')
+            ->whereBetween('arrived_at', [$from->toDateString(), $to->toDateString()])
+            ->sum('quantity');
+
         // Total Expenses (External + Inventory Purchase) - Showing what was spent
         $periodSpent = (float) Arrival::whereBetween('arrived_at', [$from->toDateString(), $to->toDateString()])->sum('total_cost');
 
@@ -100,10 +116,14 @@ class ArrivalsController extends Controller
         return Inertia::render('Bookstore/Arrivals', [
             'arrivals'      => $arrivals,
             'books'         => Book::select('id', 'title', 'barcode', 'cost_price')->orderBy('title')->get(),
-            'periodRevenue' => $periodRevenue,
-            'periodCost'    => $periodSpent, // This shows how much money left the pocket
-            'periodProfit'  => $periodProfit, // This shows real business profit
-            'plData'        => $plData,
+            'periodRevenue'    => $periodRevenue,
+            'periodCost'       => $periodSpent,
+            'periodProfit'     => $periodProfit,
+            'periodPurchases'  => $periodPurchases,
+            'periodSoldQty'    => $periodSoldQty,
+            'periodArrivedQty' => $periodArrivedQty,
+            'externalExpenses' => $externalExpenses,
+            'plData'           => $plData,
             'filters'       => [
                 'from' => $request->input('from', $from->format('Y-m-d')),
                 'to'   => $request->input('to',   $to->format('Y-m-d')),

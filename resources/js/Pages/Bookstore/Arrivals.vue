@@ -6,11 +6,15 @@ import { ref, computed, onMounted } from 'vue';
 const props = defineProps({
     arrivals:      { type: Object, default: () => ({ data: [], links: [] }) },
     books:         { type: Array,  default: () => [] },
-    periodRevenue: { type: Number, default: 0 },
-    periodCost:    { type: Number, default: 0 },
-    periodProfit:  { type: Number, default: 0 },
-    plData:        { type: Array,  default: () => [] },
-    filters:       { type: Object, default: () => ({}) },
+    periodRevenue:    { type: Number, default: 0 },
+    periodCost:       { type: Number, default: 0 },
+    periodProfit:     { type: Number, default: 0 },
+    periodPurchases:  { type: Number, default: 0 },
+    periodSoldQty:    { type: Number, default: 0 },
+    periodArrivedQty: { type: Number, default: 0 },
+    externalExpenses: { type: Number, default: 0 },
+    plData:           { type: Array,  default: () => [] },
+    filters:          { type: Object, default: () => ({}) },
 });
 
 const from      = ref(props.filters.from || '');
@@ -156,27 +160,27 @@ onMounted(async () => {
             Keldi / Inventar
         </template>
 
-        <!-- Summary Cards -->
-        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:18px;">
+        <!-- Summary Cards Row 1 -->
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:14px;">
             <div style="background:#0d0d1f;border:1px solid rgba(255,255,255,0.07);border-radius:16px;padding:18px 20px;">
-                <div style="color:rgba(255,255,255,0.3);font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;margin-bottom:6px;">Daromad</div>
-                <div style="color:#a5b4fc;font-size:20px;font-weight:800;">{{ fmt(periodRevenue) }}</div>
-                <div style="color:rgba(255,255,255,0.2);font-size:11px;">so'm</div>
+                <div style="color:rgba(255,255,255,0.3);font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;margin-bottom:6px;">📈 Jami Sotuv (Tushum)</div>
+                <div style="color:#fff;font-size:20px;font-weight:800;">{{ fmt(periodRevenue) }}</div>
+                <div style="color:rgba(255,255,255,0.2);font-size:11px;">so'm · <b>{{ periodSoldQty }} ta</b> kitob</div>
             </div>
             <div style="background:#0d0d1f;border:1px solid rgba(255,255,255,0.07);border-radius:16px;padding:18px 20px;">
-                <div style="color:rgba(255,255,255,0.3);font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;margin-bottom:6px;">Chiqim (xarid)</div>
-                <div style="color:#fca5a5;font-size:20px;font-weight:800;">{{ fmt(periodCost) }}</div>
-                <div style="color:rgba(255,255,255,0.2);font-size:11px;">so'm</div>
+                <div style="color:rgba(255,255,255,0.3);font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;margin-bottom:6px;">📦 Kitob Xaridi (Keldi)</div>
+                <div style="color:#fca5a5;font-size:20px;font-weight:800;">{{ fmt(periodPurchases) }}</div>
+                <div style="color:rgba(255,255,255,0.2);font-size:11px;">so'm · <b>{{ periodArrivedQty }} ta</b> kitob</div>
             </div>
-            <div :style="`background:#0d0d1f;border:1px solid ${periodProfit>=0?'rgba(34,197,94,0.15)':'rgba(239,68,68,0.15)'};border-radius:16px;padding:18px 20px;`">
-                <div style="color:rgba(255,255,255,0.3);font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;margin-bottom:6px;">Sof foyda</div>
+            <div :style="`background:#0d0d1f;border:1px solid ${periodProfit>=0?'rgba(34,197,94,0.15)':'rgba(239,68,68,0.15)'};border-radius:16px;padding:18px 20px;`|">
+                <div style="color:rgba(255,255,255,0.3);font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;margin-bottom:6px;">💰 Sof foyda</div>
                 <div :style="`font-size:20px;font-weight:800;${periodProfit>=0?'color:#86efac;':'color:#fca5a5;'}`">{{ periodProfit >= 0 ? '+' : '' }}{{ fmt(periodProfit) }}</div>
-                <div style="color:rgba(255,255,255,0.2);font-size:11px;">so'm</div>
+                <div style="color:rgba(255,255,255,0.2);font-size:11px;">{{ (periodRevenue - periodProfit) > 0 ? Math.round(periodProfit / (periodRevenue - periodProfit) * 100) : 0 }}% marja</div>
             </div>
             <div style="background:#0d0d1f;border:1px solid rgba(255,255,255,0.07);border-radius:16px;padding:18px 20px;">
-                <div style="color:rgba(255,255,255,0.3);font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;margin-bottom:6px;">Rentabellik</div>
-                <div style="color:#fcd34d;font-size:20px;font-weight:800;">{{ (periodRevenue - periodProfit) > 0 ? Math.round(periodProfit / (periodRevenue - periodProfit) * 100) : 0 }}%</div>
-                <div style="color:rgba(255,255,255,0.2);font-size:11px;">marja</div>
+                <div style="color:rgba(255,255,255,0.3);font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;margin-bottom:6px;">💸 Boshqa xarajatlar</div>
+                <div style="color:#fdba74;font-size:20px;font-weight:800;">{{ fmt(externalExpenses) }}</div>
+                <div style="color:rgba(255,255,255,0.2);font-size:11px;">so'm (Ijara, svet va h.k)</div>
             </div>
         </div>
 
