@@ -25,6 +25,15 @@ const fmt       = (n) => Number(n || 0).toLocaleString('uz-UZ');
 const profit    = computed(() => props.periodRevenue - props.periodCost);
 const bookSearch = ref('');
 const activeTab = ref('book'); // 'book' or 'expense'
+const isToday = computed(() => {
+    const today = new Date().toISOString().slice(0, 10);
+    return from.value === today && to.value === today;
+});
+const periodText = computed(() => {
+    if (isToday.value) return 'Bugun';
+    if (from.value === to.value) return from.value;
+    return `${from.value} dan ${to.value} gacha`;
+});
 
 
 const filteredBooks = computed(() => {
@@ -168,9 +177,9 @@ onMounted(async () => {
                 </svg>
             </div>
             <div style="flex:1;">
-                <h4 style="color:#fff; font-size:14px; font-weight:700; margin:0 0 4px;">Davr bo'yicha qisqacha tavsir (Insights)</h4>
+                <h4 style="color:#fff; font-size:14px; font-weight:700; margin:0 0 4px;">{{ periodText }} — qisqacha tavsif</h4>
                 <p style="color:rgba(255,255,255,0.6); font-size:13px; line-height:1.6; margin:0;">
-                    Tanlangan davr mobaynida bazaga jami <b style="color:#fff;">{{ periodArrivedQty }} ta</b> kitob (tannarxi {{ fmt(periodPurchases) }} so'm) qo'shildi. 
+                    <span v-if="isToday">Bugun</span><span v-else>Tanlangan davr mobaynida</span> bazaga jami <b style="color:#fff;">{{ periodArrivedQty }} ta</b> kitob (tannarxi {{ fmt(periodPurchases) }} so'm) qo'shildi. 
                     Shu vaqt ichida <b style="color:#fff;">{{ periodSoldQty }} ta</b> kitob sotilib, do'kon g'aznasiga <b style="color:#fff;">{{ fmt(periodRevenue) }} so'm</b> tushum keltirdi. 
                     Barcha xarajatlar va kitob tannarxi chegirilganda, ushbu davr uchun <b :style="`color:${periodProfit>=0?'#86efac':'#fca5a5'}`">sof foyda {{ fmt(periodProfit) }} so'm</b>ni tashkil etmoqda.
                     <span v-if="periodProfit > 0 && periodRevenue > 0" style="margin-left:4px;">
