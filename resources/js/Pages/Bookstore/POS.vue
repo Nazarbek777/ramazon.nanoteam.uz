@@ -189,6 +189,14 @@ const form = useForm({
     delivery_fee: 0
 });
 
+watch(() => form.is_delivery, (val) => {
+    if (val) {
+        form.status = 'pending';
+    } else {
+        form.status = 'paid';
+    }
+});
+
 const submitSale = () => {
     if (!cart.value.length) return;
     const items = cart.value.map(i => ({ id: i.id, quantity: i.quantity }));
@@ -197,7 +205,18 @@ const submitSale = () => {
         // Save offline
         const pending = loadPending();
         const localId = Date.now();
-        pending.push({ localId, items, discount: form.discount, payment_method: form.payment_method });
+        pending.push({ 
+            localId, 
+            items, 
+            discount: form.discount, 
+            payment_method: form.payment_method,
+            is_delivery: form.is_delivery,
+            status: form.status,
+            customer_name: form.customer_name,
+            customer_phone: form.customer_phone,
+            address: form.address,
+            delivery_fee: form.delivery_fee
+        });
         savePending(pending);
         pendingSalesCount.value = pending.length;
 
@@ -205,7 +224,7 @@ const submitSale = () => {
         receipt.value = {
             id: `OFFLINE-${localId}`,
             offline: true,
-            total_amount: netTotal.value,
+            total_amount: netTotal.value + (form.is_delivery ? (form.delivery_fee || 0) : 0),
             discount: form.discount,
             payment_method: form.payment_method,
             created_at: new Date().toLocaleString('uz-UZ'),
@@ -216,10 +235,16 @@ const submitSale = () => {
                 unit_price: i.price,
                 total_price: i.price * i.quantity,
             })),
+            is_delivery: form.is_delivery,
+            status: form.status,
+            customer_name: form.customer_name,
+            customer_phone: form.customer_phone,
+            address: form.address,
+            delivery_fee: form.delivery_fee,
         };
         showReceipt.value = true;
         cart.value = [];
-        form.reset('discount');
+        form.reset('discount', 'customer_name', 'customer_phone', 'address', 'delivery_fee', 'is_delivery', 'status');
         return;
     }
 
@@ -227,7 +252,7 @@ const submitSale = () => {
     form.post('/bookstore/sales', {
         onSuccess: () => {
             cart.value = [];
-            form.reset('discount');
+            form.reset('discount', 'customer_name', 'customer_phone', 'address', 'delivery_fee', 'is_delivery', 'status');
         },
     });
 };
@@ -658,6 +683,17 @@ onUnmounted(() => {
 
                         <!-- Totals -->
                         <div class="px-7 py-4" style="border-top:1px solid rgba(255,255,255,.07);">
+                            <div v-if="receipt?.is_delivery" class="mb-4 pb-4 border-b border-white/5">
+                                <div class="text-[10px] font-bold text-white/30 uppercase tracking-widest mb-2">Yetkazib berish (Dostavka)</div>
+                                <div class="text-xs text-white/60 mb-1">Mijoz: <span class="text-white">{{ receipt.customer_name }}</span></div>
+                                <div class="text-xs text-white/60 mb-1">Tel: <span class="text-white">{{ receipt.customer_phone }}</span></div>
+                                <div class="text-xs text-white/60">Manzil: <span class="text-white shrink-0">{{ receipt.address }}</span></div>
+                                <div v-if="receipt.delivery_fee > 0" class="flex justify-between text-xs mt-2 text-indigo-400">
+                                    <span>Dostavka haqi:</span>
+                                    <span>{{ Number(receipt.delivery_fee).toLocaleString() }} so'm</span>
+                                </div>
+                            </div>
+
                             <div v-if="receipt?.discount" class="flex justify-between text-sm mb-2" style="color:rgba(255,255,255,.5);">
                                 <span>Chegirma</span>
                                 <span>−{{ Number(receipt.discount).toLocaleString() }} so'm</span>
@@ -666,8 +702,16 @@ onUnmounted(() => {
                                 <span class="font-bold text-white">JAMI</span>
                                 <span class="text-2xl font-extrabold" style="color:#22c55e;">{{ Number(receipt?.total_amount).toLocaleString() }} <span class="text-sm font-normal" style="color:rgba(255,255,255,.4);">so'm</span></span>
                             </div>
-                            <div class="text-xs mt-1" style="color:rgba(255,255,255,.35);">
-                                To'lov: {{ receipt?.payment_method?.toUpperCase() }} | Chek №{{ receipt?.id }}
+                            <div class="flex justify-between items-center mt-3">
+                                <div class="text-xs" style="color:rgba(255,255,255,.35);">
+                                    To'lov: {{ receipt?.payment_method?.toUpperCase() }} | Chek №{{ receipt?.id }}
+                                </div>
+                                <div v-if="receipt?.status === 'pending'" class="bg-amber-500/20 text-amber-500 text-[10px] font-black px-2 py-0.5 rounded uppercase">
+                                    TO'LANMAGAN
+                                </div>
+                                <div v-else class="bg-green-500/20 text-green-500 text-[10px] font-black px-2 py-0.5 rounded uppercase">
+                                    TO'LANDI
+                                </div>
                             </div>
                         </div>
 

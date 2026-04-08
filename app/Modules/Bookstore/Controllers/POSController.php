@@ -153,6 +153,12 @@ class POSController extends Controller
                     'unit_price' => (float) $i->unit_price,
                     'total_price' => (float) $i->total_price,
                 ])->toArray(),
+                'is_delivery' => $sale->is_delivery,
+                'status' => $sale->status,
+                'customer_name' => $sale->customer_name,
+                'customer_phone' => $sale->customer_phone,
+                'address' => $sale->address,
+                'delivery_fee' => $sale->delivery_fee,
             ]);
         });
     }
