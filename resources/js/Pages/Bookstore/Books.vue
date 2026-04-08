@@ -58,8 +58,20 @@ const submit = () => {
 };
 
 const deleteBook = (book) => {
-    if (!confirm(`"${book.title}" ni o'chirasizmi?`)) return;
-    router.delete(`/bookstore/books/${book.id}`);
+    if (!confirm(`DIQQAT! "${book.title}" ni o'chirsangiz, unga tegishli BARCHA tarix (kirim, chiqim, sotuvlar) BUTUNLAY o'chib ketadi. Davom etasizmi?`)) return;
+    
+    const code = prompt("Ushbu amalni tasdiqlash uchun xavfsizlik kodini kiriting:");
+    if (!code) return;
+
+    router.delete(`/bookstore/books/${book.id}`, {
+        data: { code: code },
+        onBefore: () => confirm('Haqiqatan ham hamma narsani tozalab o\'chirmoqchimisiz? Bu amalni ortga qaytarib bo'lmaydi!'),
+        onSuccess: (page) => {
+            if (page.props.flash?.error) {
+                alert(page.props.flash.error);
+            }
+        }
+    });
 };
 
 // QR code

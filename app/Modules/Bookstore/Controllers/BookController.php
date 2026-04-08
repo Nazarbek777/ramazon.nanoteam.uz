@@ -80,9 +80,24 @@ class BookController extends Controller
         });
     }
 
-    public function destroy(Book $book)
+    public function destroy(Request $request, Book $book)
     {
-        $book->delete();
-        return redirect('/bookstore/books')->with('success', 'Kitob o\'chirildi!');
+        $code = $request->input('code');
+        if ($code !== '7777') {
+            return redirect()->back()->with('error', 'Xavfsizlik kodi noto\'g\'ri!');
+        }
+
+        return DB::transaction(function () use ($book) {
+            // 1. Delete all arrivals for this book
+            $book->arrivals()->delete();
+            
+            // 2. Delete all sale items for this book
+            DB::table('bookstore_sale_items')->where('book_id', $book->id)->delete();
+            
+            // 3. Delete the book itself
+            $book->delete();
+            
+            return redirect('/bookstore/books')->with('success', 'Kitob va uning barcha tarixi (kirim-chiqim, sotuvlar) butunlay o\'chirildi!');
+        });
     }
 }
