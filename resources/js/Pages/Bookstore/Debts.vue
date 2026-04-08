@@ -1,3 +1,4 @@
+<script setup>
 import { ref, watch } from 'vue';
 import { Head, Link, router, useForm } from '@inertiajs/vue3';
 import BookstoreLayout from '@/Layouts/BookstoreLayout.vue';
