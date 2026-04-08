@@ -1,8 +1,6 @@
-<script setup>
 import { ref, watch } from 'vue';
 import { Head, Link, router, useForm } from '@inertiajs/vue3';
 import BookstoreLayout from '@/Layouts/BookstoreLayout.vue';
-import { debounce } from 'lodash';
 
 const props = defineProps({
     debts: Object,
@@ -12,6 +10,15 @@ const props = defineProps({
 
 const fromDate = ref(props.filters.from);
 const toDate = ref(props.filters.to);
+
+// Native debounce
+function debounce(fn, delay) {
+    let timeoutId;
+    return (...args) => {
+        clearTimeout(timeoutId);
+        timeoutId = setTimeout(() => fn(...args), delay);
+    };
+}
 
 const filter = debounce(() => {
     router.get(route('bookstore.debts.index'), {
