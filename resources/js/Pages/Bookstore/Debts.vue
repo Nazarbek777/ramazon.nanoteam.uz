@@ -86,6 +86,7 @@ const formatPrice = (p) => new Intl.NumberFormat('uz-UZ').format(p);
                             <th class="px-6 py-4 text-[11px] font-bold text-white/40 uppercase tracking-widest">Mijoz / Telefon</th>
                             <th class="px-6 py-4 text-[11px] font-bold text-white/40 uppercase tracking-widest">Manzil / Izoh</th>
                             <th class="px-6 py-4 text-[11px] font-bold text-white/40 uppercase tracking-widest text-right">Summa</th>
+                            <th class="px-6 py-4 text-[11px] font-bold text-white/40 uppercase tracking-widest text-center">Status</th>
                             <th class="px-6 py-4 text-[11px] font-bold text-white/40 uppercase tracking-widest text-center">Amallar</th>
                         </tr>
                     </thead>
@@ -106,6 +107,9 @@ const formatPrice = (p) => new Intl.NumberFormat('uz-UZ').format(p);
                             <td class="px-6 py-4 text-right">
                                 <div class="text-amber-500 font-black">{{ formatPrice(debt.total_amount) }} so'm</div>
                                 <div v-if="debt.delivery_fee > 0" class="text-white/30 text-[10px]">Dostavka: {{ formatPrice(debt.delivery_fee) }}</div>
+                            </td>
+                            <td class="px-6 py-4 text-center">
+                                <span class="px-2 py-1 bg-amber-500/20 text-amber-500 text-[10px] font-bold rounded uppercase">QARZ</span>
                             </td>
                             <td class="px-6 py-4 text-center">
                                 <div class="flex items-center justify-center gap-2">

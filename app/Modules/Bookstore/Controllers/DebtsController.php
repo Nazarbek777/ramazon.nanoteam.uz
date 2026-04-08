@@ -32,20 +32,26 @@ class DebtsController extends Controller
         ]);
     }
 
-    public function markAsPaid(Sale $sale)
+    public function markAsPaid($id)
     {
+        $sale = Sale::findOrFail($id);
+        
         if ($sale->status === 'pending') {
-            $sale->update(['status' => 'paid']);
+            $sale->status = 'paid';
+            $sale->save();
+            
             return redirect()->back()->with('success', 'To\'landi deb belgilandi!');
         }
+        
         return redirect()->back()->with('error', 'Bu buyurtma allaqachon to\'langan.');
     }
 
-    public function destroy(Sale $sale)
+    public function destroy($id)
     {
-        // Permission check can be added here
+        $sale = Sale::findOrFail($id);
         $sale->items()->delete();
         $sale->delete();
+        
         return redirect()->back()->with('success', 'Buyurtma o\'chirildi');
     }
 }
