@@ -15,7 +15,33 @@ class BookController extends Controller
     public function index()
     {
         $books = Book::orderByDesc('created_at')->get();
-        return Inertia::render('Bookstore/Books', ['books' => $books]);
+        return Inertia::render('Bookstore/Books', [
+            'books' => $books,
+            'isLocked' => false
+        ]);
+    }
+
+    public function publicIndex()
+    {
+        if (!session('bookstore_books_unlocked')) {
+            return Inertia::render('Bookstore/Books', ['isLocked' => true, 'books' => []]);
+        }
+        
+        $books = Book::orderByDesc('created_at')->get();
+        return Inertia::render('Bookstore/Books', [
+            'books' => $books,
+            'isLocked' => false
+        ]);
+    }
+
+    public function publicUnlock(Request $request)
+    {
+        $code = $request->input('code');
+        if ($code === '7777') {
+            session(['bookstore_books_unlocked' => true]);
+            return redirect()->back();
+        }
+        return redirect()->back()->with('error', 'PIN kod noto\'g\'ri!');
     }
 
     public function store(Request $request)

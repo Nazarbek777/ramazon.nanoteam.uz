@@ -5,7 +5,23 @@ import { ref, computed } from 'vue';
 
 const props = defineProps({
     books: { type: Array, default: () => [] },
+    isLocked: { type: Boolean, default: true },
 });
+
+const pinCode = ref('');
+const loginError = ref('');
+const unlockSubmit = () => {
+    router.post('/bookstore/stock/unlock', { code: pinCode.value }, {
+        onSuccess: (page) => {
+            if (page.props.flash?.error) {
+                loginError.value = page.props.flash.error;
+            } else {
+                pinCode.value = '';
+                loginError.value = '';
+            }
+        }
+    });
+};
 
 const search = ref('');
 const showModal = ref(false);
@@ -89,26 +105,85 @@ const printQr = () => window.print();
     <BookstoreLayout>
         <template #header>📚 Kitoblar</template>
 
-        <!-- Toolbar -->
-        <div class="flex items-center justify-between gap-4 mb-6">
+        <!-- PIN Login State -->
+        <div v-if="isLocked" class="flex items-center justify-center py-20 px-4">
+            <div class="w-full max-w-sm p-8 rounded-3xl text-center"
+                style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.07);">
+                <div class="text-5xl mb-6">🔐</div>
+                <h3 class="text-xl font-bold text-white mb-2">Boshqaruvga kirish</h3>
+                <p class="text-xs text-white/40 mb-8 leading-relaxed">Ushbu bo'limga kirish uchun xavfsizlik kodini kiriting</p>
+                
+                <form @submit.prevent="unlockSubmit" class="space-y-4">
+                    <input v-model="pinCode" type="password" placeholder="PIN kod (7777)"
+                        class="w-full px-5 py-4 rounded-2xl text-center text-xl font-black tracking-[1em] text-white bg-white/5 border border-white/10 focus:outline-none focus:border-indigo-500/50 transition-all placeholder:tracking-normal placeholder:font-normal placeholder:text-sm" />
+                    
+                    <div v-if="loginError" class="text-red-400 text-xs font-bold">{{ loginError }}</div>
+
+                    <button type="submit"
+                        class="w-full py-4 rounded-2xl font-bold text-white transition-all active:scale-95"
+                        style="background: linear-gradient(135deg, #6366f1, #4f46e5); box-shadow: 0 10px 30px rgba(79, 70, 229, 0.3);">
+                        Kirish
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <template v-else>
+            <!-- Toolbar -->
+        <div class="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4 mb-6">
             <div class="relative flex-grow max-w-sm">
                 <span class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500">🔍</span>
                 <input v-model="search" type="text" placeholder="Qidirish: nom, barcode, muallif..."
                     class="w-full pl-10 pr-5 py-3.5 rounded-2xl text-white text-sm bg-transparent focus:outline-none transition-all"
                     style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);" />
             </div>
-            <div style="text-align:right;">
-                <div style="color:rgba(255,255,255,0.3);font-size:11px;margin-bottom:6px;">Yangi kitob qo'shish yoki zaxira to'ldirish:</div>
+            <div class="flex flex-col md:text-right">
+                <div class="text-[10px] md:text-xs font-bold text-white/30 uppercase tracking-widest mb-1.5 md:mb-2 ml-1 md:ml-0">Yangi kitob qo'shish yoki zaxira to'ldirish</div>
                 <button @click="router.get('/bookstore/arrivals')"
-                    class="px-6 py-2.5 rounded-xl font-bold text-white text-xs transition-all active:scale-95 flex items-center gap-2"
+                    class="w-full md:w-auto px-6 py-3 md:py-2.5 rounded-xl font-bold text-white text-xs transition-all active:scale-95 flex items-center justify-center gap-2"
                     style="background: rgba(99,102,241,0.15); border: 1px solid rgba(99,102,241,0.3); color: #a5b4fc;">
                     ＋ Keldi / Chiqim qismiga o'tish
                 </button>
             </div>
         </div>
 
-        <!-- Table -->
-        <div class="rounded-3xl overflow-hidden" style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.07);">
+        <!-- Mobile View (Cards) -->
+        <div class="grid grid-cols-1 gap-4 md:hidden">
+            <div v-for="book in filtered" :key="book.id" 
+                class="p-5 rounded-3xl space-y-4"
+                style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.07);">
+                
+                <div class="flex justify-between items-start gap-4">
+                    <div class="min-w-0 flex-1">
+                        <div class="font-bold text-white text-base leading-tight mb-1">{{ book.title }}</div>
+                        <div class="text-xs text-white/40">{{ book.author }}</div>
+                    </div>
+                    <span class="px-2.5 py-1 rounded-lg text-[10px] font-black shrink-0"
+                        :style="book.stock > 5 ? 'background:rgba(34,197,94,0.1);color:#4ade80;' : 'background:rgba(233,69,96,0.1);color:#f87171;'">
+                        {{ book.stock }} ta
+                    </span>
+                </div>
+
+                <div class="flex flex-wrap gap-2 text-xs">
+                    <div class="px-3 py-1.5 rounded-xl bg-white/5 border border-white/5 text-white/60 font-mono">{{ book.barcode }}</div>
+                    <div class="px-3 py-1.5 rounded-xl bg-indigo-500/10 border border-indigo-500/10 text-indigo-400 font-bold">{{ Number(book.price).toLocaleString() }} so'm</div>
+                </div>
+
+                <div class="grid grid-cols-3 gap-2 pt-2 border-t border-white/5">
+                    <button @click="openQr(book)" class="py-2.5 rounded-xl text-[10px] font-bold text-blue-400 bg-blue-500/10 border border-blue-500/10">📷 QR</button>
+                    <button @click="openEdit(book)" class="py-2.5 rounded-xl text-[10px] font-bold text-indigo-400 bg-indigo-500/10 border border-indigo-500/10">✏️ Tahrir</button>
+                    <button @click="deleteBook(book)" class="py-2.5 rounded-xl text-[10px] font-bold text-rose-400 bg-rose-500/10 border border-rose-500/10">🗑️ O'chirish</button>
+                </div>
+            </div>
+            
+            <div v-if="filtered.length === 0" class="py-16 text-center">
+                <div class="text-5xl mb-3 opacity-20">📚</div>
+                <div class="text-sm font-medium" style="color: rgba(255,255,255,0.2);">Kitoblar topilmadi</div>
+            </div>
+        </div>
+
+        <!-- Desktop View (Table) -->
+        <div class="hidden md:block rounded-3xl overflow-hidden" style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.07);">
             <table class="w-full text-left">
                 <thead>
                     <tr style="border-bottom: 1px solid rgba(255,255,255,0.06);">
@@ -154,7 +229,7 @@ const printQr = () => window.print();
                             </button>
                         </td>
                         <td class="px-7 py-4">
-                            <div class="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-all">
+                            <div class="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-all text-right justify-end">
                                 <button @click="openEdit(book)"
                                     class="px-4 py-2 rounded-xl text-xs font-bold transition-all"
                                     style="background: rgba(83,52,131,0.2); color: #a78bfa;">
@@ -169,21 +244,137 @@ const printQr = () => window.print();
                         </td>
                     </tr>
                     <tr v-if="filtered.length === 0">
-                        <td colspan="5" class="px-7 py-16 text-center">
-                            <div class="text-5xl mb-3 opacity-20">📚</div>
-                            <div class="text-sm font-medium" style="color: rgba(255,255,255,0.2);">Kitoblar topilmadi</div>
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
+                        <td colspan="6" class="px-7 py-16 text-center">
+            <div class="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4 mb-6">
+                <div class="relative flex-grow max-w-sm">
+                    <span class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500">🔍</span>
+                    <input v-model="search" type="text" placeholder="Qidirish: nom, barcode, muallif..."
+                        class="w-full pl-10 pr-5 py-3.5 rounded-2xl text-white text-sm bg-transparent focus:outline-none transition-all"
+                        style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);" />
+                </div>
+                <div class="flex flex-col md:text-right">
+                    <div class="text-[10px] md:text-xs font-bold text-white/30 uppercase tracking-widest mb-1.5 md:mb-2 ml-1 md:ml-0">Yangi kitob qo'shish yoki zaxira to'ldirish</div>
+                    <button @click="router.get('/bookstore/arrivals')"
+                        class="w-full md:w-auto px-6 py-3 md:py-2.5 rounded-xl font-bold text-white text-xs transition-all active:scale-95 flex items-center justify-center gap-2"
+                        style="background: rgba(99,102,241,0.15); border: 1px solid rgba(99,102,241,0.3); color: #a5b4fc;">
+                        ＋ Keldi / Chiqim qismiga o'tish
+                    </button>
+                </div>
+            </div>
+
+            <!-- Mobile View (Cards) -->
+            <div class="grid grid-cols-1 gap-4 md:hidden">
+                <div v-for="book in filtered" :key="book.id" 
+                    class="p-5 rounded-3xl space-y-4"
+                    style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.07);">
+                    
+                    <div class="flex justify-between items-start gap-4">
+                        <div class="min-w-0 flex-1">
+                            <div class="font-bold text-white text-base leading-tight mb-1">{{ book.title }}</div>
+                            <div class="text-xs text-white/40">{{ book.author }}</div>
+                        </div>
+                        <span class="px-2.5 py-1 rounded-lg text-[10px] font-black shrink-0"
+                            :style="book.stock > 5 ? 'background:rgba(34,197,94,0.1);color:#4ade80;' : 'background:rgba(233,69,96,0.1);color:#f87171;'">
+                            {{ book.stock }} ta
+                        </span>
+                    </div>
+
+                    <div class="flex flex-wrap gap-2 text-xs">
+                        <div class="px-3 py-1.5 rounded-xl bg-white/5 border border-white/5 text-white/60 font-mono">{{ book.barcode }}</div>
+                        <div class="px-3 py-1.5 rounded-xl bg-indigo-500/10 border border-indigo-500/10 text-indigo-400 font-bold">{{ Number(book.price).toLocaleString() }} so'm</div>
+                    </div>
+
+                    <div class="grid grid-cols-3 gap-2 pt-2 border-t border-white/5">
+                        <button @click="openQr(book)" class="py-2.5 rounded-xl text-[10px] font-bold text-blue-400 bg-blue-500/10 border border-blue-500/10">📷 QR</button>
+                        <button @click="openEdit(book)" class="py-2.5 rounded-xl text-[10px] font-bold text-indigo-400 bg-indigo-500/10 border border-indigo-500/10">✏️ Tahrir</button>
+                        <button @click="deleteBook(book)" class="py-2.5 rounded-xl text-[10px] font-bold text-rose-400 bg-rose-500/10 border border-rose-500/10">🗑️ O'chirish</button>
+                    </div>
+                </div>
+                
+                <div v-if="filtered.length === 0" class="py-16 text-center">
+                    <div class="text-5xl mb-3 opacity-20">📚</div>
+                    <div class="text-sm font-medium" style="color: rgba(255,255,255,0.2);">Kitoblar topilmadi</div>
+                </div>
+            </div>
+
+            <!-- Desktop View (Table) -->
+            <div class="hidden md:block rounded-3xl overflow-hidden" style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.07);">
+                <table class="w-full text-left">
+                    <thead>
+                        <tr style="border-bottom: 1px solid rgba(255,255,255,0.06);">
+                            <th class="px-7 py-4 text-xs font-bold uppercase tracking-widest" style="color: rgba(255,255,255,0.25);">Kitob nomi</th>
+                            <th class="px-7 py-4 text-xs font-bold uppercase tracking-widest" style="color: rgba(255,255,255,0.25);">Barcode</th>
+                            <th class="px-7 py-4 text-xs font-bold uppercase tracking-widest" style="color: rgba(255,255,255,0.25);">Narx</th>
+                            <th class="px-7 py-4 text-xs font-bold uppercase tracking-widest" style="color: rgba(255,255,255,0.25);">Zaxira</th>
+                            <th class="px-7 py-4 text-xs font-bold uppercase tracking-widest" style="color: rgba(255,255,255,0.25);">QR</th>
+                            <th class="px-7 py-4 text-xs font-bold uppercase tracking-widest" style="color: rgba(255,255,255,0.25);">Amallar</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr v-for="(book, idx) in filtered" :key="book.id"
+                            class="transition-colors hover:bg-white/[0.02] group"
+                            :style="idx > 0 ? 'border-top: 1px solid rgba(255,255,255,0.04);' : ''">
+                            <td class="px-7 py-4">
+                                <div class="font-semibold text-white text-sm">{{ book.title }}</div>
+                                <div class="text-xs mt-0.5" style="color: rgba(255,255,255,0.3);">{{ book.author }}</div>
+                            </td>
+                            <td class="px-7 py-4">
+                                <span class="px-3 py-1 rounded-xl text-xs font-mono font-bold"
+                                    style="background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.6);">
+                                    {{ book.barcode }}
+                                </span>
+                            </td>
+                            <td class="px-7 py-4 font-bold text-white text-sm">{{ Number(book.price).toLocaleString() }} <span style="color: rgba(255,255,255,0.3); font-weight: 400; font-size: 11px;">so'm</span></td>
+                            <td class="px-7 py-4">
+                                <span class="px-3 py-1.5 rounded-xl text-xs font-black"
+                                    :style="book.stock > 5
+                                        ? 'background: rgba(34,197,94,0.12); color: #4ade80;'
+                                        : book.stock > 0
+                                            ? 'background: rgba(234,179,8,0.12); color: #facc15;'
+                                            : 'background: rgba(233,69,96,0.12); color: #f87171;'">
+                                    {{ book.stock }} ta
+                                </span>
+                            </td>
+                            <td class="px-7 py-4">
+                                <!-- QR Button -->
+                                <button @click="openQr(book)"
+                                    class="px-3 py-2 rounded-xl text-xs font-bold transition-all"
+                                    style="background: rgba(15,52,96,0.3); color: #60a5fa;">
+                                    📷 QR
+                                </button>
+                            </td>
+                            <td class="px-7 py-4">
+                                <div class="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-all text-right justify-end">
+                                    <button @click="openEdit(book)"
+                                        class="px-4 py-2 rounded-xl text-xs font-bold transition-all"
+                                        style="background: rgba(83,52,131,0.2); color: #a78bfa;">
+                                        ✏️ Tahrirlash
+                                    </button>
+                                    <button @click="deleteBook(book)"
+                                        class="px-4 py-2 rounded-xl text-xs font-bold transition-all"
+                                        style="background: rgba(233,69,96,0.1); color: #f87171;">
+                                        🗑️ O'chirish
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr v-if="filtered.length === 0">
+                            <td colspan="6" class="px-7 py-16 text-center">
+                                <div class="text-5xl mb-3 opacity-20">📚</div>
+                                <div class="text-sm font-medium" style="color: rgba(255,255,255,0.2);">Kitoblar topilmadi</div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </template>
 
         <!-- Modal -->
         <Teleport to="body">
             <Transition name="fade">
-                <div v-if="showModal" class="fixed inset-0 z-50 flex items-center justify-center p-4"
+                        <div v-if="showModal" class="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4"
                     style="background: rgba(0,0,0,0.7); backdrop-filter: blur(4px);" @click.self="closeModal">
-                    <div class="w-full max-w-md rounded-3xl p-8"
+                    <div class="w-full max-w-md rounded-t-[32px] sm:rounded-[32px] p-6 sm:p-8"
                         style="background: #1a1a2e; border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 40px 100px rgba(0,0,0,0.6);">
 
                         <h2 class="text-xl font-extrabold text-white mb-7">

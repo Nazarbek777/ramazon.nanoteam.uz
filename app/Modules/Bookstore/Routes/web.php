@@ -15,6 +15,10 @@ Route::prefix('bookstore')->name('bookstore.')->group(function () {
     Route::post('/login', [AuthController::class, 'login']);
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
+    // Public Stock Access (PIN Only)
+    Route::get('/stock', [BookController::class, 'publicIndex'])->name('books.public');
+    Route::post('/stock/unlock', [BookController::class, 'publicUnlock'])->name('books.unlock');
+
     Route::middleware('auth:bookstore')->group(function () {
         Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
         Route::get('/pos', [POSController::class, 'index'])->name('pos');
@@ -25,7 +29,7 @@ Route::prefix('bookstore')->name('bookstore.')->group(function () {
         Route::get('/books-cache', [POSController::class, 'booksCache'])->name('books.cache');
         Route::post('/sales/offline-sync', [POSController::class, 'offlineSync'])->name('sales.offline-sync');
 
-        // Books CRUD
+        // Books CRUD (Main System)
         Route::get('/books', [BookController::class, 'index'])->name('books.index');
         Route::post('/books', [BookController::class, 'store'])->name('books.store');
         Route::put('/books/{book}', [BookController::class, 'update'])->name('books.update');
