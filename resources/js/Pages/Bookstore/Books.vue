@@ -65,7 +65,7 @@ const deleteBook = (book) => {
 
     router.delete(`/bookstore/books/${book.id}`, {
         data: { code: code },
-        onBefore: () => confirm('Haqiqatan ham hamma narsani tozalab o\'chirmoqchimisiz? Bu amalni ortga qaytarib bo\'lmaydi!'),
+        onBefore: () => confirm("Haqiqatan ham hamma narsani tozalab o'chirmoqchimisiz? Bu amalni ortga qaytarib bo'lmaydi!"),
         onSuccess: (page) => {
             if (page.props.flash?.error) {
                 alert(page.props.flash.error);
