@@ -300,6 +300,15 @@ const printReceipt = () => {
     </head><body>
         <h2>KITOB DO'KONI</h2>
         <div class="sub">${r.created_at} &nbsp;|&nbsp; Chek #${r.id}</div>
+        ${r.is_delivery ? `
+        <hr class="divider">
+        <div style="font-size:11px;line-height:1.4;margin-bottom:10px;">
+            <div style="font-weight:800;margin-bottom:4px;text-decoration:underline;">YETKAZIB BERISH (DOSTAVKA)</div>
+            <div>Mijoz: ${r.customer_name || 'Ismsiz'}</div>
+            <div>Tel: ${r.customer_phone || '-'}</div>
+            <div style="white-space:pre-wrap;">Manzil: ${r.address || '-'}</div>
+            <div style="margin-top:4px;">Holati: <span class="badge" style="${r.status === 'pending' ? 'background:#fef3c7;color:#92400e;' : 'background:#dcfce7;color:#166534;'}">${r.status === 'pending' ? 'TO\'LANMAGAN' : 'TO\'LANDI'}</span></div>
+        </div>` : ''}
         <hr class="divider">
         <table>
             <thead><tr>
@@ -312,9 +321,10 @@ const printReceipt = () => {
         </table>
         <hr class="divider">
         <div class="totals">
+            ${r.delivery_fee > 0 ? `<div><span>Yetkazib berish</span><span>+${Number(r.delivery_fee).toLocaleString()} so'm</span></div>` : ''}
             ${r.discount ? `<div><span>Chegirma</span><span>−${Number(r.discount).toLocaleString()} so'm</span></div>` : ''}
             <div class="grand"><span>JAMI</span><span>${Number(r.total_amount).toLocaleString()} so'm</span></div>
-            <div style="margin-top:6px;"><span>To'lov</span><span class="badge">${(r.payment_method || '').toUpperCase()}</span></div>
+            <div style="margin-top:6px;"><span>To'lov usuli</span><span class="badge" style="background:#f3f4f6;">${r.status === 'pending' ? 'QARZ (DEBT)' : (r.payment_method || '').toUpperCase()}</span></div>
         </div>
         <hr class="divider">
         <div class="footer">Xaridingiz uchun rahmat!</div>
@@ -584,14 +594,18 @@ onUnmounted(() => {
                         </div>
                     </div>
 
-                    <div>
-                        <div class="text-xs font-bold uppercase tracking-widest mb-3" style="color:rgba(255,255,255,.3);">To'lov turi</div>
+                    <div :class="{'opacity-40 pointer-events-none': form.status === 'pending'}" class="transition-all duration-300">
+                        <div class="flex items-center justify-between mb-3">
+                            <div class="text-xs font-bold uppercase tracking-widest" style="color:rgba(255,255,255,.3);">To'lov turi</div>
+                            <div v-if="form.status === 'pending'" class="text-[10px] font-black text-amber-500 bg-amber-500/10 px-2 py-0.5 rounded uppercase tracking-tighter">Qarzga sotuv</div>
+                        </div>
                         <div class="grid grid-cols-2 gap-2">
                             <button v-for="m in payMethods" :key="m.key" @click="form.payment_method = m.key"
                                 class="py-3 px-2 rounded-2xl font-bold text-sm flex flex-col items-center gap-1 transition-all"
                                 :style="form.payment_method === m.key
                                     ? 'background:linear-gradient(135deg,rgba(233,69,96,.3),rgba(83,52,131,.3));border:1px solid rgba(233,69,96,.5);color:white;'
-                                    : 'background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);color:rgba(255,255,255,.4);'">
+                                    : 'background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);color:rgba(255,255,255,.4);'"
+                                :disabled="form.status === 'pending'">
                                 <span class="text-lg">{{ m.icon }}</span>
                                 <span class="text-xs">{{ m.label }}</span>
                             </button>
