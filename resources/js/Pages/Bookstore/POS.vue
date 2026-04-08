@@ -39,8 +39,20 @@ const isSearching = ref(false);
 let debounceTimer = null;
 const booksCache = ref(loadCache());
 const selectBook = (book) => {
+    if (book.stock <= 0) {
+        scanError.value = `Zaxirada kitob qolmagan: ${book.title}`;
+        setTimeout(() => scanError.value = '', 3000);
+        return;
+    }
     const existing = cart.value.find(i => i.id === book.id);
-    if (existing) { existing.quantity++; }
+    if (existing) { 
+        if (existing.quantity >= book.stock) {
+            scanError.value = `Zaxira yetarli emas (Mavjud: ${book.stock})`;
+            setTimeout(() => scanError.value = '', 2000);
+            return;
+        }
+        existing.quantity++; 
+    }
     else { cart.value.unshift({ ...book, quantity: 1 }); }
     currentBarcode.value = '';
     successFlash.value = true;
@@ -298,7 +310,7 @@ const printReceipt = () => {
             .badge { display: inline-block; background: #f3f4f6; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 700; text-transform: uppercase; }
         </style>
     </head><body>
-        <h2>KITOB DO'KONI</h2>
+        <h2 style="text-transform: uppercase;">"NUR KITOBLAR" DOʻKONI</h2>
         <div class="sub">${r.created_at} &nbsp;|&nbsp; Chek #${r.id}</div>
         ${r.is_delivery ? `
         <hr class="divider">
@@ -552,7 +564,7 @@ onUnmounted(() => {
                                     <button @click="item.quantity > 1 ? item.quantity-- : removeItem(idx)"
                                         class="w-7 h-7 rounded-lg text-sm font-bold flex items-center justify-center text-white hover:bg-white/10">−</button>
                                     <span class="w-7 text-center text-sm font-black text-white">{{ item.quantity }}</span>
-                                    <button @click="item.quantity++"
+                                    <button @click="item.quantity < item.stock ? item.quantity++ : (scanError = 'Zaxira yetarli emas', setTimeout(() => scanError = '', 2000))"
                                         class="w-7 h-7 rounded-lg text-sm font-bold flex items-center justify-center text-white hover:bg-white/10">+</button>
                                 </div>
                                 <div class="text-right w-28">
@@ -677,7 +689,8 @@ onUnmounted(() => {
                         <!-- Header -->
                         <div class="px-7 py-6 text-center" style="background:linear-gradient(135deg,rgba(34,197,94,.15),rgba(34,197,94,.05));">
                             <div class="text-4xl mb-2">🧾</div>
-                            <div class="font-extrabold text-white text-lg">Sotuv muvaffaqiyatli!</div>
+                            <div class="font-extrabold text-white text-base">"NUR KITOBLAR" DOʻKONI</div>
+                            <div class="font-bold text-white/40 text-xs mt-1">Sotuv muvaffaqiyatli!</div>
                             <div class="text-xs mt-1" style="color:rgba(255,255,255,.4);">{{ receipt?.created_at }}</div>
                             <div v-if="receipt?.offline" class="mt-2 text-xs px-3 py-1 rounded-full inline-block font-bold"
                                 style="background:rgba(234,179,8,.15);color:#facc15;">📡 Oflayn saqlandi</div>

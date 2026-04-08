@@ -22,7 +22,7 @@ function debounce(fn, delay) {
 }
 
 const filter = debounce(() => {
-    router.get(route('bookstore.debts.index'), {
+    router.get('/bookstore/debts', {
         from: fromDate.value,
         to: toDate.value
     }, { preserveState: true, replace: true });
@@ -32,13 +32,13 @@ watch([fromDate, toDate], () => filter());
 
 const markAsPaid = (id) => {
     if (confirm('Ushbu buyurtma to\'landi deb belgilansinmi?')) {
-        router.post(route('bookstore.debts.mark-as-paid', id));
+        router.post(`/bookstore/debts/${id}/mark-as-paid`);
     }
 };
 
 const deleteDebt = (id) => {
     if (confirm('Haqiqatan ham o\'chirmoqchimisiz?')) {
-        router.delete(route('bookstore.debts.destroy', id));
+        router.delete(`/bookstore/debts/${id}`);
     }
 };
 

@@ -80,7 +80,9 @@ class POSController extends Controller
                 $book = Book::lockForUpdate()->find($itemData['id']);
                 
                 if ($book->stock < $itemData['quantity']) {
-                    throw new \Exception("Kitob zaxirasi yetarli emas: {$book->title}");
+                    throw \Illuminate\Validation\ValidationException::withMessages([
+                        'items' => ["Zaxirada yetarli kitob mavjud emas: {$book->title} (Mavjud: {$book->stock} ta)"]
+                    ]);
                 }
 
                 $remainingToDeduct = $itemData['quantity'];
@@ -200,7 +202,7 @@ class POSController extends Controller
             foreach ($validated['items'] as $itemData) {
                 $book = Book::lockForUpdate()->find($itemData['id']);
                 if ($book->stock < $itemData['quantity']) {
-                    return response()->json(['error' => "Zaxira yetarli emas: {$book->title}"], 422);
+                    return response()->json(['error' => "Zaxira yetarli emas: {$book->title} (Mavjud: {$book->stock} ta)"], 422);
                 }
 
                 $remainingToDeduct = $itemData['quantity'];
