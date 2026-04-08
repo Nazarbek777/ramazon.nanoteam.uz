@@ -24,11 +24,11 @@ class BookController extends Controller
     public function publicIndex()
     {
         if (!session('bookstore_books_unlocked')) {
-            return Inertia::render('Bookstore/Books', ['isLocked' => true, 'books' => []]);
+            return Inertia::render('Bookstore/Stock', ['isLocked' => true, 'books' => []]);
         }
         
         $books = Book::orderByDesc('created_at')->get();
-        return Inertia::render('Bookstore/Books', [
+        return Inertia::render('Bookstore/Stock', [
             'books' => $books,
             'isLocked' => false
         ]);

@@ -5,23 +5,7 @@ import { ref, computed } from 'vue';
 
 const props = defineProps({
     books: { type: Array, default: () => [] },
-    isLocked: { type: Boolean, default: true },
 });
-
-const pinCode = ref('');
-const loginError = ref('');
-const unlockSubmit = () => {
-    router.post('/bookstore/stock/unlock', { code: pinCode.value }, {
-        onSuccess: (page) => {
-            if (page.props.flash?.error) {
-                loginError.value = page.props.flash.error;
-            } else {
-                pinCode.value = '';
-                loginError.value = '';
-            }
-        }
-    });
-};
 
 const search = ref('');
 const showModal = ref(false);
@@ -105,31 +89,7 @@ const printQr = () => window.print();
     <BookstoreLayout>
         <template #header>📚 Kitoblar</template>
 
-        <!-- PIN Login State -->
-        <div v-if="isLocked" class="flex items-center justify-center py-20 px-4">
-            <div class="w-full max-w-sm p-8 rounded-3xl text-center"
-                style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.07);">
-                <div class="text-5xl mb-6">🔐</div>
-                <h3 class="text-xl font-bold text-white mb-2">Boshqaruvga kirish</h3>
-                <p class="text-xs text-white/40 mb-8 leading-relaxed">Ushbu bo'limga kirish uchun xavfsizlik kodini kiriting</p>
-                
-                <form @submit.prevent="unlockSubmit" class="space-y-4">
-                    <input v-model="pinCode" type="password" placeholder="PIN kod (7777)"
-                        class="w-full px-5 py-4 rounded-2xl text-center text-xl font-black tracking-[1em] text-white bg-white/5 border border-white/10 focus:outline-none focus:border-indigo-500/50 transition-all placeholder:tracking-normal placeholder:font-normal placeholder:text-sm" />
-                    
-                    <div v-if="loginError" class="text-red-400 text-xs font-bold">{{ loginError }}</div>
-
-                    <button type="submit"
-                        class="w-full py-4 rounded-2xl font-bold text-white transition-all active:scale-95"
-                        style="background: linear-gradient(135deg, #6366f1, #4f46e5); box-shadow: 0 10px 30px rgba(79, 70, 229, 0.3);">
-                        Kirish
-                    </button>
-                </form>
-            </div>
-        </div>
-
-        <template v-else>
-            <!-- Toolbar -->
+        <!-- Toolbar -->
         <div class="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4 mb-6">
             <div class="relative flex-grow max-w-sm">
                 <span class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500">🔍</span>
@@ -252,7 +212,6 @@ const printQr = () => window.print();
                     </tbody>
                 </table>
             </div>
-        </template>
 
         <!-- Modal -->
         <Teleport to="body">
