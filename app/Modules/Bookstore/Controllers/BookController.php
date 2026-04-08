@@ -92,7 +92,7 @@ class BookController extends Controller
             $book->arrivals()->delete();
             
             // 2. Delete all sale items for this book
-            DB::table('bookstore_sale_items')->where('book_id', $book->id)->delete();
+            $book->saleItems()->delete();
             
             // 3. Delete the book itself
             $book->delete();

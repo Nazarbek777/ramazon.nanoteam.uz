@@ -18,4 +18,14 @@ class Book extends Model
         'cost_price',
         'stock',
     ];
+
+    public function arrivals()
+    {
+        return $this->hasMany(Arrival::class);
+    }
+
+    public function saleItems()
+    {
+        return $this->hasMany(SaleItem::class);
+    }
 }
