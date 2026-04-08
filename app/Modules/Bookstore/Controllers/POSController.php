@@ -64,6 +64,12 @@ class POSController extends Controller
             'items.*.quantity' => 'required|integer|min:1',
             'discount' => 'nullable|numeric|min:0',
             'payment_method' => 'required|string',
+            'is_delivery' => 'nullable|boolean',
+            'status' => 'nullable|string|in:paid,pending',
+            'customer_name' => 'nullable|string|max:255',
+            'customer_phone' => 'nullable|string|max:50',
+            'address' => 'nullable|string',
+            'delivery_fee' => 'nullable|numeric|min:0',
         ]);
 
         return DB::transaction(function () use ($validated) {
@@ -119,9 +125,15 @@ class POSController extends Controller
 
             $sale = Sale::create([
                 'bookstore_user_id' => Auth::guard('bookstore')->id(),
-                'total_amount' => $totalAmount - ($validated['discount'] ?? 0),
+                'total_amount' => ($totalAmount + ($validated['delivery_fee'] ?? 0)) - ($validated['discount'] ?? 0),
                 'discount' => $validated['discount'] ?? 0,
                 'payment_method' => $validated['payment_method'],
+                'is_delivery' => $validated['is_delivery'] ?? false,
+                'status' => $validated['status'] ?? 'paid',
+                'customer_name' => $validated['customer_name'] ?? null,
+                'customer_phone' => $validated['customer_phone'] ?? null,
+                'address' => $validated['address'] ?? null,
+                'delivery_fee' => $validated['delivery_fee'] ?? 0,
             ]);
 
             $sale->items()->createMany($items);
@@ -167,6 +179,12 @@ class POSController extends Controller
             'items.*.quantity' => 'required|integer|min:1',
             'discount' => 'nullable|numeric|min:0',
             'payment_method' => 'required|string',
+            'is_delivery' => 'nullable|boolean',
+            'status' => 'nullable|string|in:paid,pending',
+            'customer_name' => 'nullable|string|max:255',
+            'customer_phone' => 'nullable|string|max:50',
+            'address' => 'nullable|string',
+            'delivery_fee' => 'nullable|numeric|min:0',
         ]);
 
         return DB::transaction(function () use ($validated) {
@@ -217,9 +235,15 @@ class POSController extends Controller
 
             $sale = Sale::create([
                 'bookstore_user_id' => Auth::guard('bookstore')->id(),
-                'total_amount' => $totalAmount - ($validated['discount'] ?? 0),
+                'total_amount' => ($totalAmount + ($validated['delivery_fee'] ?? 0)) - ($validated['discount'] ?? 0),
                 'discount' => $validated['discount'] ?? 0,
                 'payment_method' => $validated['payment_method'],
+                'is_delivery' => $validated['is_delivery'] ?? false,
+                'status' => $validated['status'] ?? 'paid',
+                'customer_name' => $validated['customer_name'] ?? null,
+                'customer_phone' => $validated['customer_phone'] ?? null,
+                'address' => $validated['address'] ?? null,
+                'delivery_fee' => $validated['delivery_fee'] ?? 0,
             ]);
             $sale->items()->createMany($items);
 

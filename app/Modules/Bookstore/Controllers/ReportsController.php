@@ -20,6 +20,7 @@ class ReportsController extends Controller
         $payment = $request->input('payment');
 
         $query = Sale::with(['user', 'items.book' => fn($q) => $q->withTrashed()])
+            ->where('status', '!=', 'pending')
             ->whereBetween('created_at', [$from, $to]);
 
         if ($payment) {
@@ -29,7 +30,7 @@ class ReportsController extends Controller
         $sales = $query->latest()->paginate(25)->withQueryString();
 
         // Summary for date range
-        $summaryQuery = Sale::whereBetween('created_at', [$from, $to]);
+        $summaryQuery = Sale::where('status', '!=', 'pending')->whereBetween('created_at', [$from, $to]);
         if ($payment) $summaryQuery->where('payment_method', $payment);
 
         $totalRevenue = (float) (clone $summaryQuery)->sum('total_amount');
@@ -38,6 +39,7 @@ class ReportsController extends Controller
         // Calculate Gross Profit (Revenue - cost_price * qty)
         $grossProfitData = DB::table('bookstore_sale_items')
             ->join('bookstore_sales', 'bookstore_sale_items.sale_id', '=', 'bookstore_sales.id')
+            ->where('bookstore_sales.status', '!=', 'pending')
             ->whereBetween('bookstore_sales.created_at', [$from->toDateTimeString(), $to->toDateTimeString()])
             ->when($payment, fn($q) => $q->where('bookstore_sales.payment_method', $payment))
             ->select(DB::raw('SUM(total_price - (quantity * cost_price)) as gross_profit'))
@@ -61,7 +63,8 @@ class ReportsController extends Controller
         ];
 
         // Payment breakdown for this period
-        $payBreakdown = Sale::whereBetween('created_at', [$from, $to])
+        $payBreakdown = Sale::where('status', '!=', 'pending')
+            ->whereBetween('created_at', [$from, $to])
             ->select('payment_method', DB::raw('SUM(total_amount) as total'), DB::raw('COUNT(*) as count'))
             ->groupBy('payment_method')
             ->get();
@@ -115,7 +118,9 @@ class ReportsController extends Controller
         $to      = $request->input('to')   ? Carbon::parse($request->input('to'))->endOfDay()     : Carbon::now()->endOfDay();
         $payment = $request->input('payment');
 
-        $query = Sale::with(['user', 'items.book'])->whereBetween('created_at', [$from, $to]);
+        $query = Sale::with(['user', 'items.book'])
+            ->where('status', '!=', 'pending')
+            ->whereBetween('created_at', [$from, $to]);
         if ($payment) $query->where('payment_method', $payment);
         $sales = $query->latest()->get();
 

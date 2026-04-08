@@ -15,6 +15,12 @@ class Sale extends Model
         'total_amount',
         'discount',
         'payment_method',
+        'is_delivery',
+        'status',
+        'customer_name',
+        'customer_phone',
+        'address',
+        'delivery_fee',
     ];
 
     public function items(): HasMany

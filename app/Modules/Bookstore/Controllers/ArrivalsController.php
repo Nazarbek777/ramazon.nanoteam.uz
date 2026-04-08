@@ -34,13 +34,14 @@ class ArrivalsController extends Controller
                 'arrived_at' => Carbon::parse($a->arrived_at)->format('d.m.Y'),
             ]);
 
-        // Revenue for same period
-        $periodRevenue = (float) Sale::whereBetween('created_at', [$from, $to])->sum('total_amount');
-        $periodDiscounts = (float) Sale::whereBetween('created_at', [$from, $to])->sum('discount');
+        // Revenue for same period (Exclude pending sales)
+        $periodRevenue = (float) Sale::where('status', '!=', 'pending')->whereBetween('created_at', [$from, $to])->sum('total_amount');
+        $periodDiscounts = (float) Sale::where('status', '!=', 'pending')->whereBetween('created_at', [$from, $to])->sum('discount');
 
         // Total COGS for the sales in this period
         $periodCOGS = (float) DB::table('bookstore_sale_items')
             ->join('bookstore_sales', 'bookstore_sale_items.sale_id', '=', 'bookstore_sales.id')
+            ->where('bookstore_sales.status', '!=', 'pending')
             ->whereBetween('bookstore_sales.created_at', [$from->toDateTimeString(), $to->toDateTimeString()])
             ->select(DB::raw('SUM(quantity * cost_price) as cogs'))
             ->value('cogs');
@@ -48,6 +49,7 @@ class ArrivalsController extends Controller
         // Total Sold Quantity
         $periodSoldQty = (int) DB::table('bookstore_sale_items')
             ->join('bookstore_sales', 'bookstore_sale_items.sale_id', '=', 'bookstore_sales.id')
+            ->where('bookstore_sales.status', '!=', 'pending')
             ->whereBetween('bookstore_sales.created_at', [$from->toDateTimeString(), $to->toDateTimeString()])
             ->sum('quantity');
 
@@ -77,6 +79,7 @@ class ArrivalsController extends Controller
         
         $monthlyCOGS = DB::table('bookstore_sale_items')
             ->join('bookstore_sales', 'bookstore_sale_items.sale_id', '=', 'bookstore_sales.id')
+            ->where('bookstore_sales.status', '!=', 'pending')
             ->whereYear('bookstore_sales.created_at', Carbon::now()->year)
             ->select(
                 DB::raw('MONTH(bookstore_sales.created_at) as month'),
@@ -88,6 +91,7 @@ class ArrivalsController extends Controller
                 DB::raw('MONTH(created_at) as month'),
                 DB::raw('SUM(total_amount) as total')
             )
+            ->where('status', '!=', 'pending')
             ->whereYear('created_at', Carbon::now()->year)
             ->groupBy('month')->get()->keyBy('month');
 

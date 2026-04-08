@@ -8,6 +8,7 @@ use App\Modules\Bookstore\Controllers\BookController;
 use App\Modules\Bookstore\Controllers\ReportsController;
 use App\Modules\Bookstore\Controllers\AnalyticsController;
 use App\Modules\Bookstore\Controllers\ArrivalsController;
+use App\Modules\Bookstore\Controllers\DebtsController;
 
 Route::prefix('bookstore')->name('bookstore.')->group(function () {
     Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
@@ -42,5 +43,10 @@ Route::prefix('bookstore')->name('bookstore.')->group(function () {
         Route::post('/arrivals', [ArrivalsController::class, 'store'])->name('arrivals.store');
         Route::delete('/arrivals/{arrival}', [ArrivalsController::class, 'destroy'])->name('arrivals.destroy');
         Route::get('/arrivals/export', [ArrivalsController::class, 'export'])->name('arrivals.export');
+
+        // CRM — Debts
+        Route::get('/debts', [DebtsController::class, 'index'])->name('debts.index');
+        Route::post('/debts/{sale}/mark-as-paid', [DebtsController::class, 'markAsPaid'])->name('debts.mark-as-paid');
+        Route::delete('/debts/{sale}', [DebtsController::class, 'destroy'])->name('debts.destroy');
     });
 });

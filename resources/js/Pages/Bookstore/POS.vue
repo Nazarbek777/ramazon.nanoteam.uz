@@ -90,7 +90,7 @@ const syncPending = async () => {
 
 // ─── Computed ────────────────────────────────────────────────────────────────
 const totalAmount = computed(() => cart.value.reduce((s, i) => s + i.price * i.quantity, 0));
-const netTotal = computed(() => Math.max(0, totalAmount.value - form.discount));
+const netTotal = computed(() => Math.max(0, (totalAmount.value + (form.delivery_fee || 0)) - form.discount));
 
 // ─── Scan logic ──────────────────────────────────────────────────────────────
 const handleScan = async () => {
@@ -177,7 +177,17 @@ watch(searchMode, (newMode) => {
 });
 
 // ─── Submit sale ─────────────────────────────────────────────────────────────
-const form = useForm({ items: [], discount: 0, payment_method: 'cash' });
+const form = useForm({ 
+    items: [], 
+    discount: 0, 
+    payment_method: 'cash',
+    is_delivery: false,
+    status: 'paid',
+    customer_name: '',
+    customer_phone: '',
+    address: '',
+    delivery_fee: 0
+});
 
 const submitSale = () => {
     if (!cart.value.length) return;
@@ -560,6 +570,50 @@ onUnmounted(() => {
                                 <span class="text-lg">{{ m.icon }}</span>
                                 <span class="text-xs">{{ m.label }}</span>
                             </button>
+                        </div>
+                    </div>
+
+                    <div>
+                        <button @click="form.is_delivery = !form.is_delivery" 
+                            class="w-full py-3 px-4 rounded-2xl font-bold text-sm flex items-center justify-between transition-all"
+                            :style="form.is_delivery 
+                                ? 'background:rgba(59,130,246,.15);border:1px solid rgba(59,130,246,.4);color:#60a5fa;'
+                                : 'background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);color:rgba(255,255,255,.4);'">
+                            <span>🚚 Yetkazib berish (Dostavka)</span>
+                            <span v-if="form.is_delivery">✅</span>
+                        </button>
+                    </div>
+
+                    <!-- Delivery Details -->
+                    <div v-if="form.is_delivery" class="space-y-3 p-4 rounded-2xl" style="background:rgba(255,255,255,.02); border:1px solid rgba(255,255,255,.05);">
+                        <div>
+                            <label class="text-[10px] font-bold text-white/30 uppercase tracking-widest block mb-1">Mijoz ismi</label>
+                            <input v-model="form.customer_name" type="text" placeholder="F.I.O" 
+                                class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2 text-sm text-white focus:outline-none focus:border-indigo-500" />
+                        </div>
+                        <div>
+                            <label class="text-[10px] font-bold text-white/30 uppercase tracking-widest block mb-1">Telefon</label>
+                            <input v-model="form.customer_phone" type="text" placeholder="+998 90 ..." 
+                                class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2 text-sm text-white focus:outline-none focus:border-indigo-500" />
+                        </div>
+                        <div>
+                            <label class="text-[10px] font-bold text-white/30 uppercase tracking-widest block mb-1">Manzil</label>
+                            <textarea v-model="form.address" rows="2" placeholder="Uy, ko'cha, mo'ljal..." 
+                                class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2 text-sm text-white focus:outline-none focus:border-indigo-500 resize-none"></textarea>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <div class="flex-grow">
+                                <label class="text-[10px] font-bold text-white/30 uppercase tracking-widest block mb-1">Status</label>
+                                <select v-model="form.status" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2 text-sm text-white focus:outline-none focus:border-indigo-500">
+                                    <option value="paid" style="background:#1a1a2e;">To'langan</option>
+                                    <option value="pending" style="background:#1a1a2e;">To'lanmagan (Qarz)</option>
+                                </select>
+                            </div>
+                            <div class="w-24">
+                                <label class="text-[10px] font-bold text-white/30 uppercase tracking-widest block mb-1">Dostavka $</label>
+                                <input v-model.number="form.delivery_fee" type="number" 
+                                    class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2 text-sm text-white focus:outline-none focus:border-indigo-500" />
+                            </div>
                         </div>
                     </div>
 
