@@ -66,26 +66,25 @@ do
         fi
 
         # Aggressive bypass and client selection
-        echo "yt-dlp buyrug'i bajarilmoqda (Client: iOS/TV)..." >> "$PROJECT_ROOT/storage/logs/youtube_debug.log"
+        # If cookies are provided, we MUST use 'web' client as others often don't support them
+        CLIENTS="tv,web"
+        if [ ! -z "$COOKIES_ARG" ]; then
+            CLIENTS="web,tv"
+        else
+            CLIENTS="ios,tv,android,web"
+        fi
+
+        echo "yt-dlp buyrug'i bajarilmoqda (Clients: $CLIENTS)..." >> "$PROJECT_ROOT/storage/logs/youtube_debug.log"
         
-        # We try multiple clients because some might be blocked while others are not
-        # iOS client is currently very strong against the "bot" error
+        # We try to get the URL with a long timeout and JS runtime support
         DIRECT_URL=$($YT_DLP -g $COOKIES_ARG --no-playlist --no-cache-dir --no-check-certificate --prefer-free-formats \
-            --user-agent "Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1" \
-            --extractor-args "youtube:player-client=ios,tv,android,web" \
+            --user-agent "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36" \
+            --extractor-args "youtube:player-client=$CLIENTS" \
             -f "best[height<=720]" "$VIDEO_SOURCE" 2>> "$PROJECT_ROOT/storage/logs/youtube_debug.log")
 
         if [ $? -ne 0 ] || [ -z "$DIRECT_URL" ]; then
-            echo "$(date): Birinchi urinish (iOS) muvaffaqiyatsiz. TV client bilan urunib ko'ramiz..." >> "$PROJECT_ROOT/storage/logs/youtube_debug.log"
-            
-            DIRECT_URL=$($YT_DLP -g $COOKIES_ARG --no-playlist --no-cache-dir --no-check-certificate --prefer-free-formats \
-                --extractor-args "youtube:player-client=tv,web" \
-                -f "best[height<=720]" "$VIDEO_SOURCE" 2>> "$PROJECT_ROOT/storage/logs/youtube_debug.log")
-        fi
-
-        if [ $? -ne 0 ] || [ -z "$DIRECT_URL" ]; then
             echo "Xato: YouTube linkidan video manzilini olib bo'lmadi." >> "$PROJECT_ROOT/storage/logs/stream.log"
-            echo "Sabab: YouTube bloklagan. Iltimos fresh cookies (youtube_cookies.txt) yuklang." >> "$PROJECT_ROOT/storage/logs/stream.log"
+            echo "Sabab: YouTube bloklagan yoki Cookies eskirgan. Iltimos fresh cookies yuklang." >> "$PROJECT_ROOT/storage/logs/stream.log"
             sleep 30
             continue
         fi
