@@ -66,10 +66,10 @@ do
         fi
 
         # Find Node.js
-        NODE_BIN=$(which node || which /usr/bin/node || which /usr/local/bin/node)
+        NODE_BIN=$(which node || which /usr/bin/node)
         JS_RUNTIME_ARG=""
         if [ ! -z "$NODE_BIN" ]; then
-            JS_RUNTIME_ARG="--js-runtimes node:$NODE_BIN"
+            JS_RUNTIME_ARG="--js-runtimes node"
         fi
 
         # Cookies check
@@ -80,14 +80,16 @@ do
 
         echo "yt-dlp buyrug'i bajarilmoqda (JS: $NODE_BIN)..." >> "$PROJECT_ROOT/storage/logs/youtube_debug.log"
         
-        # Simple but effective extraction
+        # Simple extraction with forced JS runtime and no playlist
+        # Using a very standard player-client mix
         DIRECT_URL=$($YT_DLP -g $COOKIES_ARG --no-playlist --no-cache-dir --no-check-certificate $JS_RUNTIME_ARG \
-            --format-sort "res:720,ext:mp4:m4a" \
-            -f "best[height<=720]/best" "$VIDEO_SOURCE" 2>> "$PROJECT_ROOT/storage/logs/youtube_debug.log")
+            --extractor-args "youtube:player-client=web,tv" \
+            -f "bestvideo[height<=720][ext=mp4]+bestaudio[ext=m4a]/best[height<=720]/best" \
+            "$VIDEO_SOURCE" 2>> "$PROJECT_ROOT/storage/logs/youtube_debug.log")
 
         if [ $? -ne 0 ] || [ -z "$DIRECT_URL" ]; then
             echo "Xato: YouTube linkidan video manzilini olib bo'lmadi." >> "$PROJECT_ROOT/storage/logs/stream.log"
-            echo "Iltimos: 1. yt-dlp -U bering. 2. Toza link ishlating. 3. Cookies yangilang." >> "$PROJECT_ROOT/storage/logs/stream.log"
+            echo "Iltimos: 1. Cookies yangilang. 2. Toza link ishlating." >> "$PROJECT_ROOT/storage/logs/stream.log"
             sleep 30
             continue
         fi
