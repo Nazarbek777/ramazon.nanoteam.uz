@@ -65,32 +65,29 @@ do
             COOKIES_ARG="--cookies $PROJECT_ROOT/youtube_cookies.txt"
         fi
 
-        # Find Node.js accurately
+        # Find Node.js
         NODE_BIN=$(which node || which /usr/bin/node || which /usr/local/bin/node)
         JS_RUNTIME_ARG=""
         if [ ! -z "$NODE_BIN" ]; then
             JS_RUNTIME_ARG="--js-runtimes node:$NODE_BIN"
         fi
 
-        # If cookies are provided, we MUST use 'web' client as others often don't support them
-        CLIENTS="tv,web"
-        if [ ! -z "$COOKIES_ARG" ]; then
-            CLIENTS="web,tv"
-        else
-            CLIENTS="ios,tv,android,web"
+        # Cookies check
+        COOKIES_ARG=""
+        if [ -f "$PROJECT_ROOT/storage/youtube_cookies.txt" ]; then
+            COOKIES_ARG="--cookies $PROJECT_ROOT/storage/youtube_cookies.txt"
         fi
 
-        echo "yt-dlp buyrug'i bajarilmoqda (Clients: $CLIENTS, JS: $NODE_BIN)..." >> "$PROJECT_ROOT/storage/logs/youtube_debug.log"
+        echo "yt-dlp buyrug'i bajarilmoqda (JS: $NODE_BIN)..." >> "$PROJECT_ROOT/storage/logs/youtube_debug.log"
         
-        # Aggressive extraction with JS runtime and specific player-client
-        DIRECT_URL=$($YT_DLP -g $COOKIES_ARG --no-playlist --no-cache-dir --no-check-certificate --prefer-free-formats $JS_RUNTIME_ARG \
-            --user-agent "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36" \
-            --extractor-args "youtube:player-client=$CLIENTS" \
-            -f "best[height<=720]" "$VIDEO_SOURCE" 2>> "$PROJECT_ROOT/storage/logs/youtube_debug.log")
+        # Simple but effective extraction
+        DIRECT_URL=$($YT_DLP -g $COOKIES_ARG --no-playlist --no-cache-dir --no-check-certificate $JS_RUNTIME_ARG \
+            --format-sort "res:720,ext:mp4:m4a" \
+            -f "best[height<=720]/best" "$VIDEO_SOURCE" 2>> "$PROJECT_ROOT/storage/logs/youtube_debug.log")
 
         if [ $? -ne 0 ] || [ -z "$DIRECT_URL" ]; then
             echo "Xato: YouTube linkidan video manzilini olib bo'lmadi." >> "$PROJECT_ROOT/storage/logs/stream.log"
-            echo "Sabab: YouTube bloklagan/Signature xatosi. Iltimos yt-dlp -U bering va yangi Cookies yuklang." >> "$PROJECT_ROOT/storage/logs/stream.log"
+            echo "Iltimos: 1. yt-dlp -U bering. 2. Toza link ishlating. 3. Cookies yangilang." >> "$PROJECT_ROOT/storage/logs/stream.log"
             sleep 30
             continue
         fi
