@@ -68,7 +68,7 @@ do
         # Aggressive bypass and client selection
         echo "yt-dlp buyrug'i bajarilmoqda..." >> "$PROJECT_ROOT/storage/logs/youtube_debug.log"
         
-        DIRECT_URL=$($YT_DLP -g $COOKIES_ARG --no-cache-dir --no-check-certificate --prefer-free-formats \
+        DIRECT_URL=$($YT_DLP -g $COOKIES_ARG --no-playlist --no-cache-dir --no-check-certificate --prefer-free-formats \
             --user-agent "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36" \
             --extractor-args "youtube:player-client=tv,web,mweb" \
             -f "best[height<=720]" "$VIDEO_SOURCE" 2>> "$PROJECT_ROOT/storage/logs/youtube_debug.log")
