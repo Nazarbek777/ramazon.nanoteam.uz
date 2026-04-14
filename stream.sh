@@ -65,8 +65,9 @@ do
             COOKIES_ARG="--cookies $PROJECT_ROOT/youtube_cookies.txt"
         fi
 
-        # Find Node.js
-        JS_RUNTIME_ARG="--js-runtimes node"
+        # Use global node path
+        NODE_BIN="/usr/bin/node"
+        JS_RUNTIME_ARG="--js-runtimes node:$NODE_BIN"
 
         # Cookies check
         COOKIES_ARG=""
