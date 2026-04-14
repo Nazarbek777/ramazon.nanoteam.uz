@@ -57,12 +57,6 @@ do
         # Clear previous debug log
         echo "$(date): Yangi YouTube qidiruvi boshlandi: $VIDEO_SOURCE" > "$PROJECT_ROOT/storage/logs/youtube_debug.log"
         
-        # Optional cookies
-        COOKIES_ARG=""
-        if [ -f "$PROJECT_ROOT/storage/youtube_cookies.txt" ]; then
-            COOKIES_ARG="--cookies $PROJECT_ROOT/storage/youtube_cookies.txt"
-        elif [ -f "$PROJECT_ROOT/youtube_cookies.txt" ]; then
-            COOKIES_ARG="--cookies $PROJECT_ROOT/youtube_cookies.txt"
         # Robust Cookies Handling (Temporary file to avoid Permission Denied)
         COOKIES_ARG=""
         TEMP_COOKIES="/tmp/youtube_cookies_$(date +%s).txt"
