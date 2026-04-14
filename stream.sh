@@ -66,17 +66,27 @@ do
         fi
 
         # Aggressive bypass and client selection
-        echo "yt-dlp buyrug'i bajarilmoqda..." >> "$PROJECT_ROOT/storage/logs/youtube_debug.log"
+        echo "yt-dlp buyrug'i bajarilmoqda (Client: iOS/TV)..." >> "$PROJECT_ROOT/storage/logs/youtube_debug.log"
         
+        # We try multiple clients because some might be blocked while others are not
+        # iOS client is currently very strong against the "bot" error
         DIRECT_URL=$($YT_DLP -g $COOKIES_ARG --no-playlist --no-cache-dir --no-check-certificate --prefer-free-formats \
-            --user-agent "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36" \
-            --extractor-args "youtube:player-client=tv,web,mweb" \
+            --user-agent "Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1" \
+            --extractor-args "youtube:player-client=ios,tv,android,web" \
             -f "best[height<=720]" "$VIDEO_SOURCE" 2>> "$PROJECT_ROOT/storage/logs/youtube_debug.log")
 
         if [ $? -ne 0 ] || [ -z "$DIRECT_URL" ]; then
+            echo "$(date): Birinchi urinish (iOS) muvaffaqiyatsiz. TV client bilan urunib ko'ramiz..." >> "$PROJECT_ROOT/storage/logs/youtube_debug.log"
+            
+            DIRECT_URL=$($YT_DLP -g $COOKIES_ARG --no-playlist --no-cache-dir --no-check-certificate --prefer-free-formats \
+                --extractor-args "youtube:player-client=tv,web" \
+                -f "best[height<=720]" "$VIDEO_SOURCE" 2>> "$PROJECT_ROOT/storage/logs/youtube_debug.log")
+        fi
+
+        if [ $? -ne 0 ] || [ -z "$DIRECT_URL" ]; then
             echo "Xato: YouTube linkidan video manzilini olib bo'lmadi." >> "$PROJECT_ROOT/storage/logs/stream.log"
-            echo "Debugging uchun storage/logs/youtube_debug.log ni ko'ring." >> "$PROJECT_ROOT/storage/logs/stream.log"
-            sleep 10
+            echo "Sabab: YouTube bloklagan. Iltimos fresh cookies (youtube_cookies.txt) yuklang." >> "$PROJECT_ROOT/storage/logs/stream.log"
+            sleep 30
             continue
         fi
         
