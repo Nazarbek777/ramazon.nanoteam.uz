@@ -51,7 +51,11 @@ do
 
     if is_youtube "$VIDEO_SOURCE"; then
         # YouTube direct URL fetching
+        echo "--------------------------------------------------------" >> "$PROJECT_ROOT/storage/logs/stream.log"
         echo "$(date): YouTube URL aniqlanmoqda: $VIDEO_SOURCE" >> "$PROJECT_ROOT/storage/logs/stream.log"
+        
+        # Clear previous debug log
+        echo "$(date): Yangi YouTube qidiruvi boshlandi: $VIDEO_SOURCE" > "$PROJECT_ROOT/storage/logs/youtube_debug.log"
         
         # Optional cookies
         COOKIES_ARG=""
@@ -62,37 +66,38 @@ do
         fi
 
         # Aggressive bypass and client selection
-        # We use 'tv' client as it's currently most reliable for data centers
-        # We also add --live-from-start just in case it's a live stream we want to catch from beginning
+        echo "yt-dlp buyrug'i bajarilmoqda..." >> "$PROJECT_ROOT/storage/logs/youtube_debug.log"
+        
         DIRECT_URL=$($YT_DLP -g $COOKIES_ARG --no-cache-dir --no-check-certificate --prefer-free-formats \
             --user-agent "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36" \
             --extractor-args "youtube:player-client=tv,web,mweb" \
-            -f "best[height<=720]" "$VIDEO_SOURCE" 2>> "$PROJECT_ROOT/storage/logs/stream.log")
+            -f "best[height<=720]" "$VIDEO_SOURCE" 2>> "$PROJECT_ROOT/storage/logs/youtube_debug.log")
 
         if [ $? -ne 0 ] || [ -z "$DIRECT_URL" ]; then
-            echo "Xato: YouTube linkidan video manzilini olib bo'lmadi. 10 soniyadan keyin qayta urunish..."
-            echo "$(date): yt-dlp xatoga uchradi yoki URL bo'sh: $VIDEO_SOURCE" >> "$PROJECT_ROOT/storage/logs/stream.log"
+            echo "Xato: YouTube linkidan video manzilini olib bo'lmadi." >> "$PROJECT_ROOT/storage/logs/stream.log"
+            echo "Debugging uchun storage/logs/youtube_debug.log ni ko'ring." >> "$PROJECT_ROOT/storage/logs/stream.log"
             sleep 10
             continue
         fi
+        
         INPUT_URL="$DIRECT_URL"
-        echo "$(date): YouTube URL muvaffaqiyatli olindi." >> "$PROJECT_ROOT/storage/logs/stream.log"
+        echo "$(date): YouTube URL muvaffaqiyatli olindi: ${INPUT_URL:0:50}..." >> "$PROJECT_ROOT/storage/logs/stream.log"
     elif [[ "$VIDEO_SOURCE" == http* ]]; then
         # Direct URL
         INPUT_URL="$VIDEO_SOURCE"
+        echo "$(date): To'g'ridan-to'g'ri URL ishlatilmoqda: $VIDEO_SOURCE" >> "$PROJECT_ROOT/storage/logs/stream.log"
     else
         # Local file
         if [ ! -f "$VIDEO_SOURCE" ]; then
-            echo "Xato: Fayl topilmadi: $VIDEO_SOURCE. 10 soniyadan keyin qayta urunish..."
+            echo "$(date): Xato: Fayl topilmadi: $VIDEO_SOURCE" >> "$PROJECT_ROOT/storage/logs/stream.log"
             sleep 10
             continue
         fi
         INPUT_URL="$VIDEO_SOURCE"
+        echo "$(date): Mahalliy fayl ishlatilmoqda: $VIDEO_SOURCE" >> "$PROJECT_ROOT/storage/logs/stream.log"
     fi
 
     # FFmpeg Stream
-    # -re helps with local files to stream at real-time speed.
-    # For YouTube URLs, FFmpeg usually handles the rate automatically, but -re is safe.
     echo "$(date): FFmpeg boshlanmoqda..." >> "$PROJECT_ROOT/storage/logs/stream.log"
     $FFMPEG -re -i "$INPUT_URL" -progress "$PROJECT_ROOT/storage/logs/stream_progress.log" \
         -c:v libx264 -preset veryfast -b:v 2500k -maxrate 2500k -bufsize 5000k \
@@ -103,6 +108,6 @@ do
     wait $FFMPEG_PID
     
     EXIT_CODE=$?
-    echo "$(date): FFmpeg jarayoni to'xtadi (Exit Code: $EXIT_CODE). 5 soniyadan keyin qayta boshlanadi..." >> "$PROJECT_ROOT/storage/logs/stream.log"
+    echo "$(date): FFmpeg jarayoni to'xtadi (Exit Code: $EXIT_CODE). 5 soniyadan keyin qayta urunib ko'radi..." >> "$PROJECT_ROOT/storage/logs/stream.log"
     sleep 5
 done
