@@ -55,6 +55,7 @@ class LiveStreamController extends Controller
         $request->validate([
             'video_url' => 'nullable|string',
             'video_file' => 'nullable|file|mimes:mp4,mkv,avi,mov|max:102400', // 100MB max for UI upload
+            'youtube_cookies' => 'nullable|file|mimes:txt|max:1024', // 1MB max for cookies
             'stream_url' => 'required|string',
             'stream_key' => 'required|string',
         ]);
@@ -67,6 +68,12 @@ class LiveStreamController extends Controller
             $fileName = time() . '_' . $file->getClientOriginalName();
             $file->move(storage_path('app/public/videos'), $fileName);
             $videoUrl = storage_path('app/public/videos/' . $fileName);
+        }
+
+        // Handle cookies upload
+        if ($request->hasFile('youtube_cookies')) {
+            $file = $request->file('youtube_cookies');
+            $file->move(storage_path(), 'youtube_cookies.txt');
         }
 
         $data = [

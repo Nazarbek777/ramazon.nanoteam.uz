@@ -57,17 +57,23 @@
                                 class="w-full px-5 py-3 bg-gray-50 border border-gray-100 rounded-2xl focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none transition-all text-gray-700 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100">
                         </div>
                         <div>
-                            <label for="local_video_select" class="block text-sm font-bold text-gray-700 mb-2 ml-1">Serverdagi videolardan tanlash</label>
-                            <select id="local_video_select" onchange="document.getElementById('video_url').value = this.value"
-                                class="w-full px-5 py-4 bg-gray-50 border border-gray-100 rounded-2xl focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none transition-all text-gray-700">
-                                <option value="">-- Tanlang --</option>
-                                @foreach($localVideos as $video)
-                                    <option value="{{ $video['path'] }}" {{ ($stream && $stream->video_url == $video['path']) ? 'selected' : '' }}>
-                                        {{ $video['name'] }} ({{ $video['size'] }})
-                                    </option>
-                                @endforeach
-                            </select>
+                            <label for="youtube_cookies" class="block text-sm font-bold text-gray-700 mb-2 ml-1">YouTube Cookies (.txt)</label>
+                            <input type="file" name="youtube_cookies" id="youtube_cookies"
+                                class="w-full px-5 py-3 bg-gray-50 border border-gray-100 rounded-2xl focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none transition-all text-gray-700 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100">
                         </div>
+                    </div>
+
+                    <div class="mb-6">
+                        <label for="local_video_select" class="block text-sm font-bold text-gray-700 mb-2 ml-1">Serverdagi videolardan tanlash</label>
+                        <select id="local_video_select" onchange="document.getElementById('video_url').value = this.value"
+                            class="w-full px-5 py-4 bg-gray-50 border border-gray-100 rounded-2xl focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none transition-all text-gray-700">
+                            <option value="">-- Tanlang --</option>
+                            @foreach($localVideos as $video)
+                                <option value="{{ $video['path'] }}" {{ ($stream && $stream->video_url == $video['path']) ? 'selected' : '' }}>
+                                    {{ $video['name'] }} ({{ $video['size'] }})
+                                </option>
+                            @endforeach
+                        </select>
                     </div>
 
                     <div class="mb-6">
