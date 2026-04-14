@@ -63,29 +63,32 @@ do
             COOKIES_ARG="--cookies $PROJECT_ROOT/storage/youtube_cookies.txt"
         elif [ -f "$PROJECT_ROOT/youtube_cookies.txt" ]; then
             COOKIES_ARG="--cookies $PROJECT_ROOT/youtube_cookies.txt"
+        # Robust Cookies Handling (Temporary file to avoid Permission Denied)
+        COOKIES_ARG=""
+        TEMP_COOKIES="/tmp/youtube_cookies_$(date +%s).txt"
+        if [ -f "$PROJECT_ROOT/storage/youtube_cookies.txt" ]; then
+            cp "$PROJECT_ROOT/storage/youtube_cookies.txt" "$TEMP_COOKIES"
+            chmod 666 "$TEMP_COOKIES"
+            COOKIES_ARG="--cookies $TEMP_COOKIES"
         fi
 
-        # Use global node path
+        # Find Node.js
         NODE_BIN="/usr/bin/node"
         JS_RUNTIME_ARG="--js-runtimes node:$NODE_BIN"
 
-        # Cookies check
-        COOKIES_ARG=""
-        if [ -f "$PROJECT_ROOT/storage/youtube_cookies.txt" ]; then
-            COOKIES_ARG="--cookies $PROJECT_ROOT/storage/youtube_cookies.txt"
-        fi
-
-        echo "yt-dlp buyrug'i bajarilmoqda (Manual rejim)..." >> "$PROJECT_ROOT/storage/logs/youtube_debug.log"
+        echo "yt-dlp buyrug'i bajarilmoqda (Auto-fix mode)..." >> "$PROJECT_ROOT/storage/logs/youtube_debug.log"
         
-        # We use the exact strategy that worked in terminal
-        # We use -f best to get a single URL that contains both audio and video
+        # Extraction with temporary cookies
         DIRECT_URL=$($YT_DLP -g $COOKIES_ARG --no-playlist --no-cache-dir --no-check-certificate $JS_RUNTIME_ARG \
             -f "best[height<=720]/best" "$VIDEO_SOURCE" 2>> "$PROJECT_ROOT/storage/logs/youtube_debug.log" | head -n 1)
 
+        # Cleanup temp cookies
+        [ -f "$TEMP_COOKIES" ] && rm -f "$TEMP_COOKIES"
+
         if [ $? -ne 0 ] || [ -z "$DIRECT_URL" ]; then
             echo "Xato: YouTube linkidan video manzilini olib bo'lmadi." >> "$PROJECT_ROOT/storage/logs/stream.log"
-            echo "Iltimos: Cookies va Node.js holatini tekshiring." >> "$PROJECT_ROOT/storage/logs/stream.log"
-            sleep 30
+            echo "Sabab: YouTube 429 (Rate Limit) yoki Cookies xatosi. Iltimos 5 daqiqa kuting." >> "$PROJECT_ROOT/storage/logs/stream.log"
+            sleep 60
             continue
         fi
         
