@@ -73,7 +73,9 @@ class LiveStreamController extends Controller
         // Handle cookies upload
         if ($request->hasFile('youtube_cookies')) {
             $file = $request->file('youtube_cookies');
+            $path = storage_path('youtube_cookies.txt');
             $file->move(storage_path(), 'youtube_cookies.txt');
+            @chmod($path, 0666);
         }
 
         $data = [
