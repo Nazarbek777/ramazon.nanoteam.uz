@@ -66,11 +66,7 @@ do
         fi
 
         # Find Node.js
-        NODE_BIN=$(which node || which /usr/bin/node)
-        JS_RUNTIME_ARG=""
-        if [ ! -z "$NODE_BIN" ]; then
-            JS_RUNTIME_ARG="--js-runtimes node"
-        fi
+        JS_RUNTIME_ARG="--js-runtimes node"
 
         # Cookies check
         COOKIES_ARG=""
@@ -78,18 +74,16 @@ do
             COOKIES_ARG="--cookies $PROJECT_ROOT/storage/youtube_cookies.txt"
         fi
 
-        echo "yt-dlp buyrug'i bajarilmoqda (JS: $NODE_BIN)..." >> "$PROJECT_ROOT/storage/logs/youtube_debug.log"
+        echo "yt-dlp buyrug'i bajarilmoqda (Manual rejim)..." >> "$PROJECT_ROOT/storage/logs/youtube_debug.log"
         
-        # Simple extraction with forced JS runtime and no playlist
-        # Using a very standard player-client mix
+        # We use the exact strategy that worked in terminal
+        # We use -f best to get a single URL that contains both audio and video
         DIRECT_URL=$($YT_DLP -g $COOKIES_ARG --no-playlist --no-cache-dir --no-check-certificate $JS_RUNTIME_ARG \
-            --extractor-args "youtube:player-client=web,tv" \
-            -f "bestvideo[height<=720][ext=mp4]+bestaudio[ext=m4a]/best[height<=720]/best" \
-            "$VIDEO_SOURCE" 2>> "$PROJECT_ROOT/storage/logs/youtube_debug.log")
+            -f "best[height<=720]/best" "$VIDEO_SOURCE" 2>> "$PROJECT_ROOT/storage/logs/youtube_debug.log" | head -n 1)
 
         if [ $? -ne 0 ] || [ -z "$DIRECT_URL" ]; then
             echo "Xato: YouTube linkidan video manzilini olib bo'lmadi." >> "$PROJECT_ROOT/storage/logs/stream.log"
-            echo "Iltimos: 1. Cookies yangilang. 2. Toza link ishlating." >> "$PROJECT_ROOT/storage/logs/stream.log"
+            echo "Iltimos: Cookies va Node.js holatini tekshiring." >> "$PROJECT_ROOT/storage/logs/stream.log"
             sleep 30
             continue
         fi
