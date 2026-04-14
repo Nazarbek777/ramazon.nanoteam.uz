@@ -44,7 +44,10 @@
                         <input type="text" name="video_url" id="video_url" value="{{ $stream->video_url ?? '' }}"
                             class="w-full px-5 py-4 bg-gray-50 border border-gray-100 rounded-2xl focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none transition-all text-gray-700 placeholder:text-gray-300"
                             placeholder="Masalan: https://youtube.com/... yoki /home/.../video.mp4">
-                        <p class="text-[11px] text-gray-400 mt-2 ml-1 italic">YouTube linki yoki serverdagi videoning mutloq yo'li.</p>
+                        <div class="flex items-center justify-between mt-2 ml-1">
+                            <p class="text-[11px] text-gray-400 italic">YouTube linki yoki serverdagi videoning mutloq yo'li.</p>
+                            <p class="text-[11px] text-indigo-400 hover:text-indigo-600 cursor-help" title="Agar YouTube bloklasa, storage/youtube_cookies.txt fayliga cookies yuklang">YouTube bloklamoqdami?</p>
+                        </div>
                     </div>
 
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">

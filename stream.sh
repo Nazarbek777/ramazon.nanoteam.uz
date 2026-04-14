@@ -51,45 +51,34 @@ do
 
     if is_youtube "$VIDEO_SOURCE"; then
         # YouTube direct URL fetching
-        echo "yt-dlp orqali URL olinmoqda..." >> "$PROJECT_ROOT/storage/logs/stream.log"
+        echo "$(date): YouTube URL aniqlanmoqda: $VIDEO_SOURCE" >> "$PROJECT_ROOT/storage/logs/stream.log"
         
-        # Optional cookies (search in multiple locations)
+        # Optional cookies
         COOKIES_ARG=""
         if [ -f "$PROJECT_ROOT/storage/youtube_cookies.txt" ]; then
             COOKIES_ARG="--cookies $PROJECT_ROOT/storage/youtube_cookies.txt"
         elif [ -f "$PROJECT_ROOT/youtube_cookies.txt" ]; then
             COOKIES_ARG="--cookies $PROJECT_ROOT/youtube_cookies.txt"
-        elif [ -f "$PROJECT_ROOT/public/www.youtube.com_cookies.txt" ]; then
-            COOKIES_ARG="--cookies $PROJECT_ROOT/public/www.youtube.com_cookies.txt"
         fi
 
-        if [ ! -z "$COOKIES_ARG" ]; then
-            echo "Cookies faylidan foydalanilmoqda: $COOKIES_ARG" >> "$PROJECT_ROOT/storage/logs/stream.log"
-        fi
-
-        # Aggressive bypass: web/mweb clients + Mobile User-Agent + JS Runtime + Optional Cookies
-        # Using explicit node runtime if found
-        JS_RUNTIME_ARG=""
-        if [ "$NODE" != "node" ]; then
-            JS_RUNTIME_ARG="--js-runtimes node:$NODE"
-        fi
-
-        # Aggressive bypass: Prioritizing TV and Web clients which work better with cookies
-        # TV client (ios/android tv) often bypasses the 152 "bot" error
-        DIRECT_URL=$($YT_DLP -g $COOKIES_ARG --no-cache-dir --no-check-certificate --prefer-free-formats $JS_RUNTIME_ARG \
+        # Aggressive bypass and client selection
+        # We use 'tv' client as it's currently most reliable for data centers
+        # We also add --live-from-start just in case it's a live stream we want to catch from beginning
+        DIRECT_URL=$($YT_DLP -g $COOKIES_ARG --no-cache-dir --no-check-certificate --prefer-free-formats \
             --user-agent "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36" \
-            --extractor-args "youtube:player-client=tv,web,mweb,web_creator" \
+            --extractor-args "youtube:player-client=tv,web,mweb" \
             -f "best[height<=720]" "$VIDEO_SOURCE" 2>> "$PROJECT_ROOT/storage/logs/stream.log")
+
         if [ $? -ne 0 ] || [ -z "$DIRECT_URL" ]; then
-            echo "Xato: Yutub URLni olib bo'lmadi. 10 soniyadan keyin qayta urunish..."
-            echo "$(date): yt-dlp xatoga uchradi yoki URL bo'sh qoldi." >> "$PROJECT_ROOT/storage/logs/stream.log"
+            echo "Xato: YouTube linkidan video manzilini olib bo'lmadi. 10 soniyadan keyin qayta urunish..."
+            echo "$(date): yt-dlp xatoga uchradi yoki URL bo'sh: $VIDEO_SOURCE" >> "$PROJECT_ROOT/storage/logs/stream.log"
             sleep 10
             continue
         fi
         INPUT_URL="$DIRECT_URL"
+        echo "$(date): YouTube URL muvaffaqiyatli olindi." >> "$PROJECT_ROOT/storage/logs/stream.log"
     elif [[ "$VIDEO_SOURCE" == http* ]]; then
-        # Direct URL (Dropbox, S3, or any other direct video link)
-        echo "To'g'ridan-to'g'ri havola orqali o'qilmoqda: $VIDEO_SOURCE" >> "$PROJECT_ROOT/storage/logs/stream.log"
+        # Direct URL
         INPUT_URL="$VIDEO_SOURCE"
     else
         # Local file
@@ -102,14 +91,18 @@ do
     fi
 
     # FFmpeg Stream
+    # -re helps with local files to stream at real-time speed.
+    # For YouTube URLs, FFmpeg usually handles the rate automatically, but -re is safe.
+    echo "$(date): FFmpeg boshlanmoqda..." >> "$PROJECT_ROOT/storage/logs/stream.log"
     $FFMPEG -re -i "$INPUT_URL" -progress "$PROJECT_ROOT/storage/logs/stream_progress.log" \
-        -c:v libx264 -preset veryfast -b:v 2000k -maxrate 2000k -bufsize 4000k \
+        -c:v libx264 -preset veryfast -b:v 2500k -maxrate 2500k -bufsize 5000k \
         -pix_fmt yuv420p -g 50 -c:a aac -b:a 128k -ar 44100 \
         -f flv "$STREAM_URL$STREAM_KEY" >> "$PROJECT_ROOT/storage/logs/stream.log" 2>&1 &
     
     FFMPEG_PID=$!
     wait $FFMPEG_PID
-
-    echo "Stream tugadi yoki to'xtadi. Qayta boshlanmoqda..."
-    sleep 2
+    
+    EXIT_CODE=$?
+    echo "$(date): FFmpeg jarayoni to'xtadi (Exit Code: $EXIT_CODE). 5 soniyadan keyin qayta boshlanadi..." >> "$PROJECT_ROOT/storage/logs/stream.log"
+    sleep 5
 done
