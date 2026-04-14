@@ -65,7 +65,13 @@ do
             COOKIES_ARG="--cookies $PROJECT_ROOT/youtube_cookies.txt"
         fi
 
-        # Aggressive bypass and client selection
+        # Find Node.js accurately
+        NODE_BIN=$(which node || which /usr/bin/node || which /usr/local/bin/node)
+        JS_RUNTIME_ARG=""
+        if [ ! -z "$NODE_BIN" ]; then
+            JS_RUNTIME_ARG="--js-runtimes node:$NODE_BIN"
+        fi
+
         # If cookies are provided, we MUST use 'web' client as others often don't support them
         CLIENTS="tv,web"
         if [ ! -z "$COOKIES_ARG" ]; then
@@ -74,17 +80,17 @@ do
             CLIENTS="ios,tv,android,web"
         fi
 
-        echo "yt-dlp buyrug'i bajarilmoqda (Clients: $CLIENTS)..." >> "$PROJECT_ROOT/storage/logs/youtube_debug.log"
+        echo "yt-dlp buyrug'i bajarilmoqda (Clients: $CLIENTS, JS: $NODE_BIN)..." >> "$PROJECT_ROOT/storage/logs/youtube_debug.log"
         
-        # We try to get the URL with a long timeout and JS runtime support
-        DIRECT_URL=$($YT_DLP -g $COOKIES_ARG --no-playlist --no-cache-dir --no-check-certificate --prefer-free-formats \
+        # Aggressive extraction with JS runtime and specific player-client
+        DIRECT_URL=$($YT_DLP -g $COOKIES_ARG --no-playlist --no-cache-dir --no-check-certificate --prefer-free-formats $JS_RUNTIME_ARG \
             --user-agent "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36" \
             --extractor-args "youtube:player-client=$CLIENTS" \
             -f "best[height<=720]" "$VIDEO_SOURCE" 2>> "$PROJECT_ROOT/storage/logs/youtube_debug.log")
 
         if [ $? -ne 0 ] || [ -z "$DIRECT_URL" ]; then
             echo "Xato: YouTube linkidan video manzilini olib bo'lmadi." >> "$PROJECT_ROOT/storage/logs/stream.log"
-            echo "Sabab: YouTube bloklagan yoki Cookies eskirgan. Iltimos fresh cookies yuklang." >> "$PROJECT_ROOT/storage/logs/stream.log"
+            echo "Sabab: YouTube bloklagan/Signature xatosi. Iltimos yt-dlp -U bering va yangi Cookies yuklang." >> "$PROJECT_ROOT/storage/logs/stream.log"
             sleep 30
             continue
         fi
