@@ -111,6 +111,50 @@ Route::prefix('admin')->name('admin.')->group(function () {
     });
 });
 
+// ── Parvoz o'quv markazi: bot webhook (public, no auth) ─────────
+Route::post('/telegram/parvoz-webhook/{botId}', [App\Modules\Parvoz\Controllers\ParvozWebhookController::class, 'handle'])
+    ->name('parvoz.webhook');
+
+// ── Parvoz admin panel ──────────────────────────────────────────
+Route::prefix('parvoz-admin')->name('parvoz-admin.')->middleware([\App\Http\Middleware\AdminMiddleware::class])->group(function () {
+    $c = App\Modules\Parvoz\Controllers\ParvozAdminController::class;
+
+    Route::get('/', [$c, 'dashboard'])->name('dashboard');
+
+    // Bot sozlamalari
+    Route::get('/bot', [$c, 'botForm'])->name('bot');
+    Route::post('/bot', [$c, 'botSave'])->name('bot.save');
+    Route::post('/bot/toggle', [$c, 'botToggle'])->name('bot.toggle');
+
+    // Guruhlar
+    Route::get('/groups', [$c, 'groups'])->name('groups');
+    Route::post('/groups', [$c, 'groupStore'])->name('groups.store');
+    Route::put('/groups/{group}', [$c, 'groupUpdate'])->name('groups.update');
+    Route::delete('/groups/{group}', [$c, 'groupDestroy'])->name('groups.destroy');
+
+    // Fanlar
+    Route::get('/subjects', [$c, 'subjects'])->name('subjects');
+    Route::post('/subjects', [$c, 'subjectStore'])->name('subjects.store');
+    Route::delete('/subjects/{subject}', [$c, 'subjectDestroy'])->name('subjects.destroy');
+
+    // O'qituvchilar
+    Route::get('/teachers', [$c, 'teachers'])->name('teachers');
+    Route::post('/teachers', [$c, 'teacherStore'])->name('teachers.store');
+    Route::put('/teachers/{teacher}', [$c, 'teacherUpdate'])->name('teachers.update');
+    Route::delete('/teachers/{teacher}', [$c, 'teacherDestroy'])->name('teachers.destroy');
+
+    // O'quvchilar
+    Route::get('/students', [$c, 'students'])->name('students');
+    Route::post('/students', [$c, 'studentStore'])->name('students.store');
+    Route::post('/students/bulk', [$c, 'studentBulk'])->name('students.bulk');
+    Route::put('/students/{student}', [$c, 'studentUpdate'])->name('students.update');
+    Route::delete('/students/{student}', [$c, 'studentDestroy'])->name('students.destroy');
+
+    // Baholar
+    Route::get('/grades', [$c, 'grades'])->name('grades');
+    Route::delete('/grades/{grade}', [$c, 'gradeDestroy'])->name('grades.destroy');
+});
+
 // ── Contest Bot Webhook (public, no auth) ───────────────────────
 Route::post('/telegram/contest-webhook/{botId}', [App\Modules\Contest\Controllers\ContestWebhookController::class, 'handle'])
     ->name('contest.webhook');
