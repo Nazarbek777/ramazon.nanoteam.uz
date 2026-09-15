@@ -240,6 +240,46 @@ class ParvozTeacherPanelController extends Controller
             : back()->with('success', $msg);
     }
 
+    /** O'qituvchi ma'lumotlarini tahrirlash */
+    public function updateTeacher(Request $request, ParvozTeacher $target)
+    {
+        if (!$this->teacher($request)) {
+            return redirect()->route('parvoz.login');
+        }
+
+        $data = $request->validate([
+            'full_name' => 'required|string|min:3|max:100',
+            'phone'     => 'nullable|string|max:30',
+        ]);
+
+        $target->update([
+            'full_name' => $data['full_name'],
+            'phone'     => $data['phone'] ?? null,
+        ]);
+
+        $msg = "✏️ Saqlandi: {$target->full_name}";
+
+        return $request->wantsJson()
+            ? response()->json(['message' => $msg, 'full_name' => $target->full_name])
+            : back()->with('success', $msg);
+    }
+
+    /** O'qituvchiga yangi kirish kodi berish */
+    public function resetTeacherCode(Request $request, ParvozTeacher $target)
+    {
+        if (!$this->teacher($request)) {
+            return redirect()->route('parvoz.login');
+        }
+
+        $target->update(['access_code' => ParvozTeacher::generateAccessCode()]);
+
+        $msg = "🔑 {$target->full_name} uchun yangi kod: {$target->access_code}";
+
+        return $request->wantsJson()
+            ? response()->json(['message' => $msg, 'code' => $target->access_code])
+            : back()->with('success', $msg);
+    }
+
     /** O'qituvchini o'chirish (o'zini o'chira olmaydi; qo'ygan ballari saqlanib qoladi) */
     public function deleteTeacher(Request $request, ParvozTeacher $target)
     {

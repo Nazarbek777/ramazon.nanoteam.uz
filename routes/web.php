@@ -131,6 +131,8 @@ Route::prefix('parvoz')->name('parvoz.')->group(function () {
     Route::post('/group/{group}/rename', [$t, 'renameGroup'])->name('group.rename');
     Route::post('/group/{group}/delete', [$t, 'deleteGroup'])->name('group.delete');
     Route::post('/teacher', [$t, 'storeTeacher'])->name('teacher.store');
+    Route::post('/teacher/{target}/update', [$t, 'updateTeacher'])->name('teacher.update');
+    Route::post('/teacher/{target}/code', [$t, 'resetTeacherCode'])->name('teacher.code');
     Route::post('/teacher/{target}/delete', [$t, 'deleteTeacher'])->name('teacher.delete');
 });
 

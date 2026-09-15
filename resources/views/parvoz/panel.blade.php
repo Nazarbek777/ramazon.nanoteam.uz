@@ -48,7 +48,7 @@
 
     <!-- ══ SARLAVHA ══ -->
     <div class="bg-slate-900 border-b border-white/10 px-4 py-3">
-        <div class="max-w-3xl mx-auto flex items-center justify-between gap-3">
+        <div class="max-w-5xl mx-auto flex items-center justify-between gap-3">
             <div class="min-w-0">
                 <p class="text-white font-bold truncate">👨‍🏫 {{ $teacher->full_name }}</p>
                 <p class="text-slate-400 text-xs">Parvoz o'quv markazi</p>
@@ -62,7 +62,7 @@
 
     <!-- ══ 3 TA BO'LIM ══ -->
     <div class="bg-slate-900 border-b border-white/10 px-4 py-2 sticky top-0 z-20">
-        <div class="max-w-3xl mx-auto grid grid-cols-3 gap-2">
+        <div class="max-w-5xl mx-auto grid grid-cols-3 gap-2">
             <button type="button" id="tab-ball" onclick="showTab('ball')" class="tab-on py-2.5 rounded-xl text-sm font-bold">⭐ Ball</button>
             <button type="button" id="tab-guruh" onclick="showTab('guruh')" class="tab-off py-2.5 rounded-xl text-sm font-bold">👥 Guruhlar</button>
             <button type="button" id="tab-oqit" onclick="showTab('oqit')" class="tab-off py-2.5 rounded-xl text-sm font-bold">🧑‍🏫 O'qituvchi</button>
@@ -71,7 +71,7 @@
 
     <div id="toast" class="fixed top-4 left-1/2 -translate-x-1/2 z-50 px-4 py-3 rounded-2xl text-sm font-bold opacity-0 pointer-events-none max-w-[90vw] text-center"></div>
 
-    <div class="max-w-3xl mx-auto px-4 py-4">
+    <div class="max-w-5xl mx-auto px-4 py-4">
 
         {{-- ═══════════════ 1-BO'LIM: BALL QO'YISH ═══════════════ --}}
         <section id="pane-ball" class="space-y-3">
@@ -153,87 +153,120 @@
         </section>
 
         {{-- ═══════════════ 2-BO'LIM: GURUHLAR ═══════════════ --}}
-        <section id="pane-guruh" class="space-y-3" x-hide>
+        <section id="pane-guruh" x-hide>
+            <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
 
-            <div class="card rounded-2xl p-4 space-y-3">
-                <p class="font-bold text-white text-sm">➕ Yangi guruh qo'shish</p>
-                <input type="text" id="ng-name" maxlength="100" placeholder="Guruh nomi (masalan: Ingliz tili A)"
-                    class="inp w-full px-4 py-3 rounded-xl text-sm">
-                <select id="ng-teacher" class="inp w-full px-4 py-3 rounded-xl text-sm">
-                    <option value="">🧑‍🏫 O'qituvchini tanlang</option>
-                    @foreach($teachers as $t)
-                        <option value="{{ $t->id }}" @selected($t->id === $teacher->id)>{{ $t->full_name }}</option>
-                    @endforeach
-                </select>
-                <button type="button" onclick="createGroup()" class="btn w-full py-3 rounded-xl font-bold text-sm">Guruh yaratish</button>
-            </div>
-
-            @forelse($groups as $g)
-                <div class="card rounded-2xl p-4 space-y-3">
-                    <div class="flex items-center justify-between gap-2">
-                        <p class="font-bold text-white truncate">👥 {{ $g->name }}</p>
-                        <span class="text-slate-500 text-xs shrink-0">{{ $g->students->count() }} o'quvchi</span>
-                    </div>
-
-                    <input type="text" id="gn-{{ $g->id }}" value="{{ $g->name }}" maxlength="100"
+                <!-- Yangi guruh kartasi -->
+                <div class="card rounded-2xl p-4 space-y-3 border-dashed border-sky-400/30">
+                    <p class="font-bold text-sky-300 text-sm">➕ Yangi guruh</p>
+                    <input type="text" id="ng-name" maxlength="100" placeholder="Guruh nomi"
                         class="inp w-full px-4 py-2.5 rounded-xl text-sm">
-
-                    <select id="gt-{{ $g->id }}" class="inp w-full px-4 py-2.5 rounded-xl text-sm">
-                        <option value="">🧑‍🏫 O'qituvchi tanlanmagan</option>
+                    <select id="ng-teacher" class="inp w-full px-4 py-2.5 rounded-xl text-sm">
+                        <option value="">🧑‍🏫 O'qituvchini tanlang</option>
                         @foreach($teachers as $t)
-                            <option value="{{ $t->id }}" @selected($g->teachers->contains('id', $t->id))>{{ $t->full_name }}</option>
+                            <option value="{{ $t->id }}" @selected($t->id === $teacher->id)>{{ $t->full_name }}</option>
                         @endforeach
                     </select>
+                    <button type="button" onclick="createGroup()" class="btn w-full py-2.5 rounded-xl font-bold text-sm">Yaratish</button>
+                </div>
 
-                    <div class="flex gap-2">
-                        <button type="button" onclick="saveGroup({{ $g->id }})" class="btn flex-1 py-2.5 rounded-xl font-bold text-sm">💾 Saqlash</button>
-                        <button type="button" onclick="deleteGroup({{ $g->id }}, @js($g->name))"
-                            class="text-rose-300 bg-rose-500/15 border border-rose-400/30 px-4 py-2.5 rounded-xl font-bold text-sm shrink-0">🗑</button>
+                <!-- Guruh kartalari -->
+                @foreach($groups as $g)
+                    <div class="card rounded-2xl p-4 space-y-3">
+                        <div class="flex items-center justify-between gap-2">
+                            <p class="font-bold text-white truncate">👥 {{ $g->name }}</p>
+                            <span class="text-xs text-sky-300 bg-sky-500/15 px-2 py-0.5 rounded-lg shrink-0">{{ $g->students->count() }}</span>
+                        </div>
+
+                        <div>
+                            <label class="block text-slate-500 text-xs mb-1">Guruh nomi</label>
+                            <input type="text" id="gn-{{ $g->id }}" value="{{ $g->name }}" maxlength="100"
+                                class="inp w-full px-4 py-2.5 rounded-xl text-sm">
+                        </div>
+
+                        <div>
+                            <label class="block text-slate-500 text-xs mb-1">O'qituvchi</label>
+                            <select id="gt-{{ $g->id }}" class="inp w-full px-4 py-2.5 rounded-xl text-sm">
+                                <option value="">🧑‍🏫 Tanlanmagan</option>
+                                @foreach($teachers as $t)
+                                    <option value="{{ $t->id }}" @selected($g->teachers->contains('id', $t->id))>{{ $t->full_name }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+
+                        <div class="flex gap-2">
+                            <button type="button" onclick="saveGroup({{ $g->id }})" class="btn flex-1 py-2.5 rounded-xl font-bold text-sm">💾 Saqlash</button>
+                            <button type="button" onclick="deleteGroup({{ $g->id }}, @js($g->name))"
+                                class="text-rose-300 bg-rose-500/15 border border-rose-400/30 px-3.5 py-2.5 rounded-xl font-bold text-sm shrink-0">🗑</button>
+                        </div>
                     </div>
-                </div>
-            @empty
-                <div class="card rounded-2xl p-8 text-center">
-                    <p class="text-slate-400 text-sm">Hali guruh yo'q. Yuqoridan qo'shing.</p>
-                </div>
-            @endforelse
+                @endforeach
+            </div>
+
+            @if($groups->isEmpty())
+                <p class="text-slate-500 text-sm text-center mt-4">Hali guruh yo'q — chapdagi kartadan yarating.</p>
+            @endif
         </section>
 
         {{-- ═══════════════ 3-BO'LIM: O'QITUVCHILAR ═══════════════ --}}
-        <section id="pane-oqit" class="space-y-3" x-hide>
+        <section id="pane-oqit" x-hide>
+            <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
 
-            <div class="card rounded-2xl p-4 space-y-3">
-                <p class="font-bold text-white text-sm">➕ Yangi o'qituvchi qo'shish</p>
-                <input type="text" id="nt-name" maxlength="100" placeholder="F.I.O (masalan: Aliyev Alisher)"
-                    class="inp w-full px-4 py-3 rounded-xl text-sm">
-                <input type="text" id="nt-phone" maxlength="30" placeholder="Telefon (ixtiyoriy)"
-                    class="inp w-full px-4 py-3 rounded-xl text-sm">
-                <button type="button" onclick="createTeacher()" class="btn w-full py-3 rounded-xl font-bold text-sm">O'qituvchi qo'shish</button>
-                <p class="text-slate-500 text-xs">Qo'shilgach unga 6 xonali kirish kodi beriladi.</p>
-            </div>
+                <!-- Yangi o'qituvchi kartasi -->
+                <div class="card rounded-2xl p-4 space-y-3 border-dashed border-sky-400/30">
+                    <p class="font-bold text-sky-300 text-sm">➕ Yangi o'qituvchi</p>
+                    <input type="text" id="nt-name" maxlength="100" placeholder="F.I.O"
+                        class="inp w-full px-4 py-2.5 rounded-xl text-sm">
+                    <input type="text" id="nt-phone" maxlength="30" placeholder="Telefon (ixtiyoriy)"
+                        class="inp w-full px-4 py-2.5 rounded-xl text-sm">
+                    <button type="button" onclick="createTeacher()" class="btn w-full py-2.5 rounded-xl font-bold text-sm">Qo'shish</button>
+                    <p class="text-slate-500 text-xs">Kirish kodi avtomatik beriladi.</p>
+                </div>
 
-            @foreach($teachers as $t)
-                <div class="card rounded-2xl p-4">
-                    <div class="flex items-center justify-between gap-3">
-                        <div class="min-w-0">
+                <!-- O'qituvchi kartalari -->
+                @foreach($teachers as $t)
+                    <div class="card rounded-2xl p-4 space-y-3">
+                        <div class="flex items-center justify-between gap-2">
                             <p class="font-bold text-white truncate">
-                                {{ $t->full_name }}
+                                🧑‍🏫 {{ $t->full_name }}
                                 @if($t->id === $teacher->id)
-                                    <span class="text-emerald-300 text-xs font-semibold">(siz)</span>
+                                    <span class="text-emerald-300 text-xs">(siz)</span>
                                 @endif
                             </p>
-                            <p class="text-slate-400 text-xs">{{ $t->phone ?: '—' }} · {{ $t->grades_count }} ta ball</p>
-                            <p class="text-xs mt-1">
-                                <span class="text-slate-500">Kirish kodi:</span>
-                                <b class="font-mono text-amber-300 tracking-widest">{{ $t->access_code }}</b>
-                            </p>
+                            <span class="text-xs text-slate-400 shrink-0">{{ $t->grades_count }} ball</span>
                         </div>
-                        @if($t->id !== $teacher->id)
-                            <button type="button" onclick="deleteTeacher({{ $t->id }}, @js($t->full_name))"
-                                class="text-rose-300 bg-rose-500/15 border border-rose-400/30 px-3 py-2 rounded-xl text-sm shrink-0">🗑</button>
-                        @endif
+
+                        <div>
+                            <label class="block text-slate-500 text-xs mb-1">F.I.O</label>
+                            <input type="text" id="tn-{{ $t->id }}" value="{{ $t->full_name }}" maxlength="100"
+                                class="inp w-full px-4 py-2.5 rounded-xl text-sm">
+                        </div>
+
+                        <div>
+                            <label class="block text-slate-500 text-xs mb-1">Telefon</label>
+                            <input type="text" id="tp-{{ $t->id }}" value="{{ $t->phone }}" maxlength="30" placeholder="—"
+                                class="inp w-full px-4 py-2.5 rounded-xl text-sm">
+                        </div>
+
+                        <div class="bg-amber-500/10 border border-amber-400/20 rounded-xl px-3 py-2 flex items-center justify-between gap-2">
+                            <span class="text-xs text-slate-400">Kirish kodi</span>
+                            <span class="flex items-center gap-2">
+                                <b class="font-mono text-amber-300 tracking-widest text-sm">{{ $t->access_code }}</b>
+                                <button type="button" onclick="resetCode({{ $t->id }}, @js($t->full_name))"
+                                    class="text-amber-300/70 hover:text-amber-300 text-xs" title="Yangi kod berish">🔄</button>
+                            </span>
+                        </div>
+
+                        <div class="flex gap-2">
+                            <button type="button" onclick="saveTeacher({{ $t->id }})" class="btn flex-1 py-2.5 rounded-xl font-bold text-sm">💾 Saqlash</button>
+                            @if($t->id !== $teacher->id)
+                                <button type="button" onclick="deleteTeacher({{ $t->id }}, @js($t->full_name))"
+                                    class="text-rose-300 bg-rose-500/15 border border-rose-400/30 px-3.5 py-2.5 rounded-xl font-bold text-sm shrink-0">🗑</button>
+                            @endif
+                        </div>
                     </div>
-                </div>
-            @endforeach
+                @endforeach
+            </div>
         </section>
     </div>
 
@@ -470,6 +503,26 @@
             if (full_name.length < 3) { toast("F.I.O ni to'liq yozing.", false); return; }
             try {
                 const d = await api(BASE + '/teacher', { full_name, phone: document.getElementById('nt-phone').value.trim() || null });
+                toast(d.message); reload();
+            } catch (e) { if (e.message !== 'session') toast(e.message, false); }
+        }
+
+        async function saveTeacher(id) {
+            const full_name = document.getElementById('tn-' + id).value.trim();
+            if (full_name.length < 3) { toast("F.I.O ni to'liq yozing.", false); return; }
+            try {
+                const d = await api(BASE + '/teacher/' + id + '/update', {
+                    full_name,
+                    phone: document.getElementById('tp-' + id).value.trim() || null,
+                });
+                toast(d.message); reload();
+            } catch (e) { if (e.message !== 'session') toast(e.message, false); }
+        }
+
+        async function resetCode(id, name) {
+            if (!confirm(name + " uchun yangi kirish kodi berilsinmi?\n\nEski kod ishlamay qoladi.")) return;
+            try {
+                const d = await api(BASE + '/teacher/' + id + '/code', {});
                 toast(d.message); reload();
             } catch (e) { if (e.message !== 'session') toast(e.message, false); }
         }
