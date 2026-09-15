@@ -123,6 +123,49 @@ class ParvozTeacherPanelController extends Controller
         return back()->with('success', "✅ {$student->full_name} — {$grade->scoreLabel()} saqlandi.");
     }
 
+    /** O'quvchi ismini tahrirlash */
+    public function renameStudent(Request $request, ParvozStudent $student)
+    {
+        $teacher = $this->teacher($request);
+        if (!$teacher) {
+            return redirect()->route('parvoz.login');
+        }
+        abort_unless($this->canManage($teacher, $student), 403);
+
+        $data = $request->validate(['full_name' => 'required|string|min:3|max:100']);
+        $student->update(['full_name' => $data['full_name']]);
+
+        return back()->with('success', "✏️ Ism yangilandi: {$student->full_name}");
+    }
+
+    /** O'quvchini bloklash (panel va botdan yashiriladi) */
+    public function blockStudent(Request $request, ParvozStudent $student)
+    {
+        $teacher = $this->teacher($request);
+        if (!$teacher) {
+            return redirect()->route('parvoz.login');
+        }
+        abort_unless($this->canManage($teacher, $student), 403);
+
+        $student->update(['is_active' => false]);
+
+        return back()->with('success', "🚫 {$student->full_name} bloklandi. (Qayta ochish — admin panelda)");
+    }
+
+    /** O'qituvchi shu o'quvchini boshqara oladimi (panelda ko'rinish qoidasi bilan bir xil) */
+    protected function canManage(ParvozTeacher $teacher, ParvozStudent $student): bool
+    {
+        if ($student->parvoz_group_id === null) {
+            return true;
+        }
+
+        if ($teacher->groups()->count() === 0) {
+            return true;
+        }
+
+        return $teacher->groups()->where('parvoz_groups.id', $student->parvoz_group_id)->exists();
+    }
+
     /** O'quvchiga bot orqali xabar (bot ulanmagan bo'lsa jimgina o'tib ketadi) */
     protected function notifyStudent(ParvozStudent $student, ParvozTeacher $teacher, ParvozGrade $grade): void
     {

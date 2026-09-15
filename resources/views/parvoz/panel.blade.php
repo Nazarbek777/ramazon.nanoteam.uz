@@ -93,17 +93,17 @@
 
                     @foreach($section->students as $student)
                         <div class="border-b border-white/5 last:border-b-0"
-                            x-data="{ open: false }"
+                            x-data="{ open: false, editName: false }"
                             x-show="search === '' || '{{ mb_strtolower($student->full_name) }}'.includes(search.toLowerCase())">
-                            <form method="POST" action="{{ route('parvoz.grade.store') }}" class="px-4 py-3">
+                            <form method="POST" action="{{ route('parvoz.grade.store') }}" class="px-4 pt-3 pb-3">
                                 @csrf
                                 <input type="hidden" name="student_id" value="{{ $student->id }}">
 
                                 <div class="flex items-center gap-2">
                                     <button type="button" @click="open = !open" class="flex-1 text-left min-w-0">
                                         <p class="text-white font-semibold text-sm truncate">{{ $student->full_name }}</p>
-                                        <p class="text-slate-500 text-xs">
-                                            {{ $student->telegram_id ? '✅ botga ulangan' : '⏳ botga ulanmagan' }}
+                                        <p class="text-slate-500 text-xs truncate">
+                                            📞 {{ $student->phone ?? '—' }} · {{ $student->telegram_id ? '✅ bot' : '⏳ bot yo\'q' }}
                                         </p>
                                     </button>
 
@@ -127,6 +127,31 @@
                                         class="input-dark w-full px-3 py-2.5 rounded-xl text-sm">
                                 </div>
                             </form>
+
+                            <!-- O'quvchini boshqarish: ism tahrirlash / bloklash -->
+                            <div x-show="open" x-cloak class="px-4 pb-3 pt-2">
+                                <div class="flex items-center gap-2">
+                                    <button type="button" @click="editName = !editName"
+                                        class="flex-1 text-center text-xs font-semibold text-sky-300 bg-sky-500/10 border border-sky-400/20 px-3 py-2 rounded-xl">
+                                        ✏️ Ismni tahrirlash
+                                    </button>
+                                    <form method="POST" action="{{ route('parvoz.student.block', $student) }}" class="flex-1"
+                                        onsubmit="return confirm('{{ $student->full_name }} bloklansinmi? U panelda ko\'rinmay qoladi.')">
+                                        @csrf
+                                        <button class="w-full text-center text-xs font-semibold text-rose-300 bg-rose-500/10 border border-rose-400/20 px-3 py-2 rounded-xl">
+                                            🚫 Bloklash
+                                        </button>
+                                    </form>
+                                </div>
+
+                                <form x-show="editName" x-cloak method="POST" action="{{ route('parvoz.student.rename', $student) }}"
+                                    class="flex items-center gap-2 mt-2">
+                                    @csrf
+                                    <input type="text" name="full_name" value="{{ $student->full_name }}" required minlength="3" maxlength="100"
+                                        class="input-dark flex-1 px-3 py-2.5 rounded-xl text-sm">
+                                    <button class="btn-primary px-4 py-2.5 rounded-xl font-bold text-white text-sm shrink-0">Saqlash</button>
+                                </form>
+                            </div>
                         </div>
                     @endforeach
                 </div>
