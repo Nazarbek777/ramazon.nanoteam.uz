@@ -458,6 +458,7 @@ class ParvozWebhookController
 
         $grade = ParvozGrade::create([
             'parvoz_student_id' => $student->id,
+            'parvoz_group_id'   => $payload['group_id'] ?? null,
             'parvoz_teacher_id' => $teacher->id,
             'parvoz_subject_id' => $payload['subject_id'] ?? null,
             'score'             => $payload['score'],
@@ -535,7 +536,7 @@ class ParvozWebhookController
 
     protected function studentGrades(int $chatId, ParvozStudent $student): void
     {
-        $grades = $student->grades()->with(['subject', 'teacher'])->latest('graded_at')->limit(30)->get();
+        $grades = $student->grades()->with(['subject', 'teacher', 'group'])->latest('graded_at')->limit(50)->get();
 
         if ($grades->isEmpty()) {
             $this->telegram->sendMessage($chatId, "📭 Sizda hali baho yo'q.");
@@ -543,12 +544,19 @@ class ParvozWebhookController
         }
 
         $text = "📊 <b>Baholaringiz:</b>\n\n";
-        foreach ($grades->groupBy(fn ($g) => $g->subject?->name ?? 'Umumiy') as $subject => $rows) {
-            $text .= "📚 <b>{$subject}</b>\n";
-            foreach ($rows as $g) {
-                $date = $g->graded_at?->format('d.m.Y') ?? '';
-                $text .= "   • <b>{$g->scoreLabel()}</b> — {$date}" . ($g->comment ? " ({$g->comment})" : '') . "\n";
+
+        // Har bir guruh alohida — bir guruhdagi ball boshqasiga aralashmaydi
+        foreach ($grades->groupBy(fn ($g) => $g->group?->name ?? 'Guruhsiz') as $groupName => $groupRows) {
+            $text .= "👥 <b>{$groupName}</b>\n";
+
+            foreach ($groupRows->groupBy(fn ($g) => $g->subject?->name ?? 'Umumiy') as $subject => $rows) {
+                $text .= "  📚 {$subject}\n";
+                foreach ($rows as $g) {
+                    $date = $g->graded_at?->format('d.m.Y') ?? '';
+                    $text .= "     • <b>{$g->scoreLabel()}</b> — {$date}" . ($g->comment ? " ({$g->comment})" : '') . "\n";
+                }
             }
+
             $text .= "\n";
         }
 
@@ -565,7 +573,17 @@ class ParvozWebhookController
         }
 
         $text = "📈 <b>O'rtacha ball</b>\n\n";
-        $text .= "⭐ Umumiy o'rtacha: <b>{$student->averageScore()}</b>\n";
+
+        // Guruhlar bo'yicha alohida o'rtacha
+        $byGroup = $student->grades()->with('group')->get()
+            ->groupBy(fn ($g) => $g->group?->name ?? 'Guruhsiz');
+
+        foreach ($byGroup as $groupName => $rows) {
+            $avg = round($rows->avg('score'), 2);
+            $text .= "👥 <b>{$groupName}</b>: <b>{$avg}</b> ({$rows->count()} ta ball)\n";
+        }
+
+        $text .= "\n⭐ Umumiy o'rtacha: <b>{$student->averageScore()}</b>\n";
 
         if ($percent = $student->averagePercent()) {
             $text .= "📊 Foizda: <b>{$percent}%</b>\n";
@@ -603,14 +621,17 @@ class ParvozWebhookController
         foreach ($groups as $group) {
             $students = ParvozStudent::whereHas('groups', fn ($q) => $q->where('parvoz_groups.id', $group->id))
                 ->where('is_active', true)
-                ->withAvg('grades', 'score')
-                ->orderByDesc('grades_avg_score')
+                ->withAvg(
+                    ['grades as group_avg' => fn ($q) => $q->where('parvoz_group_id', $group->id)],
+                    'score'
+                )
+                ->orderByDesc('group_avg')
                 ->get();
 
             $text .= "🏆 <b>Reyting — {$group->name}</b>\n\n";
 
             foreach ($students as $i => $s) {
-                $avg   = $s->grades_avg_score ? round((float) $s->grades_avg_score, 2) : '—';
+                $avg   = $s->group_avg ? round((float) $s->group_avg, 2) : '—';
                 $medal = match ($i) { 0 => '🥇', 1 => '🥈', 2 => '🥉', default => ($i + 1) . '.' };
                 $me    = $s->id === $student->id ? ' 👈' : '';
                 $text .= "{$medal} {$s->full_name} — <b>{$avg}</b>{$me}\n";

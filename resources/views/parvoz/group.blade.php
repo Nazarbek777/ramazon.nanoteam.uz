@@ -80,8 +80,8 @@
                             <p class="text-slate-500 text-xs truncate">
                                 📞 {{ $st->phone ?: '—' }}
                                 {{ $st->telegram_id ? '· ✅ botda' : '· ⏳ botsiz' }}
-                                @if($st->grades_avg_score)
-                                    · 📈 {{ round((float) $st->grades_avg_score, 1) }}
+                                @if($st->group_grades_count)
+                                    · 📈 {{ round((float) $st->group_avg, 1) }} ({{ $st->group_grades_count }} ball)
                                 @endif
                             </p>
                         </div>
@@ -216,6 +216,7 @@
             try {
                 const d = await api(BASE + '/grade', {
                     student_id: row.dataset.id,
+                    group_id: GROUP_ID,
                     score,
                     subject_id: subjectEl ? (subjectEl.value || null) : null,
                     comment: commentEl ? (commentEl.value.trim() || null) : null,

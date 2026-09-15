@@ -11,6 +11,7 @@ class ParvozGrade extends Model
 
     protected $fillable = [
         'parvoz_student_id',
+        'parvoz_group_id',
         'parvoz_teacher_id',
         'parvoz_subject_id',
         'score',
@@ -28,6 +29,11 @@ class ParvozGrade extends Model
     public function student(): BelongsTo
     {
         return $this->belongsTo(ParvozStudent::class, 'parvoz_student_id');
+    }
+
+    public function group(): BelongsTo
+    {
+        return $this->belongsTo(ParvozGroup::class, 'parvoz_group_id');
     }
 
     public function teacher(): BelongsTo

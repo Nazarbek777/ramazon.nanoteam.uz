@@ -101,7 +101,8 @@ class ParvozTeacherPanelController extends Controller
 
         $students = $group->students()
             ->where('is_active', true)
-            ->withAvg('grades', 'score')
+            ->withAvg(['grades as group_avg' => fn ($q) => $q->where('parvoz_group_id', $group->id)], 'score')
+            ->withCount(['grades as group_grades_count' => fn ($q) => $q->where('parvoz_group_id', $group->id)])
             ->orderBy('full_name')
             ->get();
 
@@ -114,7 +115,7 @@ class ParvozTeacherPanelController extends Controller
 
         $subjects = ParvozSubject::orderBy('name')->get();
 
-        $recent = ParvozGrade::whereIn('parvoz_student_id', $students->pluck('id'))
+        $recent = ParvozGrade::where('parvoz_group_id', $group->id)
             ->with(['student', 'subject', 'teacher'])
             ->latest('graded_at')
             ->limit(15)
@@ -132,6 +133,7 @@ class ParvozTeacherPanelController extends Controller
 
         $data = $request->validate([
             'student_id' => 'required|exists:parvoz_students,id',
+            'group_id'   => 'required|exists:parvoz_groups,id',
             'score'      => 'required|string|max:20',
             'subject_id' => 'nullable|exists:parvoz_subjects,id',
             'comment'    => 'nullable|string|max:500',
@@ -157,8 +159,9 @@ class ParvozTeacherPanelController extends Controller
 
         $student = ParvozStudent::findOrFail($data['student_id']);
 
-        if (!$student->groups()->exists()) {
-            $msg = "❌ {$student->full_name} hech qaysi guruhda emas. Avval guruhga qo'shing.";
+        // Ball faqat o'quvchi a'zo bo'lgan guruh ichida qo'yiladi
+        if (!$student->groups()->where('parvoz_groups.id', $data['group_id'])->exists()) {
+            $msg = "❌ {$student->full_name} bu guruhda emas.";
             return $request->wantsJson()
                 ? response()->json(['message' => $msg], 422)
                 : back()->withErrors(['student_id' => $msg]);
@@ -166,6 +169,7 @@ class ParvozTeacherPanelController extends Controller
 
         $grade = ParvozGrade::create([
             'parvoz_student_id' => $student->id,
+            'parvoz_group_id'   => $data['group_id'],
             'parvoz_teacher_id' => $teacher->id,
             'parvoz_subject_id' => $data['subject_id'] ?? null,
             'score'             => $score,
