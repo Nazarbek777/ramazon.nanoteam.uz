@@ -83,9 +83,7 @@
 
                 <select id="gfilter" onchange="applyFilter()" class="inp w-full px-4 py-3 rounded-2xl text-sm font-semibold">
                     @foreach($groups as $g)
-                        <option value="g{{ $g->id }}" @selected(in_array($g->id, $myGroupIds) && $loop->first)>
-                            👥 {{ $g->name }} ({{ $g->students->count() }} ta)
-                        </option>
+                        <option value="g{{ $g->id }}" data-gopt="{{ $g->id }}" @selected(in_array($g->id, $myGroupIds) && $loop->first)>👥 {{ $g->name }} ({{ $g->students->count() }} ta)</option>
                     @endforeach
                 </select>
 
@@ -155,7 +153,7 @@
                     <div class="card rounded-2xl p-4 space-y-3">
                         <div class="flex items-center justify-between gap-2">
                             <p class="font-bold text-white truncate">👥 {{ $g->name }}</p>
-                            <span class="text-xs text-sky-300 bg-sky-500/15 px-2 py-0.5 rounded-lg shrink-0">{{ $g->students->count() }}</span>
+                            <span data-gcount="{{ $g->id }}" class="text-xs text-sky-300 bg-sky-500/15 px-2 py-0.5 rounded-lg shrink-0">{{ $g->students->count() }}</span>
                         </div>
 
                         <div>
@@ -406,15 +404,44 @@
             return d;
         }
 
-        function reload() { setTimeout(() => location.reload(), 800); }
+        // Sahifa qayta yuklansa ham xabar va ochiq bo'lim saqlanadi
+        function reload(msg) {
+            if (msg) sessionStorage.setItem('parvozToast', msg);
+            location.reload();
+        }
+
+        // Ro'yxatlar eskirdimi (o'quvchi qo'shildi/chiqarildi) — faqat kerak bo'lganda yangilaymiz
+        let stale = false;
 
         function showTab(name) {
+            // Eskirgan ro'yxatli bo'limga o'tishda — bir marta yangilaymiz
+            if (stale && (name === 'ball' || name === 'oquv')) {
+                sessionStorage.setItem('parvozTab', name);
+                location.reload();
+                return;
+            }
+
             ['ball', 'guruh', 'oquv', 'oqit'].forEach(k => {
                 document.getElementById('pane-' + k).toggleAttribute('x-hide', k !== name);
                 const b = document.getElementById('tab-' + k);
                 b.className = b.className.replace(/tab-(on|off)/, k === name ? 'tab-on' : 'tab-off');
             });
+
+            sessionStorage.setItem('parvozTab', name);
             window.scrollTo(0, 0);
+        }
+
+        /** Guruhdagi o'quvchilar sonini joyida yangilash */
+        function updateCounts() {
+            GROUPS.forEach(g => {
+                const n = STUDENTS.filter(s => s.group === g.id).length;
+
+                const badge = document.querySelector('[data-gcount="' + g.id + '"]');
+                if (badge) badge.textContent = n;
+
+                const opt = document.querySelector('[data-gopt="' + g.id + '"]');
+                if (opt) opt.textContent = '👥 ' + g.name + ' (' + n + ' ta)';
+            });
         }
 
         // ── Ball bo'limi filtri ───────────────────────────────
@@ -534,31 +561,48 @@
         function closeMembers() { document.getElementById('members').setAttribute('x-hide', ''); }
 
         async function addExisting() {
-            const id = document.getElementById('mb-pick').value;
+            const id = Number(document.getElementById('mb-pick').value);
             if (!id) { toast("O'quvchini tanlang.", false); return; }
             try {
                 const d = await api(BASE + '/student/' + id + '/group', { group_id: mbGroup });
-                toast(d.message); reload();
+                const s = STUDENTS.find(x => x.id === id);
+                if (s) s.group = mbGroup;
+                stale = true;
+                toast(d.message);
+                openMembers(mbGroup);
+                updateCounts();
             } catch (e) { if (e.message !== 'session') toast(e.message, false); }
         }
 
         async function addNew() {
-            const full_name = document.getElementById('mb-name').value.trim();
+            const nameEl = document.getElementById('mb-name');
+            const phoneEl = document.getElementById('mb-phone');
+            const full_name = nameEl.value.trim();
             if (full_name.length < 3) { toast("Ism familiyani to'liq yozing.", false); return; }
+
             try {
-                const d = await api(BASE + '/student', {
-                    full_name,
-                    phone: document.getElementById('mb-phone').value.trim() || null,
-                    group_id: mbGroup,
-                });
-                toast(d.message); reload();
+                const phone = phoneEl.value.trim() || null;
+                const d = await api(BASE + '/student', { full_name, phone, group_id: mbGroup });
+                STUDENTS.push({ id: d.id, name: full_name, phone: phone, group: mbGroup });
+                stale = true;
+                toast(d.message);
+                nameEl.value = '';
+                phoneEl.value = '';
+                openMembers(mbGroup);
+                updateCounts();
+                nameEl.focus();
             } catch (e) { if (e.message !== 'session') toast(e.message, false); }
         }
 
         async function removeFromGroup(id) {
             try {
                 const d = await api(BASE + '/student/' + id + '/group', { group_id: null });
-                toast(d.message); reload();
+                const s = STUDENTS.find(x => x.id === id);
+                if (s) s.group = null;
+                stale = true;
+                toast(d.message);
+                openMembers(mbGroup);
+                updateCounts();
             } catch (e) { if (e.message !== 'session') toast(e.message, false); }
         }
 
@@ -572,7 +616,8 @@
                     phone: document.getElementById('ns-phone').value.trim() || null,
                     group_id: document.getElementById('ns-group').value || null,
                 });
-                toast(d.message); reload();
+                toast(d.message);
+                reload(d.message);
             } catch (e) { if (e.message !== 'session') toast(e.message, false); }
         }
 
@@ -580,18 +625,29 @@
             const full_name = document.getElementById('sn-' + id).value.trim();
             if (full_name.length < 3) { toast("Ism juda qisqa.", false); return; }
             try {
-                const d = await api(BASE + '/student/' + id + '/rename', {
-                    full_name,
-                    phone: document.getElementById('sp-' + id).value.trim() || null,
-                });
+                const phone = document.getElementById('sp-' + id).value.trim() || null;
+                const d = await api(BASE + '/student/' + id + '/rename', { full_name, phone });
+
+                const s = STUDENTS.find(x => x.id === id);
+                if (s) { s.name = full_name; s.phone = phone; }
+
+                // Ball bo'limidagi qatorda ham yangilaymiz
+                const row = document.querySelector('.js-row[data-id="' + id + '"]');
+                if (row) row.querySelector('.js-name').textContent = full_name;
+
                 toast(d.message);
             } catch (e) { if (e.message !== 'session') toast(e.message, false); }
         }
 
         async function setGroup(id) {
             try {
-                const d = await api(BASE + '/student/' + id + '/group', { group_id: document.getElementById('sg-' + id).value || null });
-                toast(d.message); reload();
+                const gid = Number(document.getElementById('sg-' + id).value) || null;
+                const d = await api(BASE + '/student/' + id + '/group', { group_id: gid });
+                const s = STUDENTS.find(x => x.id === id);
+                if (s) s.group = gid;
+                stale = true;
+                toast(d.message);
+                updateCounts();
             } catch (e) { if (e.message !== 'session') toast(e.message, false); }
         }
 
@@ -599,7 +655,15 @@
             if (!confirm(name + " bloklansinmi? Ro'yxatdan yo'qoladi.")) return;
             try {
                 const d = await api(BASE + '/student/' + id + '/block', {});
-                toast(d.message); reload();
+                const i = STUDENTS.findIndex(x => x.id === id);
+                if (i > -1) STUDENTS.splice(i, 1);
+
+                document.getElementById('sn-' + id)?.closest('.js-scard')?.remove();
+                document.querySelector('.js-row[data-id="' + id + '"]')?.remove();
+
+                stale = true;
+                toast(d.message);
+                updateCounts();
             } catch (e) { if (e.message !== 'session') toast(e.message, false); }
         }
 
@@ -609,7 +673,7 @@
             if (name.length < 2) { toast("Guruh nomini yozing.", false); return; }
             try {
                 const d = await api(BASE + '/group', { name, teacher_id: document.getElementById('ng-teacher').value || null });
-                toast(d.message); reload();
+                reload(d.message);
             } catch (e) { if (e.message !== 'session') toast(e.message, false); }
         }
 
@@ -618,7 +682,7 @@
             if (name.length < 2) { toast("Guruh nomini yozing.", false); return; }
             try {
                 const d = await api(BASE + '/group/' + id + '/rename', { name, teacher_id: document.getElementById('gt-' + id).value || null });
-                toast(d.message); reload();
+                reload(d.message);
             } catch (e) { if (e.message !== 'session') toast(e.message, false); }
         }
 
@@ -626,7 +690,7 @@
             if (!confirm('"' + name + '" o\'chirilsinmi?\n\nO\'quvchilari o\'chmaydi — guruhsiz bo\'lib qoladi.')) return;
             try {
                 const d = await api(BASE + '/group/' + id + '/delete', {});
-                toast(d.message); reload();
+                reload(d.message);
             } catch (e) { if (e.message !== 'session') toast(e.message, false); }
         }
 
@@ -636,7 +700,7 @@
             if (full_name.length < 3) { toast("F.I.O ni to'liq yozing.", false); return; }
             try {
                 const d = await api(BASE + '/teacher', { full_name, phone: document.getElementById('nt-phone').value.trim() || null });
-                toast(d.message); reload();
+                reload(d.message);
             } catch (e) { if (e.message !== 'session') toast(e.message, false); }
         }
 
@@ -645,7 +709,7 @@
             if (full_name.length < 3) { toast("F.I.O ni to'liq yozing.", false); return; }
             try {
                 const d = await api(BASE + '/teacher/' + id + '/update', { full_name, phone: document.getElementById('tp-' + id).value.trim() || null });
-                toast(d.message); reload();
+                reload(d.message);
             } catch (e) { if (e.message !== 'session') toast(e.message, false); }
         }
 
@@ -653,7 +717,7 @@
             if (!confirm(name + " uchun yangi kirish kodi berilsinmi?\n\nEski kod ishlamay qoladi.")) return;
             try {
                 const d = await api(BASE + '/teacher/' + id + '/code', {});
-                toast(d.message); reload();
+                reload(d.message);
             } catch (e) { if (e.message !== 'session') toast(e.message, false); }
         }
 
@@ -661,7 +725,7 @@
             if (!confirm(name + " o'chirilsinmi?")) return;
             try {
                 const d = await api(BASE + '/teacher/' + id + '/delete', {});
-                toast(d.message); reload();
+                reload(d.message);
             } catch (e) { if (e.message !== 'session') toast(e.message, false); }
         }
 
@@ -679,6 +743,15 @@
         });
 
         applyFilter();
+
+        // Qayta yuklangandan keyin: oxirgi bo'lim va xabarni tiklaymiz
+        (function restore() {
+            const msg = sessionStorage.getItem('parvozToast');
+            if (msg) { sessionStorage.removeItem('parvozToast'); toast(msg); }
+
+            const tab = sessionStorage.getItem('parvozTab');
+            if (tab && tab !== 'ball' && document.getElementById('pane-' + tab)) showTab(tab);
+        })();
     </script>
 </body>
 
