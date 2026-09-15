@@ -58,16 +58,19 @@ class ParvozTeacherPanelController extends Controller
             return redirect()->route('parvoz.login');
         }
 
-        $groups = $teacher->groups()
-            ->with(['students' => fn ($q) => $q->where('is_active', true)->orderBy('full_name')])
+        // Barcha guruhlar (bo'shlari ham) — panel to'liq nazorat beradi
+        $groups = \App\Modules\Parvoz\Models\ParvozGroup::where('is_active', true)
+            ->with([
+                'students' => fn ($q) => $q->where('is_active', true)->orderBy('full_name'),
+                'teachers',
+            ])
             ->orderBy('name')
             ->get();
 
-        // Guruh biriktirilmagan bo'lsa — barcha o'quvchilar;
-        // aks holda botdan o'zi ro'yxatdan o'tgan (hali guruhsiz) o'quvchilar ham ko'rinsin
-        $ungrouped = $groups->isEmpty()
-            ? ParvozStudent::where('is_active', true)->orderBy('full_name')->get()
-            : ParvozStudent::whereNull('parvoz_group_id')->where('is_active', true)->orderBy('full_name')->get();
+        $ungrouped = ParvozStudent::whereNull('parvoz_group_id')
+            ->where('is_active', true)
+            ->orderBy('full_name')
+            ->get();
 
         $subjects = ParvozSubject::orderBy('name')->get();
 
@@ -196,18 +199,68 @@ class ParvozTeacherPanelController extends Controller
             : back()->with('success', $msg);
     }
 
-    /** O'qituvchi shu o'quvchini boshqara oladimi (panelda ko'rinish qoidasi bilan bir xil) */
+    /** Panelga kod bilan kirgan o'qituvchi barcha o'quvchilarni boshqara oladi (to'liq nazorat) */
     protected function canManage(ParvozTeacher $teacher, ParvozStudent $student): bool
     {
-        if ($student->parvoz_group_id === null) {
-            return true;
+        return true;
+    }
+
+    // ─────────────────────────────────────────────── Guruh boshqaruvi
+
+    /** Yangi guruh yaratish (yaratgan o'qituvchi unga avtomatik biriktiriladi) */
+    public function storeGroup(Request $request)
+    {
+        $teacher = $this->teacher($request);
+        if (!$teacher) {
+            return redirect()->route('parvoz.login');
         }
 
-        if ($teacher->groups()->count() === 0) {
-            return true;
+        $data = $request->validate(['name' => 'required|string|min:2|max:100|unique:parvoz_groups,name']);
+
+        $group = \App\Modules\Parvoz\Models\ParvozGroup::create(['name' => $data['name'], 'is_active' => true]);
+        $group->teachers()->attach($teacher->id);
+
+        $msg = "✅ \"{$group->name}\" guruhi yaratildi.";
+
+        return $request->wantsJson()
+            ? response()->json(['message' => $msg, 'id' => $group->id])
+            : back()->with('success', $msg);
+    }
+
+    /** Guruh nomini o'zgartirish */
+    public function renameGroup(Request $request, \App\Modules\Parvoz\Models\ParvozGroup $group)
+    {
+        $teacher = $this->teacher($request);
+        if (!$teacher) {
+            return redirect()->route('parvoz.login');
         }
 
-        return $teacher->groups()->where('parvoz_groups.id', $student->parvoz_group_id)->exists();
+        $data = $request->validate(['name' => 'required|string|min:2|max:100|unique:parvoz_groups,name,' . $group->id]);
+        $group->update(['name' => $data['name']]);
+
+        $msg = "✏️ Guruh nomi yangilandi: {$group->name}";
+
+        return $request->wantsJson()
+            ? response()->json(['message' => $msg])
+            : back()->with('success', $msg);
+    }
+
+    /** Guruhni o'chirish (o'quvchilari guruhsiz bo'lib qoladi, o'chmaydi) */
+    public function deleteGroup(Request $request, \App\Modules\Parvoz\Models\ParvozGroup $group)
+    {
+        $teacher = $this->teacher($request);
+        if (!$teacher) {
+            return redirect()->route('parvoz.login');
+        }
+
+        $name = $group->name;
+        $group->delete();
+
+        $msg = "🗑 \"{$name}\" guruhi o'chirildi. O'quvchilari guruhsiz bo'limiga o'tdi.";
+
+        return $request->wantsJson()
+            ? response()->json(['message' => $msg])
+            : back()->with('success', $msg);
     }
 
     /** O'quvchiga bot orqali xabar (bot ulanmagan bo'lsa jimgina o'tib ketadi) */

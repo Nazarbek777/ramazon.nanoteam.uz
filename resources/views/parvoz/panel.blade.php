@@ -52,6 +52,10 @@
         #toast {
             transition: opacity .3s ease;
         }
+
+        #sidebar {
+            transition: transform .25s ease;
+        }
     </style>
 </head>
 
@@ -59,9 +63,12 @@
     <!-- Header -->
     <div class="sticky top-0 z-20 glass-card border-b border-white/10 px-4 py-3 flex items-center justify-between"
         style="background: rgba(15, 23, 42, 0.9);">
-        <div>
-            <p class="text-white font-bold leading-tight">👨‍🏫 {{ $teacher->full_name }}</p>
-            <p class="text-slate-400 text-xs">Parvoz o'quv markazi</p>
+        <div class="flex items-center gap-3 min-w-0">
+            <button type="button" onclick="toggleSidebar()" class="lg:hidden text-white bg-white/10 px-3 py-2 rounded-xl text-sm shrink-0">☰</button>
+            <div class="min-w-0">
+                <p class="text-white font-bold leading-tight truncate">👨‍🏫 {{ $teacher->full_name }}</p>
+                <p class="text-slate-400 text-xs">Parvoz o'quv markazi</p>
+            </div>
         </div>
         <form method="POST" action="{{ route('parvoz.logout') }}">
             @csrf
@@ -70,39 +77,116 @@
     </div>
 
     <!-- Toast -->
-    <div id="toast" class="fixed top-16 left-1/2 -translate-x-1/2 z-40 px-4 py-3 rounded-2xl text-sm font-semibold opacity-0 pointer-events-none max-w-[90vw] text-center"></div>
+    <div id="toast" class="fixed top-16 left-1/2 -translate-x-1/2 z-50 px-4 py-3 rounded-2xl text-sm font-semibold opacity-0 pointer-events-none max-w-[90vw] text-center"></div>
 
-    <div class="max-w-lg mx-auto px-4 mt-4 space-y-4">
+    <!-- Mobil sidebar fon qorasi -->
+    <div id="backdrop" class="fixed inset-0 bg-black/60 z-30 hidden lg:hidden" onclick="toggleSidebar(false)"></div>
 
-        @if(session('success'))
-            <div class="rounded-2xl px-4 py-3 bg-emerald-500/15 border border-emerald-400/30 text-emerald-300 text-sm font-semibold">
-                {{ session('success') }}
+    <div class="max-w-6xl mx-auto px-4 mt-4 lg:flex lg:items-start lg:gap-6">
+
+        <!-- ══ SIDEBAR: guruhlar boshqaruvi ══ -->
+        <aside id="sidebar"
+            class="fixed inset-y-0 left-0 z-40 w-72 p-4 pt-6 -translate-x-full overflow-y-auto lg:translate-x-0 lg:static lg:inset-auto lg:w-64 lg:shrink-0 lg:p-0 lg:z-auto lg:overflow-visible"
+            style="background: rgba(15, 23, 42, 0.98);">
+            <div class="lg:glass-card lg:rounded-2xl lg:p-4 space-y-1 lg:sticky lg:top-20" style="background: transparent;">
+                <div class="flex items-center justify-between mb-2">
+                    <h3 class="text-white font-bold text-sm">👥 Guruhlar</h3>
+                    <button type="button" onclick="toggleSidebar(false)" class="lg:hidden text-slate-400 bg-white/10 px-2.5 py-1 rounded-lg text-sm">✕</button>
+                </div>
+
+                <button type="button" class="js-gfilter w-full text-left px-3 py-2.5 rounded-xl text-sm font-semibold text-sky-300 bg-sky-500/20 flex items-center justify-between"
+                    data-gkey="all" onclick="filterGroup('all', this)">
+                    <span>📋 Barchasi</span>
+                    <span class="text-xs text-slate-400">{{ $groups->sum(fn ($g) => $g->students->count()) + $ungrouped->count() }}</span>
+                </button>
+
+                @foreach($groups as $g)
+                    <div class="flex items-center gap-1">
+                        <button type="button" class="js-gfilter flex-1 text-left px-3 py-2 rounded-xl text-sm text-slate-300 hover:bg-white/5 min-w-0"
+                            data-gkey="g{{ $g->id }}" onclick="filterGroup('g{{ $g->id }}', this)">
+                            <span class="flex items-center justify-between">
+                                <span class="truncate font-semibold">{{ $g->name }}</span>
+                                <span class="text-xs text-slate-500 shrink-0 ml-1">{{ $g->students->count() }}</span>
+                            </span>
+                            @if($g->teachers->isNotEmpty())
+                                <span class="block text-xs text-slate-500 truncate">👨‍🏫 {{ $g->teachers->pluck('full_name')->join(', ') }}</span>
+                            @endif
+                        </button>
+                        <button type="button" onclick="renameGroupUI({{ $g->id }}, @js($g->name))"
+                            class="text-sky-300/70 hover:text-sky-300 text-xs px-1.5 py-1.5 shrink-0">✏️</button>
+                        <button type="button" onclick="deleteGroupUI({{ $g->id }}, @js($g->name))"
+                            class="text-rose-300/70 hover:text-rose-300 text-xs px-1.5 py-1.5 shrink-0">🗑</button>
+                    </div>
+                @endforeach
+
+                @if($ungrouped->isNotEmpty())
+                    <button type="button" class="js-gfilter w-full text-left px-3 py-2 rounded-xl text-sm text-slate-300 hover:bg-white/5 flex items-center justify-between"
+                        data-gkey="none" onclick="filterGroup('none', this)">
+                        <span class="font-semibold">🆕 Guruhsiz</span>
+                        <span class="text-xs text-slate-500">{{ $ungrouped->count() }}</span>
+                    </button>
+                @endif
+
+                <!-- Yangi guruh -->
+                <div class="flex items-center gap-2 pt-3 mt-2 border-t border-white/10">
+                    <input type="text" id="new-group" maxlength="100" placeholder="Yangi guruh nomi"
+                        class="input-dark flex-1 px-3 py-2.5 rounded-xl text-sm min-w-0">
+                    <button type="button" onclick="createGroup()"
+                        class="btn-primary text-white font-bold px-3.5 py-2.5 rounded-xl text-sm shrink-0">➕</button>
+                </div>
             </div>
-        @endif
+        </aside>
 
-        <!-- Qidiruv -->
-        <input type="text" id="search" placeholder="🔍 O'quvchini qidirish..." autocomplete="off"
-            class="input-dark w-full px-4 py-3 rounded-2xl text-sm">
+        <!-- ══ ASOSIY QISM ══ -->
+        <div class="flex-1 w-full max-w-lg mx-auto lg:mx-0 lg:max-w-none space-y-4">
 
-        @php
-            $sections = $groups->isEmpty() ? collect() : $groups->collect();
-            if ($ungrouped->isNotEmpty()) {
-                $sections->push((object) [
-                    'name'     => $groups->isEmpty() ? "O'quvchilar" : "🆕 Yangi / guruhsiz",
-                    'students' => $ungrouped,
-                ]);
-            }
-        @endphp
+            @if(session('success'))
+                <div class="rounded-2xl px-4 py-3 bg-emerald-500/15 border border-emerald-400/30 text-emerald-300 text-sm font-semibold">
+                    {{ session('success') }}
+                </div>
+            @endif
 
-        @foreach($sections as $section)
-            @if($section->students->isNotEmpty())
-                <div class="glass-card rounded-2xl overflow-hidden js-section">
-                    <div class="px-4 py-3 border-b border-white/10 flex items-center justify-between">
-                        <h3 class="font-bold text-sky-300 text-sm">👥 {{ $section->name }}</h3>
-                        <span class="text-slate-500 text-xs font-semibold">{{ $section->students->count() }} ta</span>
+            <!-- Qidiruv -->
+            <input type="text" id="search" placeholder="🔍 O'quvchini qidirish (ism yoki raqam)..." autocomplete="off"
+                class="input-dark w-full px-4 py-3 rounded-2xl text-sm">
+
+            @foreach($groups as $section)
+                <div class="glass-card rounded-2xl overflow-hidden js-section" data-gkey="g{{ $section->id }}">
+                    <div class="px-4 py-3 border-b border-white/10 flex items-center justify-between gap-2">
+                        <div class="min-w-0">
+                            <h3 class="font-bold text-sky-300 text-sm truncate">👥 {{ $section->name }}</h3>
+                            @if($section->teachers->isNotEmpty())
+                                <p class="text-slate-500 text-xs truncate">👨‍🏫 {{ $section->teachers->pluck('full_name')->join(', ') }}</p>
+                            @endif
+                        </div>
+                        <span class="text-slate-500 text-xs font-semibold shrink-0">{{ $section->students->count() }} ta</span>
                     </div>
 
-                    @foreach($section->students as $student)
+                    @forelse($section->students as $student)
+                        <div class="js-row border-b border-white/5 last:border-b-0 px-4 py-2.5 flex items-center gap-2"
+                            data-id="{{ $student->id }}" data-phone="{{ $student->phone }}">
+                            <button type="button" class="js-open flex-1 text-left min-w-0">
+                                <p class="js-name text-white font-semibold text-sm truncate">{{ $student->full_name }}</p>
+                                <p class="text-slate-500 text-xs truncate">📞 {{ $student->phone ?? '—' }} {{ $student->telegram_id ? '· ✅' : '· ⏳' }}</p>
+                            </button>
+                            <input type="text" inputmode="decimal" placeholder="9/10"
+                                class="js-score input-dark w-20 px-2 py-2 rounded-xl text-center text-sm font-bold shrink-0">
+                            <button type="button" class="js-save btn-primary px-4 py-2 rounded-xl font-bold text-white text-sm shrink-0">✓</button>
+                        </div>
+                    @empty
+                        <div class="js-empty px-4 py-5 text-center text-slate-500 text-xs">Bu guruhda hozircha o'quvchi yo'q.</div>
+                    @endforelse
+                </div>
+            @endforeach
+
+            @if($ungrouped->isNotEmpty())
+                <div class="glass-card rounded-2xl overflow-hidden js-section" data-gkey="none">
+                    <div class="px-4 py-3 border-b border-white/10 flex items-center justify-between">
+                        <h3 class="font-bold text-amber-300 text-sm">🆕 Yangi / guruhsiz o'quvchilar</h3>
+                        <span class="text-slate-500 text-xs font-semibold">{{ $ungrouped->count() }} ta</span>
+                    </div>
+
+                    @foreach($ungrouped as $student)
                         <div class="js-row border-b border-white/5 last:border-b-0 px-4 py-2.5 flex items-center gap-2"
                             data-id="{{ $student->id }}" data-phone="{{ $student->phone }}">
                             <button type="button" class="js-open flex-1 text-left min-w-0">
@@ -116,37 +200,37 @@
                     @endforeach
                 </div>
             @endif
-        @endforeach
 
-        @if($sections->every(fn ($s) => $s->students->isEmpty()))
-            <div class="glass-card rounded-2xl p-10 text-center">
-                <p class="text-slate-400 text-sm">Sizga hali o'quvchi biriktirilmagan.<br>Administratorga murojaat qiling.</p>
-            </div>
-        @endif
-
-        <!-- Oxirgi qo'yilgan ballar -->
-        @if($lastGrades->isNotEmpty())
-            <div class="glass-card rounded-2xl overflow-hidden">
-                <div class="px-4 py-3 border-b border-white/10">
-                    <h3 class="font-bold text-slate-300 text-sm">🕐 Oxirgi ballaringiz</h3>
+            @if($groups->isEmpty() && $ungrouped->isEmpty())
+                <div class="glass-card rounded-2xl p-10 text-center">
+                    <p class="text-slate-400 text-sm">Hali guruh ham, o'quvchi ham yo'q.<br>Chapdagi paneldan guruh yarating, o'quvchilar botdan ro'yxatdan o'tadi.</p>
                 </div>
-                @foreach($lastGrades as $grade)
-                    <div class="px-4 py-2.5 border-b border-white/5 last:border-b-0 flex items-center justify-between gap-3">
-                        <div class="min-w-0">
-                            <p class="text-white text-sm truncate">{{ $grade->student?->full_name }}</p>
-                            <p class="text-slate-500 text-xs">
-                                {{ $grade->subject?->name ?? 'Umumiy' }} · {{ $grade->graded_at?->format('d.m H:i') }}
-                            </p>
-                        </div>
-                        <span class="text-sky-300 font-bold text-sm shrink-0">⭐ {{ $grade->scoreLabel() }}</span>
+            @endif
+
+            <!-- Oxirgi qo'yilgan ballar -->
+            @if($lastGrades->isNotEmpty())
+                <div class="glass-card rounded-2xl overflow-hidden">
+                    <div class="px-4 py-3 border-b border-white/10">
+                        <h3 class="font-bold text-slate-300 text-sm">🕐 Oxirgi ballaringiz</h3>
                     </div>
-                @endforeach
-            </div>
-        @endif
+                    @foreach($lastGrades as $grade)
+                        <div class="px-4 py-2.5 border-b border-white/5 last:border-b-0 flex items-center justify-between gap-3">
+                            <div class="min-w-0">
+                                <p class="text-white text-sm truncate">{{ $grade->student?->full_name }}</p>
+                                <p class="text-slate-500 text-xs">
+                                    {{ $grade->subject?->name ?? 'Umumiy' }} · {{ $grade->graded_at?->format('d.m H:i') }}
+                                </p>
+                            </div>
+                            <span class="text-sky-300 font-bold text-sm shrink-0">⭐ {{ $grade->scoreLabel() }}</span>
+                        </div>
+                    @endforeach
+                </div>
+            @endif
+        </div>
     </div>
 
     <!-- Tanlangan o'quvchi oynasi (bitta umumiy) -->
-    <div id="sheet" class="fixed bottom-0 left-1/2 -translate-x-1/2 z-30 w-full max-w-lg glass-card rounded-t-3xl p-5 space-y-3"
+    <div id="sheet" class="fixed bottom-0 left-1/2 -translate-x-1/2 z-40 w-full max-w-lg glass-card rounded-t-3xl p-5 space-y-3"
         style="background: rgba(15, 23, 42, 0.97);">
         <div class="flex items-start justify-between gap-3">
             <div class="min-w-0">
@@ -176,7 +260,7 @@
         <!-- Guruhga biriktirish -->
         @if($allGroups->isNotEmpty())
             <div class="flex items-center gap-2 pt-1 border-t border-white/10">
-                <select id="sh-group" class="input-dark flex-1 px-3 py-2.5 rounded-xl text-sm">
+                <select id="sh-group" class="input-dark flex-1 px-3 py-2.5 rounded-xl text-sm min-w-0">
                     <option value="">👥 Guruh tanlang...</option>
                     @foreach($allGroups as $g)
                         <option value="{{ $g->id }}">{{ $g->name }}{{ $g->teachers->isNotEmpty() ? ' — ' . $g->teachers->pluck('full_name')->join(', ') : '' }}</option>
@@ -190,7 +274,7 @@
         <!-- Ism tahrirlash / bloklash -->
         <div class="flex items-center gap-2 pt-1 border-t border-white/10">
             <input type="text" id="sh-rename" minlength="3" maxlength="100" placeholder="Yangi ism"
-                class="input-dark flex-1 px-3 py-2.5 rounded-xl text-sm">
+                class="input-dark flex-1 px-3 py-2.5 rounded-xl text-sm min-w-0">
             <button type="button" onclick="renameStudent()"
                 class="text-xs font-semibold text-sky-300 bg-sky-500/10 border border-sky-400/20 px-3 py-2.5 rounded-xl shrink-0">✏️ Saqlash</button>
             <button type="button" onclick="blockStudent()"
@@ -200,20 +284,24 @@
 
     <script>
         const CSRF = document.querySelector('meta[name="csrf-token"]').content;
+        const BASE = @json(url('/parvoz'));
         const URLS = {
-            grade: @json(route('parvoz.grade.store')),
-            rename: id => @json(url('/parvoz/student')) + '/' + id + '/rename',
-            block: id => @json(url('/parvoz/student')) + '/' + id + '/block',
-            group: id => @json(url('/parvoz/student')) + '/' + id + '/group',
+            grade: BASE + '/grade',
+            rename: id => BASE + '/student/' + id + '/rename',
+            block: id => BASE + '/student/' + id + '/block',
+            group: id => BASE + '/student/' + id + '/group',
+            groupStore: BASE + '/group',
+            groupRename: id => BASE + '/group/' + id + '/rename',
+            groupDelete: id => BASE + '/group/' + id + '/delete',
         };
 
-        let current = null; // tanlangan qator (element)
+        let current = null;     // tanlangan o'quvchi qatori
+        let curFilter = 'all';  // sidebar filtri
 
         // ── Yordamchilar ──────────────────────────────────────────
         function toast(msg, ok = true) {
             const t = document.getElementById('toast');
             t.textContent = msg;
-            t.className = t.className.replace(/opacity-\d+/, '');
             t.style.opacity = 1;
             t.style.background = ok ? 'rgba(16,185,129,.95)' : 'rgba(244,63,94,.95)';
             t.style.color = '#fff';
@@ -244,6 +332,84 @@
             return data;
         }
 
+        // ── Sidebar (mobil) ───────────────────────────────────────
+        function toggleSidebar(show) {
+            const sb = document.getElementById('sidebar');
+            const bd = document.getElementById('backdrop');
+            const willShow = show ?? sb.classList.contains('-translate-x-full');
+            sb.classList.toggle('-translate-x-full', !willShow);
+            bd.classList.toggle('hidden', !willShow);
+        }
+
+        // ── Guruh filtri va qidiruv ───────────────────────────────
+        function refreshSections() {
+            const q = document.getElementById('search').value.trim().toLowerCase();
+
+            document.querySelectorAll('.js-section').forEach(sec => {
+                let any = false;
+                sec.querySelectorAll('.js-row').forEach(row => {
+                    const name = row.querySelector('.js-name').textContent.toLowerCase();
+                    const show = !q || name.includes(q) || (row.dataset.phone || '').includes(q);
+                    row.style.display = show ? '' : 'none';
+                    if (show) any = true;
+                });
+
+                const passFilter = curFilter === 'all' || sec.dataset.gkey === curFilter;
+                const hasEmptyPh = !q && sec.querySelector('.js-empty');
+                sec.style.display = (passFilter && (any || hasEmptyPh)) ? '' : 'none';
+            });
+        }
+
+        function filterGroup(key, btn) {
+            curFilter = key;
+            document.querySelectorAll('.js-gfilter').forEach(b => b.classList.remove('bg-sky-500/20', 'text-sky-300'));
+            if (btn) btn.classList.add('bg-sky-500/20', 'text-sky-300');
+            refreshSections();
+            if (window.innerWidth < 1024) toggleSidebar(false);
+        }
+
+        document.getElementById('search').addEventListener('input', refreshSections);
+
+        // ── Guruh boshqaruvi ──────────────────────────────────────
+        async function createGroup() {
+            const input = document.getElementById('new-group');
+            const name = input.value.trim();
+            if (name.length < 2) { toast("Guruh nomini yozing.", false); input.focus(); return; }
+
+            try {
+                const d = await api(URLS.groupStore, { name });
+                toast(d.message);
+                setTimeout(() => location.reload(), 700);
+            } catch (e) {
+                if (e.message !== 'session') toast(e.message, false);
+            }
+        }
+
+        async function renameGroupUI(id, currentName) {
+            const name = prompt("Guruhning yangi nomi:", currentName);
+            if (!name || name.trim().length < 2 || name.trim() === currentName) return;
+
+            try {
+                const d = await api(URLS.groupRename(id), { name: name.trim() });
+                toast(d.message);
+                setTimeout(() => location.reload(), 700);
+            } catch (e) {
+                if (e.message !== 'session') toast(e.message, false);
+            }
+        }
+
+        async function deleteGroupUI(id, name) {
+            if (!confirm('"' + name + '" guruhi o\'chirilsinmi?\n\nO\'quvchilari o\'chmaydi — "Guruhsiz" bo\'limiga o\'tadi.')) return;
+
+            try {
+                const d = await api(URLS.groupDelete(id), {});
+                toast(d.message);
+                setTimeout(() => location.reload(), 700);
+            } catch (e) {
+                if (e.message !== 'session') toast(e.message, false);
+            }
+        }
+
         // ── Tez ball saqlash (qatordan) ──────────────────────────
         async function quickSave(row) {
             const input = row.querySelector('.js-score');
@@ -257,11 +423,10 @@
                 const d = await api(URLS.grade, { student_id: row.dataset.id, score });
                 toast(d.message);
                 input.value = '';
-                btn.textContent = '✓';
             } catch (e) {
                 if (e.message !== 'session') toast(e.message, false);
-                btn.textContent = '✓';
             } finally {
+                btn.textContent = '✓';
                 btn.disabled = false;
             }
         }
@@ -302,6 +467,21 @@
             }
         }
 
+        async function assignGroup() {
+            if (!current) return;
+            const sel = document.getElementById('sh-group');
+            if (!sel || !sel.value) { toast("Avval guruhni tanlang.", false); return; }
+
+            try {
+                const d = await api(URLS.group(current.dataset.id), { group_id: sel.value });
+                toast(d.message);
+                closeSheet();
+                setTimeout(() => location.reload(), 700);
+            } catch (e) {
+                if (e.message !== 'session') toast(e.message, false);
+            }
+        }
+
         async function renameStudent() {
             if (!current) return;
             const name = document.getElementById('sh-rename').value.trim();
@@ -311,19 +491,6 @@
                 const d = await api(URLS.rename(current.dataset.id), { full_name: name });
                 current.querySelector('.js-name').textContent = d.full_name;
                 document.getElementById('sh-name').textContent = d.full_name;
-                toast(d.message);
-            } catch (e) {
-                if (e.message !== 'session') toast(e.message, false);
-            }
-        }
-
-        async function assignGroup() {
-            if (!current) return;
-            const sel = document.getElementById('sh-group');
-            if (!sel || !sel.value) { toast("Avval guruhni tanlang.", false); return; }
-
-            try {
-                const d = await api(URLS.group(current.dataset.id), { group_id: sel.value });
                 toast(d.message);
             } catch (e) {
                 if (e.message !== 'session') toast(e.message, false);
@@ -345,22 +512,7 @@
             }
         }
 
-        // ── Qidiruv (klientda, engil) ─────────────────────────────
-        document.getElementById('search').addEventListener('input', function () {
-            const q = this.value.trim().toLowerCase();
-            document.querySelectorAll('.js-row').forEach(row => {
-                const name = row.querySelector('.js-name').textContent.toLowerCase();
-                const phone = (row.dataset.phone || '');
-                row.style.display = (!q || name.includes(q) || phone.includes(q)) ? '' : 'none';
-            });
-            // Bo'sh bo'limlarni yashirish
-            document.querySelectorAll('.js-section').forEach(sec => {
-                const visible = [...sec.querySelectorAll('.js-row')].some(r => r.style.display !== 'none');
-                sec.style.display = visible ? '' : 'none';
-            });
-        });
-
-        // ── Hodisalar (delegatsiya — minglab tinglovchi o'rniga bitta) ──
+        // ── Hodisalar (delegatsiya) ───────────────────────────────
         document.addEventListener('click', e => {
             const row = e.target.closest('.js-row');
             if (!row) return;
@@ -371,6 +523,9 @@
         document.addEventListener('keydown', e => {
             if (e.key === 'Enter' && e.target.classList.contains('js-score')) {
                 quickSave(e.target.closest('.js-row'));
+            }
+            if (e.key === 'Enter' && e.target.id === 'new-group') {
+                createGroup();
             }
             if (e.key === 'Escape') closeSheet();
         });
