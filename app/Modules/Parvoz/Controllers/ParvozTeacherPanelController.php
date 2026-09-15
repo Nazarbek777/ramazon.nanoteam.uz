@@ -96,14 +96,20 @@ class ParvozTeacherPanelController extends Controller
 
         // "9", "9.5" yoki "9/10" formatini qabul qilamiz (botdagi bilan bir xil)
         if (!preg_match('/^(\d+(?:[.,]\d+)?)(?:\s*\/\s*(\d+(?:[.,]\d+)?))?$/u', trim($data['score']), $m)) {
-            return back()->withErrors(['score' => "Ball noto'g'ri. Masalan: 9 yoki 9/10"])->withInput();
+            $msg = "Ball noto'g'ri. Masalan: 9 yoki 9/10";
+            return $request->wantsJson()
+                ? response()->json(['message' => $msg], 422)
+                : back()->withErrors(['score' => $msg])->withInput();
         }
 
         $score = (float) str_replace(',', '.', $m[1]);
         $max   = isset($m[2]) ? (float) str_replace(',', '.', $m[2]) : null;
 
         if ($max !== null && $score > $max) {
-            return back()->withErrors(['score' => "Ball maksimal balldan katta bo'lishi mumkin emas."])->withInput();
+            $msg = "Ball maksimal balldan katta bo'lishi mumkin emas.";
+            return $request->wantsJson()
+                ? response()->json(['message' => $msg], 422)
+                : back()->withErrors(['score' => $msg])->withInput();
         }
 
         $student = ParvozStudent::findOrFail($data['student_id']);
@@ -120,7 +126,11 @@ class ParvozTeacherPanelController extends Controller
 
         $this->notifyStudent($student, $teacher, $grade);
 
-        return back()->with('success', "✅ {$student->full_name} — {$grade->scoreLabel()} saqlandi.");
+        $msg = "✅ {$student->full_name} — {$grade->scoreLabel()} saqlandi.";
+
+        return $request->wantsJson()
+            ? response()->json(['message' => $msg])
+            : back()->with('success', $msg);
     }
 
     /** O'quvchi ismini tahrirlash */
@@ -135,7 +145,11 @@ class ParvozTeacherPanelController extends Controller
         $data = $request->validate(['full_name' => 'required|string|min:3|max:100']);
         $student->update(['full_name' => $data['full_name']]);
 
-        return back()->with('success', "✏️ Ism yangilandi: {$student->full_name}");
+        $msg = "✏️ Ism yangilandi: {$student->full_name}";
+
+        return $request->wantsJson()
+            ? response()->json(['message' => $msg, 'full_name' => $student->full_name])
+            : back()->with('success', $msg);
     }
 
     /** O'quvchini bloklash (panel va botdan yashiriladi) */
@@ -149,7 +163,11 @@ class ParvozTeacherPanelController extends Controller
 
         $student->update(['is_active' => false]);
 
-        return back()->with('success', "🚫 {$student->full_name} bloklandi. (Qayta ochish — admin panelda)");
+        $msg = "🚫 {$student->full_name} bloklandi. (Qayta ochish — admin panelda)";
+
+        return $request->wantsJson()
+            ? response()->json(['message' => $msg])
+            : back()->with('success', $msg);
     }
 
     /** O'qituvchi shu o'quvchini boshqara oladimi (panelda ko'rinish qoidasi bilan bir xil) */
