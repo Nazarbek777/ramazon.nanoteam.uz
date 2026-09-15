@@ -342,7 +342,10 @@
                     if (ok) any = true;
                 });
 
-                let pass = f === 'all' || sec.dataset.gkey === f || (f === 'mine' && sec.dataset.mine === '1');
+                // "Mening guruhlarim" — o'z guruhlari + hali guruhga qo'shilmagan yangi o'quvchilar
+                let pass = f === 'all'
+                    || sec.dataset.gkey === f
+                    || (f === 'mine' && (sec.dataset.mine === '1' || sec.dataset.gkey === 'none'));
                 const emptyPh = sec.querySelector('.js-empty');
                 if (emptyPh) emptyPh.style.display = q ? 'none' : '';
                 sec.style.display = (pass && (any || (!q && emptyPh))) ? '' : 'none';
