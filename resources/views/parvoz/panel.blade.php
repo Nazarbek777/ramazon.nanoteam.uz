@@ -376,8 +376,8 @@
     <script>
         const CSRF = document.querySelector('meta[name="csrf-token"]').content;
         const BASE = @json(url('/parvoz'));
-        const STUDENTS = @json($allStudents->map(fn ($s) => ['id' => $s->id, 'name' => $s->full_name, 'phone' => $s->phone, 'group' => $s->parvoz_group_id])->values());
-        const GROUPS = @json($groups->map(fn ($g) => ['id' => $g->id, 'name' => $g->name])->values());
+        const STUDENTS = {!! $studentsJson !!};
+        const GROUPS = {!! $groupsJson !!};
 
         let current = null;
         let mbGroup = null;

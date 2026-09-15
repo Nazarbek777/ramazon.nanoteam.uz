@@ -97,8 +97,22 @@ class ParvozTeacherPanelController extends Controller
             ->limit(10)
             ->get();
 
+        // Guruh a'zolari oynasi uchun tayyor JSON (Blade @json murakkab ifodani qabul qilmaydi)
+        $studentsJson = $allStudents->map(fn ($s) => [
+            'id'    => $s->id,
+            'name'  => $s->full_name,
+            'phone' => $s->phone,
+            'group' => $s->parvoz_group_id,
+        ])->values()->toJson(JSON_UNESCAPED_UNICODE);
+
+        $groupsJson = $groups->map(fn ($g) => [
+            'id'   => $g->id,
+            'name' => $g->name,
+        ])->values()->toJson(JSON_UNESCAPED_UNICODE);
+
         return view('parvoz.panel', compact(
-            'teacher', 'groups', 'ungrouped', 'subjects', 'allGroups', 'allStudents', 'teachers', 'myGroupIds', 'lastGrades'
+            'teacher', 'groups', 'ungrouped', 'subjects', 'allGroups', 'allStudents',
+            'teachers', 'myGroupIds', 'lastGrades', 'studentsJson', 'groupsJson'
         ));
     }
 
