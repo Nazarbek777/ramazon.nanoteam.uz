@@ -49,7 +49,7 @@
                     @foreach($grades as $g)
                         <tr class="border-b border-white/5">
                             <td class="py-3 px-2 text-white font-semibold">{{ $g->student?->full_name }}</td>
-                            <td class="py-3 px-2 text-slate-300">{{ $g->student?->group?->name ?? '—' }}</td>
+                            <td class="py-3 px-2 text-slate-300">{{ $g->student?->groups->pluck('name')->join(', ') ?: '—' }}</td>
                             <td class="py-3 px-2 text-slate-300">{{ $g->subject?->name ?? '—' }}</td>
                             <td class="py-3 px-2"><span class="text-sky-400 font-bold">{{ $g->scoreLabel() }}</span></td>
                             <td class="py-3 px-2 text-slate-400">{{ $g->comment ?? '—' }}</td>

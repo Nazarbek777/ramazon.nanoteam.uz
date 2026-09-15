@@ -197,10 +197,10 @@ class ParvozAdminController extends Controller
 
     public function students(Request $request)
     {
-        $query = ParvozStudent::with('group')->withCount('grades');
+        $query = ParvozStudent::with('groups')->withCount('grades');
 
         if ($groupId = $request->input('group')) {
-            $query->where('parvoz_group_id', $groupId);
+            $query->whereHas('groups', fn ($q) => $q->where('parvoz_groups.id', $groupId));
         }
 
         if ($search = $request->input('q')) {
@@ -216,11 +216,20 @@ class ParvozAdminController extends Controller
 
     public function studentStore(Request $request)
     {
-        ParvozStudent::create($request->validate([
+        $data = $request->validate([
             'full_name'       => 'required|string|max:255',
             'phone'           => 'required|string|max:30',
             'parvoz_group_id' => 'nullable|exists:parvoz_groups,id',
-        ]));
+        ]);
+
+        $student = ParvozStudent::create([
+            'full_name' => $data['full_name'],
+            'phone'     => $data['phone'],
+        ]);
+
+        if (!empty($data['parvoz_group_id'])) {
+            $student->groups()->syncWithoutDetaching([$data['parvoz_group_id']]);
+        }
 
         return back()->with('success', 'O\'quvchi qo\'shildi.');
     }
@@ -233,7 +242,15 @@ class ParvozAdminController extends Controller
             'parvoz_group_id' => 'nullable|exists:parvoz_groups,id',
         ]);
 
-        $student->update($data + ['is_active' => $request->boolean('is_active')]);
+        $student->update([
+            'full_name' => $data['full_name'],
+            'phone'     => $data['phone'],
+            'is_active' => $request->boolean('is_active'),
+        ]);
+
+        if ($request->has('parvoz_group_id')) {
+            $student->groups()->sync(array_filter([$data['parvoz_group_id'] ?? null]));
+        }
 
         return back()->with('success', 'O\'quvchi yangilandi.');
     }
@@ -260,11 +277,11 @@ class ParvozAdminController extends Controller
             $parts = array_map('trim', explode(',', $line));
             if (count($parts) < 2 || $parts[0] === '' || $parts[1] === '') continue;
 
-            ParvozStudent::create([
-                'full_name'       => $parts[0],
-                'phone'           => $parts[1],
-                'parvoz_group_id' => $data['parvoz_group_id'],
+            $st = ParvozStudent::create([
+                'full_name' => $parts[0],
+                'phone'     => $parts[1],
             ]);
+            $st->groups()->syncWithoutDetaching([$data['parvoz_group_id']]);
             $added++;
         }
 
@@ -278,7 +295,7 @@ class ParvozAdminController extends Controller
         $query = ParvozGrade::with(['student.group', 'teacher', 'subject']);
 
         if ($groupId = $request->input('group')) {
-            $query->whereHas('student', fn ($q) => $q->where('parvoz_group_id', $groupId));
+            $query->whereHas('student.groups', fn ($q) => $q->where('parvoz_groups.id', $groupId));
         }
 
         if ($subjectId = $request->input('subject')) {

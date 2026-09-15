@@ -3,20 +3,32 @@
 namespace App\Modules\Parvoz\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class ParvozStudent extends Model
 {
     protected $table = 'parvoz_students';
 
-    protected $fillable = ['parvoz_group_id', 'full_name', 'phone', 'telegram_id', 'is_active'];
+    protected $fillable = ['full_name', 'phone', 'telegram_id', 'is_active'];
 
     protected $casts = ['is_active' => 'boolean'];
 
-    public function group(): BelongsTo
+    /** O'quvchi bir nechta guruhga tegishli bo'lishi mumkin */
+    public function groups(): BelongsToMany
     {
-        return $this->belongsTo(ParvozGroup::class, 'parvoz_group_id');
+        return $this->belongsToMany(
+            ParvozGroup::class,
+            'parvoz_group_student',
+            'parvoz_student_id',
+            'parvoz_group_id'
+        );
+    }
+
+    /** Guruh nomlari bitta qatorda: "Ingliz A, Matematika" */
+    public function groupNames(): string
+    {
+        return $this->groups->pluck('name')->join(', ') ?: '—';
     }
 
     public function grades(): HasMany

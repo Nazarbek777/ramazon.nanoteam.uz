@@ -123,6 +123,7 @@ Route::prefix('parvoz')->name('parvoz.')->group(function () {
     Route::post('/login', [$t, 'loginSubmit'])->name('login.submit');
     Route::post('/logout', [$t, 'logout'])->name('logout');
     Route::get('/panel', [$t, 'panel'])->name('panel');
+    Route::get('/group/{group}', [$t, 'group'])->name('group.show');
     Route::post('/grade', [$t, 'storeGrade'])->name('grade.store');
     Route::post('/student', [$t, 'storeStudent'])->name('student.store');
     Route::post('/student/{student}/rename', [$t, 'renameStudent'])->name('student.rename');

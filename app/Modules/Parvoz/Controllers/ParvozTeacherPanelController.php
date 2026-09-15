@@ -58,29 +58,16 @@ class ParvozTeacherPanelController extends Controller
             return redirect()->route('parvoz.login');
         }
 
-        // Barcha guruhlar (bo'shlari ham) — panel to'liq nazorat beradi
         $groups = \App\Modules\Parvoz\Models\ParvozGroup::where('is_active', true)
-            ->with([
-                'students' => fn ($q) => $q->where('is_active', true)->orderBy('full_name'),
-                'teachers',
-            ])
+            ->with('teachers')
+            ->withCount(['students' => fn ($q) => $q->where('is_active', true)])
             ->orderBy('name')
-            ->get();
-
-        $ungrouped = ParvozStudent::whereNull('parvoz_group_id')
-            ->where('is_active', true)
-            ->orderBy('full_name')
             ->get();
 
         $subjects = ParvozSubject::orderBy('name')->get();
 
-        $allGroups = \App\Modules\Parvoz\Models\ParvozGroup::where('is_active', true)
-            ->with('teachers')
-            ->orderBy('name')
-            ->get();
-
         $allStudents = ParvozStudent::where('is_active', true)
-            ->with('group')
+            ->with('groups')
             ->orderBy('full_name')
             ->get();
 
@@ -97,23 +84,43 @@ class ParvozTeacherPanelController extends Controller
             ->limit(10)
             ->get();
 
-        // Guruh a'zolari oynasi uchun tayyor JSON (Blade @json murakkab ifodani qabul qilmaydi)
-        $studentsJson = $allStudents->map(fn ($s) => [
-            'id'    => $s->id,
-            'name'  => $s->full_name,
-            'phone' => $s->phone,
-            'group' => $s->parvoz_group_id,
-        ])->values()->toJson(JSON_UNESCAPED_UNICODE);
-
-        $groupsJson = $groups->map(fn ($g) => [
-            'id'   => $g->id,
-            'name' => $g->name,
-        ])->values()->toJson(JSON_UNESCAPED_UNICODE);
-
         return view('parvoz.panel', compact(
-            'teacher', 'groups', 'ungrouped', 'subjects', 'allGroups', 'allStudents',
-            'teachers', 'myGroupIds', 'lastGrades', 'studentsJson', 'groupsJson'
+            'teacher', 'groups', 'subjects', 'allStudents', 'teachers', 'myGroupIds', 'lastGrades'
         ));
+    }
+
+    /** Bitta guruhning to'liq sahifasi: ball qo'yish + a'zolarni boshqarish */
+    public function group(Request $request, \App\Modules\Parvoz\Models\ParvozGroup $group)
+    {
+        $teacher = $this->teacher($request);
+        if (!$teacher) {
+            return redirect()->route('parvoz.login');
+        }
+
+        $group->load('teachers');
+
+        $students = $group->students()
+            ->where('is_active', true)
+            ->withAvg('grades', 'score')
+            ->orderBy('full_name')
+            ->get();
+
+        // Guruhga qo'shish uchun — hali shu guruhda bo'lmagan o'quvchilar
+        $available = ParvozStudent::where('is_active', true)
+            ->whereDoesntHave('groups', fn ($q) => $q->where('parvoz_groups.id', $group->id))
+            ->with('groups')
+            ->orderBy('full_name')
+            ->get();
+
+        $subjects = ParvozSubject::orderBy('name')->get();
+
+        $recent = ParvozGrade::whereIn('parvoz_student_id', $students->pluck('id'))
+            ->with(['student', 'subject', 'teacher'])
+            ->latest('graded_at')
+            ->limit(15)
+            ->get();
+
+        return view('parvoz.group', compact('teacher', 'group', 'students', 'available', 'subjects', 'recent'));
     }
 
     public function storeGrade(Request $request)
@@ -150,7 +157,7 @@ class ParvozTeacherPanelController extends Controller
 
         $student = ParvozStudent::findOrFail($data['student_id']);
 
-        if (!$student->parvoz_group_id) {
+        if (!$student->groups()->exists()) {
             $msg = "❌ {$student->full_name} hech qaysi guruhda emas. Avval guruhga qo'shing.";
             return $request->wantsJson()
                 ? response()->json(['message' => $msg], 422)
@@ -205,10 +212,13 @@ class ParvozTeacherPanelController extends Controller
         }
 
         $student = ParvozStudent::create([
-            'full_name'       => $data['full_name'],
-            'phone'           => $data['phone'] ?? null,
-            'parvoz_group_id' => $data['group_id'] ?? null,
+            'full_name' => $data['full_name'],
+            'phone'     => $data['phone'] ?? null,
         ]);
+
+        if (!empty($data['group_id'])) {
+            $student->groups()->syncWithoutDetaching([$data['group_id']]);
+        }
 
         $msg = "✅ {$student->full_name} qo'shildi."
             . ($digits !== '' ? " Botga shu raqam bilan kirsa, kabineti avtomatik ochiladi." : '');
@@ -274,14 +284,19 @@ class ParvozTeacherPanelController extends Controller
         }
         abort_unless($this->canManage($teacher, $student), 403);
 
-        $data = $request->validate(['group_id' => 'nullable|exists:parvoz_groups,id']);
+        $data = $request->validate([
+            'group_id' => 'required|exists:parvoz_groups,id',
+            'action'   => 'nullable|in:attach,detach',
+        ]);
 
-        if (empty($data['group_id'])) {
-            $student->update(['parvoz_group_id' => null]);
-            $msg = "↩️ {$student->full_name} guruhdan chiqarildi.";
+        $group  = \App\Modules\Parvoz\Models\ParvozGroup::findOrFail($data['group_id']);
+        $detach = ($data['action'] ?? 'attach') === 'detach';
+
+        if ($detach) {
+            $student->groups()->detach($group->id);
+            $msg = "↩️ {$student->full_name} — \"{$group->name}\" guruhidan chiqarildi.";
         } else {
-            $group = \App\Modules\Parvoz\Models\ParvozGroup::findOrFail($data['group_id']);
-            $student->update(['parvoz_group_id' => $group->id]);
+            $student->groups()->syncWithoutDetaching([$group->id]);
             $msg = "👥 {$student->full_name} — \"{$group->name}\" guruhiga qo'shildi.";
         }
 

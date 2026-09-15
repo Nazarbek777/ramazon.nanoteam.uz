@@ -93,7 +93,7 @@
                                 <div x-show="!edit" class="flex items-center py-3 px-2 gap-4">
                                     <span class="flex-1 text-white font-semibold">{{ $s->full_name }}</span>
                                     <span class="flex-1 text-slate-400 font-mono">{{ $s->phone }}</span>
-                                    <span class="flex-1 text-slate-300">{{ $s->group?->name ?? '—' }}</span>
+                                    <span class="flex-1 text-slate-300">{{ $s->groups->pluck('name')->join(', ') ?: '—' }}</span>
                                     <span class="flex-1 text-sky-400 font-bold">{{ $s->grades_count }}</span>
                                     <span class="flex-1">
                                         @if($s->telegram_id)
@@ -120,7 +120,7 @@
                                     <select name="parvoz_group_id" class="input-dark px-3 py-2 rounded-lg">
                                         <option value="">— guruhsiz —</option>
                                         @foreach($groups as $g)
-                                            <option value="{{ $g->id }}" @selected($s->parvoz_group_id == $g->id)>{{ $g->name }}</option>
+                                            <option value="{{ $g->id }}" @selected($s->groups->contains('id', $g->id))>{{ $g->name }}</option>
                                         @endforeach
                                     </select>
                                     <label class="flex items-center gap-2 text-xs">

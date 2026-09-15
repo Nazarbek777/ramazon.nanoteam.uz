@@ -253,13 +253,16 @@ class ParvozWebhookController
     protected function registerStudent(int $chatId, string $name, string $phone, ?int $groupId): void
     {
         $student = ParvozStudent::create([
-            'full_name'       => $name,
-            'phone'           => $phone,
-            'telegram_id'     => (string) $chatId,
-            'parvoz_group_id' => $groupId,
+            'full_name'   => $name,
+            'phone'       => $phone,
+            'telegram_id' => (string) $chatId,
         ]);
 
-        $groupName = $student->group?->name;
+        if ($groupId) {
+            $student->groups()->syncWithoutDetaching([$groupId]);
+        }
+
+        $groupName = $student->groups()->value('name');
 
         $this->studentMenu(
             $chatId,
@@ -347,7 +350,7 @@ class ParvozWebhookController
 
     protected function chooseStudent(int $chatId, ParvozState $state, int $groupId): void
     {
-        $students = ParvozStudent::where('parvoz_group_id', $groupId)
+        $students = ParvozStudent::whereHas('groups', fn ($q) => $q->where('parvoz_groups.id', $groupId))
             ->where('is_active', true)
             ->orderBy('full_name')
             ->get();
@@ -587,28 +590,36 @@ class ParvozWebhookController
 
     protected function studentRating(int $chatId, ParvozStudent $student): void
     {
-        if (!$student->parvoz_group_id) {
+        $groups = $student->groups()->where('is_active', true)->orderBy('name')->get();
+
+        if ($groups->isEmpty()) {
             $this->telegram->sendMessage($chatId, "❌ Siz guruhga biriktirilmagansiz.");
             return;
         }
 
-        $students = ParvozStudent::where('parvoz_group_id', $student->parvoz_group_id)
-            ->where('is_active', true)
-            ->withAvg('grades', 'score')
-            ->orderByDesc('grades_avg_score')
-            ->get();
+        $text = '';
 
-        $group = ParvozGroup::find($student->parvoz_group_id);
-        $text  = "🏆 <b>Reyting — {$group?->name}</b>\n\n";
+        // Har bir guruh uchun alohida reyting
+        foreach ($groups as $group) {
+            $students = ParvozStudent::whereHas('groups', fn ($q) => $q->where('parvoz_groups.id', $group->id))
+                ->where('is_active', true)
+                ->withAvg('grades', 'score')
+                ->orderByDesc('grades_avg_score')
+                ->get();
 
-        foreach ($students as $i => $s) {
-            $avg   = $s->grades_avg_score ? round((float) $s->grades_avg_score, 2) : '—';
-            $medal = match ($i) { 0 => '🥇', 1 => '🥈', 2 => '🥉', default => ($i + 1) . '.' };
-            $me    = $s->id === $student->id ? ' 👈' : '';
-            $text .= "{$medal} {$s->full_name} — <b>{$avg}</b>{$me}\n";
+            $text .= "🏆 <b>Reyting — {$group->name}</b>\n\n";
+
+            foreach ($students as $i => $s) {
+                $avg   = $s->grades_avg_score ? round((float) $s->grades_avg_score, 2) : '—';
+                $medal = match ($i) { 0 => '🥇', 1 => '🥈', 2 => '🥉', default => ($i + 1) . '.' };
+                $me    = $s->id === $student->id ? ' 👈' : '';
+                $text .= "{$medal} {$s->full_name} — <b>{$avg}</b>{$me}\n";
+            }
+
+            $text .= "\n";
         }
 
-        $this->telegram->sendMessage($chatId, $text);
+        $this->telegram->sendMessage($chatId, trim($text));
     }
 
     protected function studentProfile(int $chatId, ParvozStudent $student): void
@@ -617,7 +628,7 @@ class ParvozWebhookController
             $chatId,
             "👤 <b>Profil</b>\n\n" .
             "🎓 F.I.O: {$student->full_name}\n" .
-            "👥 Guruh: " . ($student->group?->name ?? '—') . "\n" .
+            "👥 Guruh: " . $student->groupNames() . "\n" .
             "📱 Telefon: " . ($student->phone ?? '—') . "\n" .
             "🗂 Baholar: {$student->grades()->count()} ta"
         );

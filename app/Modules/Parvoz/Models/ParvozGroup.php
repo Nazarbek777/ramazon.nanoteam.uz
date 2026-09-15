@@ -14,9 +14,14 @@ class ParvozGroup extends Model
 
     protected $casts = ['is_active' => 'boolean'];
 
-    public function students(): HasMany
+    public function students(): BelongsToMany
     {
-        return $this->hasMany(ParvozStudent::class, 'parvoz_group_id');
+        return $this->belongsToMany(
+            ParvozStudent::class,
+            'parvoz_group_student',
+            'parvoz_group_id',
+            'parvoz_student_id'
+        );
     }
 
     public function teachers(): BelongsToMany
