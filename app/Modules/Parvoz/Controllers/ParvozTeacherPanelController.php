@@ -71,13 +71,18 @@ class ParvozTeacherPanelController extends Controller
 
         $subjects = ParvozSubject::orderBy('name')->get();
 
+        $allGroups = \App\Modules\Parvoz\Models\ParvozGroup::where('is_active', true)
+            ->with('teachers')
+            ->orderBy('name')
+            ->get();
+
         $lastGrades = $teacher->grades()
             ->with(['student', 'subject'])
             ->latest('graded_at')
             ->limit(10)
             ->get();
 
-        return view('parvoz.panel', compact('teacher', 'groups', 'ungrouped', 'subjects', 'lastGrades'));
+        return view('parvoz.panel', compact('teacher', 'groups', 'ungrouped', 'subjects', 'allGroups', 'lastGrades'));
     }
 
     public function storeGrade(Request $request)
@@ -164,6 +169,27 @@ class ParvozTeacherPanelController extends Controller
         $student->update(['is_active' => false]);
 
         $msg = "🚫 {$student->full_name} bloklandi. (Qayta ochish — admin panelda)";
+
+        return $request->wantsJson()
+            ? response()->json(['message' => $msg])
+            : back()->with('success', $msg);
+    }
+
+    /** O'quvchini guruhga biriktirish */
+    public function assignGroup(Request $request, ParvozStudent $student)
+    {
+        $teacher = $this->teacher($request);
+        if (!$teacher) {
+            return redirect()->route('parvoz.login');
+        }
+        abort_unless($this->canManage($teacher, $student), 403);
+
+        $data = $request->validate(['group_id' => 'required|exists:parvoz_groups,id']);
+
+        $group = \App\Modules\Parvoz\Models\ParvozGroup::findOrFail($data['group_id']);
+        $student->update(['parvoz_group_id' => $group->id]);
+
+        $msg = "👥 {$student->full_name} — \"{$group->name}\" guruhiga biriktirildi.";
 
         return $request->wantsJson()
             ? response()->json(['message' => $msg])

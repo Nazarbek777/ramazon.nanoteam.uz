@@ -83,6 +83,20 @@ class ParvozWebhookController
                 return;
             }
 
+            // Guruh tanlash kutilmoqda — tugmalarni qayta ko'rsatamiz
+            if ($state->state === 'awaiting_reg_group') {
+                $groups = ParvozGroup::where('is_active', true)->with('teachers')->orderBy('name')->get();
+                $payload = $state->payload ?? [];
+
+                if ($groups->isEmpty() && !empty($payload['name']) && !empty($payload['phone'])) {
+                    $state->clear();
+                    $this->registerStudent($chatId, $payload['name'], $payload['phone'], null);
+                } else {
+                    $this->sendGroupChoice($chatId, $groups);
+                }
+                return;
+            }
+
             $this->askPhone($chatId);
             return;
         }
@@ -211,18 +225,47 @@ class ParvozWebhookController
             return;
         }
 
+        // Guruhlar bo'lsa — tanlashni so'raymiz, bo'lmasa darhol ro'yxatdan o'tkazamiz
+        $groups = ParvozGroup::where('is_active', true)->with('teachers')->orderBy('name')->get();
+
+        if ($groups->isEmpty()) {
+            $state->clear();
+            $this->registerStudent($chatId, $name, $phone, null);
+            return;
+        }
+
+        $state->set('awaiting_reg_group', ['phone' => $phone, 'name' => $name]);
+        $this->sendGroupChoice($chatId, $groups);
+    }
+
+    /** Guruh tanlash tugmalari (o'qituvchi ismi bilan) */
+    protected function sendGroupChoice(int $chatId, $groups): void
+    {
+        $keyboard = $groups->map(fn ($g) => [[
+            'text'          => $g->name . ($g->teachers->isNotEmpty() ? ' — ' . $g->teachers->pluck('full_name')->join(', ') : ''),
+            'callback_data' => 'reg:' . $g->id,
+        ]])->values()->all();
+
+        $this->telegram->sendWithInline($chatId, "👥 <b>Guruhingizni tanlang:</b>", $keyboard);
+    }
+
+    /** O'quvchini yakuniy ro'yxatdan o'tkazish */
+    protected function registerStudent(int $chatId, string $name, string $phone, ?int $groupId): void
+    {
         $student = ParvozStudent::create([
-            'full_name'   => $name,
-            'phone'       => $phone,
-            'telegram_id' => (string) $chatId,
+            'full_name'       => $name,
+            'phone'           => $phone,
+            'telegram_id'     => (string) $chatId,
+            'parvoz_group_id' => $groupId,
         ]);
 
-        $state->clear();
+        $groupName = $student->group?->name;
 
         $this->studentMenu(
             $chatId,
-            "🎉 <b>{$student->full_name}</b>, ro'yxatdan o'tdingiz!\n\n" .
-            "🎓 Shaxsiy kabinetingiz ochildi. O'qituvchingiz ball qo'ygach, shu yerda ko'rasiz."
+            "🎉 <b>{$student->full_name}</b>, ro'yxatdan o'tdingiz!" .
+            ($groupName ? "\n👥 Guruh: <b>{$groupName}</b>" : '') .
+            "\n\n🎓 Shaxsiy kabinetingiz ochildi. O'qituvchingiz ball qo'ygach, shu yerda ko'rasiz."
         );
     }
 
@@ -272,6 +315,21 @@ class ParvozWebhookController
         $this->telegram->answerCallbackQuery($cb['id']);
 
         if (!$chatId) return;
+
+        // Ro'yxatdan o'tishda guruh tanlandi
+        if (str_starts_with($data, 'reg:')) {
+            $state = ParvozState::for($chatId);
+            $payload = $state->payload ?? [];
+
+            if ($state->state === 'awaiting_reg_group' && !empty($payload['name']) && !empty($payload['phone'])) {
+                $group = ParvozGroup::where('is_active', true)->find((int) substr($data, 4));
+                if ($group) {
+                    $state->clear();
+                    $this->registerStudent($chatId, $payload['name'], $payload['phone'], $group->id);
+                }
+            }
+            return;
+        }
 
         $teacher = $this->findTeacher($chatId);
         if (!$teacher) return;

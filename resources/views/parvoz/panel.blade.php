@@ -173,6 +173,20 @@
         <input type="text" id="sh-comment" maxlength="500" placeholder="💬 Izoh (ixtiyoriy)"
             class="input-dark w-full px-3 py-2.5 rounded-xl text-sm">
 
+        <!-- Guruhga biriktirish -->
+        @if($allGroups->isNotEmpty())
+            <div class="flex items-center gap-2 pt-1 border-t border-white/10">
+                <select id="sh-group" class="input-dark flex-1 px-3 py-2.5 rounded-xl text-sm">
+                    <option value="">👥 Guruh tanlang...</option>
+                    @foreach($allGroups as $g)
+                        <option value="{{ $g->id }}">{{ $g->name }}{{ $g->teachers->isNotEmpty() ? ' — ' . $g->teachers->pluck('full_name')->join(', ') : '' }}</option>
+                    @endforeach
+                </select>
+                <button type="button" onclick="assignGroup()"
+                    class="text-xs font-semibold text-emerald-300 bg-emerald-500/10 border border-emerald-400/20 px-3 py-2.5 rounded-xl shrink-0">👥 Biriktirish</button>
+            </div>
+        @endif
+
         <!-- Ism tahrirlash / bloklash -->
         <div class="flex items-center gap-2 pt-1 border-t border-white/10">
             <input type="text" id="sh-rename" minlength="3" maxlength="100" placeholder="Yangi ism"
@@ -190,6 +204,7 @@
             grade: @json(route('parvoz.grade.store')),
             rename: id => @json(url('/parvoz/student')) + '/' + id + '/rename',
             block: id => @json(url('/parvoz/student')) + '/' + id + '/block',
+            group: id => @json(url('/parvoz/student')) + '/' + id + '/group',
         };
 
         let current = null; // tanlangan qator (element)
@@ -296,6 +311,19 @@
                 const d = await api(URLS.rename(current.dataset.id), { full_name: name });
                 current.querySelector('.js-name').textContent = d.full_name;
                 document.getElementById('sh-name').textContent = d.full_name;
+                toast(d.message);
+            } catch (e) {
+                if (e.message !== 'session') toast(e.message, false);
+            }
+        }
+
+        async function assignGroup() {
+            if (!current) return;
+            const sel = document.getElementById('sh-group');
+            if (!sel || !sel.value) { toast("Avval guruhni tanlang.", false); return; }
+
+            try {
+                const d = await api(URLS.group(current.dataset.id), { group_id: sel.value });
                 toast(d.message);
             } catch (e) {
                 if (e.message !== 'session') toast(e.message, false);
