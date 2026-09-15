@@ -63,10 +63,11 @@ class ParvozTeacherPanelController extends Controller
             ->orderBy('name')
             ->get();
 
-        // Guruh biriktirilmagan bo'lsa — barcha o'quvchilar
+        // Guruh biriktirilmagan bo'lsa — barcha o'quvchilar;
+        // aks holda botdan o'zi ro'yxatdan o'tgan (hali guruhsiz) o'quvchilar ham ko'rinsin
         $ungrouped = $groups->isEmpty()
             ? ParvozStudent::where('is_active', true)->orderBy('full_name')->get()
-            : collect();
+            : ParvozStudent::whereNull('parvoz_group_id')->where('is_active', true)->orderBy('full_name')->get();
 
         $subjects = ParvozSubject::orderBy('name')->get();
 

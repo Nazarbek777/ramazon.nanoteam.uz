@@ -76,6 +76,13 @@ class ParvozWebhookController
         $student = $teacher ? null : $this->findStudent($chatId);
 
         if (!$teacher && !$student) {
+            // Ro'yxatdan o'tish jarayonida — ism-familiya kutilmoqda
+            $state = ParvozState::for($chatId);
+            if ($state->state === 'awaiting_reg_name' && $text !== '') {
+                $this->onRegistrationName($chatId, $state, $text);
+                return;
+            }
+
             $this->askPhone($chatId);
             return;
         }
@@ -139,7 +146,14 @@ class ParvozWebhookController
     /** Telefon raqam bo'yicha o'quvchi/o'qituvchini bog'lash */
     protected function onContact(int $chatId, array $contact): void
     {
-        $phone = $this->normalizePhone($contact['phone_number'] ?? '');
+        // Faqat o'zining raqami qabul qilinadi (boshqa odamning kontakti emas)
+        if (isset($contact['user_id']) && (int) $contact['user_id'] !== $chatId) {
+            $this->telegram->sendMessage($chatId, "❌ Iltimos, pastdagi tugma orqali <b>o'zingizning</b> raqamingizni yuboring.");
+            return;
+        }
+
+        $rawPhone = trim($contact['phone_number'] ?? '');
+        $phone    = $this->normalizePhone($rawPhone);
 
         if ($phone === '') {
             $this->telegram->sendMessage($chatId, "❌ Raqam olinmadi. Qaytadan urinib ko'ring.");
@@ -166,10 +180,49 @@ class ParvozWebhookController
             return;
         }
 
+        // Ro'yxatda yo'q — yangi o'quvchi sifatida ro'yxatdan o'tkazamiz
+        ParvozState::for($chatId)->set('awaiting_reg_name', ['phone' => ($rawPhone !== '' ? $rawPhone : $phone)]);
+
         $this->telegram->sendMessage(
             $chatId,
-            "❌ Bu raqam ro'yxatda topilmadi.\n\n" .
-            "Iltimos, o'quv markazi administratoriga murojaat qiling."
+            "📝 <b>Ro'yxatdan o'tish</b>\n\n" .
+            "Ism va familiyangizni yozib yuboring.\n\n" .
+            "Masalan: <i>Aliyev Alisher</i>"
+        );
+    }
+
+    /** Yangi o'quvchi: ism-familiya qabul qilib, ro'yxatdan o'tkazish */
+    protected function onRegistrationName(int $chatId, ParvozState $state, string $text): void
+    {
+        $name = trim($text);
+
+        if (mb_strlen($name) < 3 || mb_strlen($name) > 100 || str_starts_with($name, '/')) {
+            $this->telegram->sendMessage(
+                $chatId,
+                "❌ Ism to'g'ri kelmadi. Ism va familiyangizni to'liq yozing.\n\nMasalan: <i>Aliyev Alisher</i>"
+            );
+            return;
+        }
+
+        $phone = $state->payload['phone'] ?? null;
+        if (!$phone) {
+            $state->clear();
+            $this->askPhone($chatId);
+            return;
+        }
+
+        $student = ParvozStudent::create([
+            'full_name'   => $name,
+            'phone'       => $phone,
+            'telegram_id' => (string) $chatId,
+        ]);
+
+        $state->clear();
+
+        $this->studentMenu(
+            $chatId,
+            "🎉 <b>{$student->full_name}</b>, ro'yxatdan o'tdingiz!\n\n" .
+            "🎓 Shaxsiy kabinetingiz ochildi. O'qituvchingiz ball qo'ygach, shu yerda ko'rasiz."
         );
     }
 

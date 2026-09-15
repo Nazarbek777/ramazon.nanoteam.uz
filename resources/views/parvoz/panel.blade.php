@@ -75,9 +75,13 @@
             class="input-dark w-full px-4 py-3 rounded-2xl text-sm">
 
         @php
-            $sections = $groups->isEmpty()
-                ? collect([(object) ['name' => "O'quvchilar", 'students' => $ungrouped]])
-                : $groups;
+            $sections = $groups->isEmpty() ? collect() : $groups->collect();
+            if ($ungrouped->isNotEmpty()) {
+                $sections->push((object) [
+                    'name'     => $groups->isEmpty() ? "O'quvchilar" : "🆕 Yangi / guruhsiz o'quvchilar",
+                    'students' => $ungrouped,
+                ]);
+            }
         @endphp
 
         @forelse($sections as $section)
