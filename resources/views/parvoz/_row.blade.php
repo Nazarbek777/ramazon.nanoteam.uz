@@ -13,7 +13,7 @@
             </p>
         </div>
         <button type="button" class="js-open text-slate-300 bg-white/10 px-3 py-1.5 rounded-lg text-xs font-semibold shrink-0">
-            ⚙️ Boshqarish
+            📚 Fan/izoh bilan
         </button>
     </div>
 

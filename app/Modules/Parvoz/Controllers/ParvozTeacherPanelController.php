@@ -79,6 +79,11 @@ class ParvozTeacherPanelController extends Controller
             ->orderBy('name')
             ->get();
 
+        $allStudents = ParvozStudent::where('is_active', true)
+            ->with('group')
+            ->orderBy('full_name')
+            ->get();
+
         $teachers = ParvozTeacher::where('is_active', true)
             ->withCount('grades')
             ->orderBy('full_name')
@@ -93,7 +98,7 @@ class ParvozTeacherPanelController extends Controller
             ->get();
 
         return view('parvoz.panel', compact(
-            'teacher', 'groups', 'ungrouped', 'subjects', 'allGroups', 'teachers', 'myGroupIds', 'lastGrades'
+            'teacher', 'groups', 'ungrouped', 'subjects', 'allGroups', 'allStudents', 'teachers', 'myGroupIds', 'lastGrades'
         ));
     }
 
@@ -130,6 +135,13 @@ class ParvozTeacherPanelController extends Controller
         }
 
         $student = ParvozStudent::findOrFail($data['student_id']);
+
+        if (!$student->parvoz_group_id) {
+            $msg = "❌ {$student->full_name} hech qaysi guruhda emas. Avval guruhga qo'shing.";
+            return $request->wantsJson()
+                ? response()->json(['message' => $msg], 422)
+                : back()->withErrors(['student_id' => $msg]);
+        }
 
         $grade = ParvozGrade::create([
             'parvoz_student_id' => $student->id,
@@ -201,10 +213,20 @@ class ParvozTeacherPanelController extends Controller
         }
         abort_unless($this->canManage($teacher, $student), 403);
 
-        $data = $request->validate(['full_name' => 'required|string|min:3|max:100']);
-        $student->update(['full_name' => $data['full_name']]);
+        $data = $request->validate([
+            'full_name' => 'required|string|min:3|max:100',
+            'phone'     => 'nullable|string|max:30',
+        ]);
 
-        $msg = "✏️ Ism yangilandi: {$student->full_name}";
+        $student->full_name = $data['full_name'];
+
+        if ($request->has('phone')) {
+            $student->phone = $data['phone'] ?? null;
+        }
+
+        $student->save();
+
+        $msg = "✏️ Saqlandi: {$student->full_name}";
 
         return $request->wantsJson()
             ? response()->json(['message' => $msg, 'full_name' => $student->full_name])
@@ -238,12 +260,16 @@ class ParvozTeacherPanelController extends Controller
         }
         abort_unless($this->canManage($teacher, $student), 403);
 
-        $data = $request->validate(['group_id' => 'required|exists:parvoz_groups,id']);
+        $data = $request->validate(['group_id' => 'nullable|exists:parvoz_groups,id']);
 
-        $group = \App\Modules\Parvoz\Models\ParvozGroup::findOrFail($data['group_id']);
-        $student->update(['parvoz_group_id' => $group->id]);
-
-        $msg = "👥 {$student->full_name} — \"{$group->name}\" guruhiga biriktirildi.";
+        if (empty($data['group_id'])) {
+            $student->update(['parvoz_group_id' => null]);
+            $msg = "↩️ {$student->full_name} guruhdan chiqarildi.";
+        } else {
+            $group = \App\Modules\Parvoz\Models\ParvozGroup::findOrFail($data['group_id']);
+            $student->update(['parvoz_group_id' => $group->id]);
+            $msg = "👥 {$student->full_name} — \"{$group->name}\" guruhiga qo'shildi.";
+        }
 
         return $request->wantsJson()
             ? response()->json(['message' => $msg])
