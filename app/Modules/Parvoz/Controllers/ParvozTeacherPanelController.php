@@ -150,6 +150,48 @@ class ParvozTeacherPanelController extends Controller
             : back()->with('success', $msg);
     }
 
+    /** Qo'lda yangi o'quvchi qo'shish (to'g'ridan-to'g'ri guruhga) */
+    public function storeStudent(Request $request)
+    {
+        $teacher = $this->teacher($request);
+        if (!$teacher) {
+            return redirect()->route('parvoz.login');
+        }
+
+        $data = $request->validate([
+            'full_name' => 'required|string|min:3|max:100',
+            'phone'     => 'nullable|string|max:30',
+            'group_id'  => 'nullable|exists:parvoz_groups,id',
+        ]);
+
+        // Shu raqamli o'quvchi allaqachon bormi?
+        $digits = substr(preg_replace('/\D/', '', (string) ($data['phone'] ?? '')), -9);
+
+        if ($digits !== '') {
+            $exists = ParvozStudent::where('phone', 'like', '%' . $digits)->first();
+
+            if ($exists) {
+                $msg = "❌ Bu raqam allaqachon ro'yxatda: {$exists->full_name}";
+                return $request->wantsJson()
+                    ? response()->json(['message' => $msg], 422)
+                    : back()->withErrors(['phone' => $msg]);
+            }
+        }
+
+        $student = ParvozStudent::create([
+            'full_name'       => $data['full_name'],
+            'phone'           => $data['phone'] ?? null,
+            'parvoz_group_id' => $data['group_id'] ?? null,
+        ]);
+
+        $msg = "✅ {$student->full_name} qo'shildi."
+            . ($digits !== '' ? " Botga shu raqam bilan kirsa, kabineti avtomatik ochiladi." : '');
+
+        return $request->wantsJson()
+            ? response()->json(['message' => $msg, 'id' => $student->id])
+            : back()->with('success', $msg);
+    }
+
     /** O'quvchi ismini tahrirlash */
     public function renameStudent(Request $request, ParvozStudent $student)
     {

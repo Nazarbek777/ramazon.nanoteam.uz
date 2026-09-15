@@ -107,7 +107,13 @@
                                 🧑‍🏫 {{ $g->teachers->isNotEmpty() ? $g->teachers->pluck('full_name')->join(', ') : 'o\'qituvchi tanlanmagan' }}
                             </p>
                         </div>
-                        <span class="text-slate-500 text-xs shrink-0">{{ $g->students->count() }} ta</span>
+                        <div class="flex items-center gap-2 shrink-0">
+                            <span class="text-slate-500 text-xs">{{ $g->students->count() }} ta</span>
+                            <button type="button" onclick="openAdd({{ $g->id }}, @js($g->name))"
+                                class="text-sky-300 bg-sky-500/15 border border-sky-400/30 px-3 py-1.5 rounded-lg text-xs font-bold">
+                                ➕ O'quvchi
+                            </button>
+                        </div>
                     </div>
 
                     @forelse($g->students as $st)
@@ -120,9 +126,15 @@
 
             @if($ungrouped->isNotEmpty())
                 <div class="card rounded-2xl overflow-hidden js-sec" data-gkey="none" data-mine="0">
-                    <div class="px-4 py-3 bg-white/5 flex items-center justify-between">
-                        <p class="font-bold text-amber-300 text-sm">🆕 Guruhsiz o'quvchilar</p>
-                        <span class="text-slate-500 text-xs">{{ $ungrouped->count() }} ta</span>
+                    <div class="px-4 py-3 bg-white/5 flex items-center justify-between gap-2">
+                        <p class="font-bold text-amber-300 text-sm truncate">🆕 Guruhsiz o'quvchilar</p>
+                        <div class="flex items-center gap-2 shrink-0">
+                            <span class="text-slate-500 text-xs">{{ $ungrouped->count() }} ta</span>
+                            <button type="button" onclick="openAdd('', 'Guruhsiz')"
+                                class="text-sky-300 bg-sky-500/15 border border-sky-400/30 px-3 py-1.5 rounded-lg text-xs font-bold">
+                                ➕ O'quvchi
+                            </button>
+                        </div>
                     </div>
                     @foreach($ungrouped as $st)
                         @include('parvoz._row', ['st' => $st])
@@ -270,6 +282,37 @@
         </section>
     </div>
 
+    {{-- ═══════════════ YANGI O'QUVCHI QO'SHISH OYNASI ═══════════════ --}}
+    <div id="addmodal" class="fixed inset-0 z-40 bg-black/70 p-4 flex items-end sm:items-center justify-center" x-hide
+        onclick="if(event.target===this) closeAdd()">
+        <div class="bg-slate-900 border border-white/10 rounded-3xl p-5 w-full max-w-md space-y-3">
+            <div class="flex items-start justify-between gap-3">
+                <div class="min-w-0">
+                    <p class="text-white font-bold">➕ Yangi o'quvchi</p>
+                    <p id="a-group" class="text-sky-300 text-sm truncate"></p>
+                </div>
+                <button type="button" onclick="closeAdd()" class="text-slate-400 bg-white/10 px-3 py-1.5 rounded-xl text-sm shrink-0">✕</button>
+            </div>
+
+            <div>
+                <label class="block text-slate-500 text-xs mb-1">Ism familiya</label>
+                <input type="text" id="a-name" maxlength="100" placeholder="Masalan: Aliyev Alisher"
+                    class="inp w-full px-4 py-3 rounded-xl text-sm">
+            </div>
+
+            <div>
+                <label class="block text-slate-500 text-xs mb-1">Telefon raqami</label>
+                <input type="text" id="a-phone" inputmode="tel" maxlength="30" placeholder="+998 90 123 45 67"
+                    class="inp w-full px-4 py-3 rounded-xl text-sm">
+                <p class="text-slate-500 text-xs mt-1">
+                    O'quvchi botga shu raqam bilan kirsa, kabineti avtomatik ochiladi.
+                </p>
+            </div>
+
+            <button type="button" onclick="addStudent()" class="btn w-full py-3 rounded-xl font-bold text-sm">Qo'shish</button>
+        </div>
+    </div>
+
     {{-- ═══════════════ O'QUVCHI OYNASI ═══════════════ --}}
     <div id="modal" class="fixed inset-0 z-40 bg-black/70 p-4 flex items-end sm:items-center justify-center" x-hide onclick="if(event.target===this) closeModal()">
         <div class="bg-slate-900 border border-white/10 rounded-3xl p-5 w-full max-w-md space-y-3 max-h-[90vh] overflow-y-auto">
@@ -403,6 +446,38 @@
                 inp.value = '';
             } catch (e) { if (e.message !== 'session') toast(e.message, false); }
             finally { btn.textContent = old; btn.disabled = false; }
+        }
+
+        // ── Yangi o'quvchi qo'shish ───────────────────────────
+        let addGroupId = '';
+
+        function openAdd(groupId, groupName) {
+            addGroupId = groupId || '';
+            document.getElementById('a-group').textContent = '👥 ' + groupName;
+            document.getElementById('a-name').value = '';
+            document.getElementById('a-phone').value = '';
+            document.getElementById('addmodal').removeAttribute('x-hide');
+            setTimeout(() => document.getElementById('a-name').focus(), 100);
+        }
+
+        function closeAdd() {
+            document.getElementById('addmodal').setAttribute('x-hide', '');
+        }
+
+        async function addStudent() {
+            const full_name = document.getElementById('a-name').value.trim();
+            if (full_name.length < 3) { toast("Ism familiyani to'liq yozing.", false); return; }
+
+            try {
+                const d = await api(BASE + '/student', {
+                    full_name,
+                    phone: document.getElementById('a-phone').value.trim() || null,
+                    group_id: addGroupId || null,
+                });
+                toast(d.message);
+                closeAdd();
+                reload();
+            } catch (e) { if (e.message !== 'session') toast(e.message, false); }
         }
 
         // ── O'quvchi oynasi ───────────────────────────────────
@@ -545,7 +620,8 @@
 
         document.addEventListener('keydown', e => {
             if (e.key === 'Enter' && e.target.classList.contains('js-score')) quickSave(e.target.closest('.js-row'));
-            if (e.key === 'Escape') closeModal();
+            if (e.key === 'Enter' && (e.target.id === 'a-name' || e.target.id === 'a-phone')) addStudent();
+            if (e.key === 'Escape') { closeModal(); closeAdd(); }
         });
 
         applyFilter();
