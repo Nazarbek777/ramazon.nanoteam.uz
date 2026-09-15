@@ -130,6 +130,8 @@ Route::prefix('parvoz')->name('parvoz.')->group(function () {
     Route::post('/group', [$t, 'storeGroup'])->name('group.store');
     Route::post('/group/{group}/rename', [$t, 'renameGroup'])->name('group.rename');
     Route::post('/group/{group}/delete', [$t, 'deleteGroup'])->name('group.delete');
+    Route::post('/teacher', [$t, 'storeTeacher'])->name('teacher.store');
+    Route::post('/teacher/{target}/delete', [$t, 'deleteTeacher'])->name('teacher.delete');
 });
 
 // ── Parvoz admin panel ──────────────────────────────────────────

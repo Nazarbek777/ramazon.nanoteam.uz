@@ -79,13 +79,22 @@ class ParvozTeacherPanelController extends Controller
             ->orderBy('name')
             ->get();
 
+        $teachers = ParvozTeacher::where('is_active', true)
+            ->withCount('grades')
+            ->orderBy('full_name')
+            ->get();
+
+        $myGroupIds = $teacher->groups()->pluck('parvoz_groups.id')->all();
+
         $lastGrades = $teacher->grades()
             ->with(['student', 'subject'])
             ->latest('graded_at')
             ->limit(10)
             ->get();
 
-        return view('parvoz.panel', compact('teacher', 'groups', 'ungrouped', 'subjects', 'allGroups', 'lastGrades'));
+        return view('parvoz.panel', compact(
+            'teacher', 'groups', 'ungrouped', 'subjects', 'allGroups', 'teachers', 'myGroupIds', 'lastGrades'
+        ));
     }
 
     public function storeGrade(Request $request)
@@ -205,6 +214,57 @@ class ParvozTeacherPanelController extends Controller
         return true;
     }
 
+    // ─────────────────────────────────────────────── O'qituvchi boshqaruvi
+
+    /** Yangi o'qituvchi qo'shish (kirish kodi avtomatik yaratiladi) */
+    public function storeTeacher(Request $request)
+    {
+        if (!$this->teacher($request)) {
+            return redirect()->route('parvoz.login');
+        }
+
+        $data = $request->validate([
+            'full_name' => 'required|string|min:3|max:100',
+            'phone'     => 'nullable|string|max:30',
+        ]);
+
+        $new = ParvozTeacher::create([
+            'full_name' => $data['full_name'],
+            'phone'     => $data['phone'] ?? null,
+        ]);
+
+        $msg = "✅ {$new->full_name} qo'shildi. Kirish kodi: {$new->access_code}";
+
+        return $request->wantsJson()
+            ? response()->json(['message' => $msg, 'id' => $new->id, 'code' => $new->access_code])
+            : back()->with('success', $msg);
+    }
+
+    /** O'qituvchini o'chirish (o'zini o'chira olmaydi; qo'ygan ballari saqlanib qoladi) */
+    public function deleteTeacher(Request $request, ParvozTeacher $target)
+    {
+        $teacher = $this->teacher($request);
+        if (!$teacher) {
+            return redirect()->route('parvoz.login');
+        }
+
+        if ($target->id === $teacher->id) {
+            $msg = "❌ O'zingizni o'chira olmaysiz.";
+            return $request->wantsJson()
+                ? response()->json(['message' => $msg], 422)
+                : back()->withErrors(['teacher' => $msg]);
+        }
+
+        $name = $target->full_name;
+        $target->delete();
+
+        $msg = "🗑 {$name} o'chirildi. (Qo'ygan ballari saqlanib qoldi)";
+
+        return $request->wantsJson()
+            ? response()->json(['message' => $msg])
+            : back()->with('success', $msg);
+    }
+
     // ─────────────────────────────────────────────── Guruh boshqaruvi
 
     /** Yangi guruh yaratish (yaratgan o'qituvchi unga avtomatik biriktiriladi) */
@@ -215,10 +275,13 @@ class ParvozTeacherPanelController extends Controller
             return redirect()->route('parvoz.login');
         }
 
-        $data = $request->validate(['name' => 'required|string|min:2|max:100|unique:parvoz_groups,name']);
+        $data = $request->validate([
+            'name'       => 'required|string|min:2|max:100|unique:parvoz_groups,name',
+            'teacher_id' => 'nullable|exists:parvoz_teachers,id',
+        ]);
 
         $group = \App\Modules\Parvoz\Models\ParvozGroup::create(['name' => $data['name'], 'is_active' => true]);
-        $group->teachers()->attach($teacher->id);
+        $group->teachers()->sync([$data['teacher_id'] ?? $teacher->id]);
 
         $msg = "✅ \"{$group->name}\" guruhi yaratildi.";
 
@@ -235,10 +298,18 @@ class ParvozTeacherPanelController extends Controller
             return redirect()->route('parvoz.login');
         }
 
-        $data = $request->validate(['name' => 'required|string|min:2|max:100|unique:parvoz_groups,name,' . $group->id]);
+        $data = $request->validate([
+            'name'       => 'required|string|min:2|max:100|unique:parvoz_groups,name,' . $group->id,
+            'teacher_id' => 'nullable|exists:parvoz_teachers,id',
+        ]);
+
         $group->update(['name' => $data['name']]);
 
-        $msg = "✏️ Guruh nomi yangilandi: {$group->name}";
+        if ($request->has('teacher_id')) {
+            $group->teachers()->sync(array_filter([$data['teacher_id'] ?? null]));
+        }
+
+        $msg = "✏️ Guruh saqlandi: {$group->name}";
 
         return $request->wantsJson()
             ? response()->json(['message' => $msg])
