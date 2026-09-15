@@ -115,6 +115,17 @@ Route::prefix('admin')->name('admin.')->group(function () {
 Route::post('/telegram/parvoz-webhook/{botId}', [App\Modules\Parvoz\Controllers\ParvozWebhookController::class, 'handle'])
     ->name('parvoz.webhook');
 
+// ── Parvoz o'qituvchi paneli (kod bilan kirish, sodda) ──────────
+Route::prefix('parvoz')->name('parvoz.')->group(function () {
+    $t = App\Modules\Parvoz\Controllers\ParvozTeacherPanelController::class;
+
+    Route::get('/', [$t, 'login'])->name('login');
+    Route::post('/login', [$t, 'loginSubmit'])->name('login.submit');
+    Route::post('/logout', [$t, 'logout'])->name('logout');
+    Route::get('/panel', [$t, 'panel'])->name('panel');
+    Route::post('/grade', [$t, 'storeGrade'])->name('grade.store');
+});
+
 // ── Parvoz admin panel ──────────────────────────────────────────
 Route::prefix('parvoz-admin')->name('parvoz-admin.')->middleware([\App\Http\Middleware\AdminMiddleware::class])->group(function () {
     $c = App\Modules\Parvoz\Controllers\ParvozAdminController::class;

@@ -5,7 +5,7 @@
 @section('content')
 <div class="mb-8">
     <h2 class="text-3xl font-bold text-white">👨‍🏫 O'qituvchilar</h2>
-    <p class="text-slate-400 text-sm mt-1">O'qituvchi botga shu telefon raqami bilan kiradi</p>
+    <p class="text-slate-400 text-sm mt-1">O'qituvchi <b class="text-amber-300">{{ url('/parvoz') }}</b> sahifasiga o'zining <b class="text-amber-300">panel kodi</b> bilan kiradi va ball qo'yadi</p>
 </div>
 
 <form method="POST" action="{{ route('parvoz-admin.teachers.store') }}" class="glass-card rounded-2xl p-6 mb-6">
@@ -51,6 +51,10 @@
                         <div>
                             <h3 class="font-bold text-white text-lg">{{ $teacher->full_name }}</h3>
                             <p class="text-slate-400 text-sm font-mono">{{ $teacher->phone }}</p>
+                            <p class="text-xs mt-1">
+                                <span class="text-slate-500">Panel kodi:</span>
+                                <span class="font-mono font-bold text-amber-300 bg-amber-500/10 px-2 py-0.5 rounded-lg tracking-widest">{{ $teacher->access_code ?? '—' }}</span>
+                            </p>
                         </div>
                         @if($teacher->telegram_id)
                             <span class="px-3 py-1 rounded-lg text-xs font-bold bg-emerald-500/20 text-emerald-300">

@@ -10,9 +10,25 @@ class ParvozTeacher extends Model
 {
     protected $table = 'parvoz_teachers';
 
-    protected $fillable = ['full_name', 'phone', 'telegram_id', 'is_active'];
+    protected $fillable = ['full_name', 'phone', 'telegram_id', 'access_code', 'is_active'];
 
     protected $casts = ['is_active' => 'boolean'];
+
+    protected static function booted(): void
+    {
+        static::creating(function (self $teacher) {
+            $teacher->access_code ??= self::generateAccessCode();
+        });
+    }
+
+    public static function generateAccessCode(): string
+    {
+        do {
+            $code = (string) random_int(100000, 999999);
+        } while (self::where('access_code', $code)->exists());
+
+        return $code;
+    }
 
     public function groups(): BelongsToMany
     {
