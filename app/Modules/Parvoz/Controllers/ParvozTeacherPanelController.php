@@ -187,6 +187,61 @@ class ParvozTeacherPanelController extends Controller
             : back()->with('success', $msg);
     }
 
+    /** O'quvchi tafsilotlari: guruhlar bo'yicha o'rtacha, qatnashgan kunlar, to'liq tarix */
+    public function student(Request $request, ParvozStudent $student)
+    {
+        $teacher = $this->teacher($request);
+        if (!$teacher) {
+            return redirect()->route('parvoz.login');
+        }
+
+        $student->load('groups');
+
+        $grades = $student->grades()
+            ->with(['group', 'subject', 'teacher'])
+            ->latest('graded_at')
+            ->get();
+
+        // Har bir guruh uchun alohida statistika
+        $stats = $grades->groupBy(fn ($g) => $g->parvoz_group_id ?? 0)->map(function ($rows) {
+            $sum   = (float) $rows->sum('score');
+            $count = $rows->count();
+            $withMax = $rows->filter(fn ($g) => $g->max_score > 0);
+
+            return [
+                'group'   => $rows->first()->group,
+                'sum'     => $sum,
+                'count'   => $count,
+                'avg'     => $count ? round($sum / $count, 2) : null,
+                'days'    => $rows->map(fn ($g) => $g->graded_at?->toDateString())->filter()->unique()->count(),
+                'percent' => $withMax->isNotEmpty()
+                    ? round($withMax->avg(fn ($g) => $g->score / $g->max_score * 100), 1)
+                    : null,
+                'rows'    => $rows,
+            ];
+        });
+
+        $focusGroup = (int) $request->query('group');
+
+        return view('parvoz.student', compact('teacher', 'student', 'grades', 'stats', 'focusGroup'));
+    }
+
+    /** Bitta ballni o'chirish */
+    public function deleteGrade(Request $request, ParvozGrade $grade)
+    {
+        if (!$this->teacher($request)) {
+            return redirect()->route('parvoz.login');
+        }
+
+        $grade->delete();
+
+        $msg = "🗑 Ball o'chirildi.";
+
+        return $request->wantsJson()
+            ? response()->json(['message' => $msg])
+            : back()->with('success', $msg);
+    }
+
     /** Qo'lda yangi o'quvchi qo'shish (to'g'ridan-to'g'ri guruhga) */
     public function storeStudent(Request $request)
     {

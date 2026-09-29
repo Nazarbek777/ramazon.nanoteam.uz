@@ -76,7 +76,8 @@
 
                     <div class="flex items-center justify-between gap-2 mb-2">
                         <div class="min-w-0">
-                            <p class="text-white font-semibold text-sm truncate">{{ $st->full_name }}</p>
+                            <a href="{{ route('parvoz.student.show', $st) }}?group={{ $group->id }}"
+                                class="block text-white font-semibold text-sm truncate underline decoration-white/20 underline-offset-4 hover:text-sky-300">{{ $st->full_name }} ›</a>
                             <p class="text-slate-500 text-xs truncate">
                                 📞 {{ $st->phone ?: '—' }}
                                 {{ $st->telegram_id ? '· ✅ botda' : '· ⏳ botsiz' }}
@@ -146,7 +147,9 @@
                 @foreach($recent as $gr)
                     <div class="px-4 py-2.5 border-t border-white/5 flex items-center justify-between gap-3">
                         <div class="min-w-0">
-                            <p class="text-white text-sm truncate">{{ $gr->student?->full_name }}</p>
+                            @if($gr->student)
+                                <a href="{{ route('parvoz.student.show', $gr->student) }}?group={{ $group->id }}" class="block text-white text-sm truncate hover:text-sky-300">{{ $gr->student->full_name }}</a>
+                            @endif
                             <p class="text-slate-500 text-xs truncate">
                                 {{ $gr->subject?->name ?? 'Umumiy' }} · {{ $gr->graded_at?->format('d.m H:i') }}
                                 @if($gr->teacher) · {{ $gr->teacher->full_name }} @endif

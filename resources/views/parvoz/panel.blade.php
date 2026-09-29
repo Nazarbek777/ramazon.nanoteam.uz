@@ -134,7 +134,7 @@
                 @foreach($allStudents as $st)
                     <div class="card rounded-2xl p-4 space-y-3 js-scard" data-search="{{ mb_strtolower($st->full_name) }} {{ $st->phone }}">
                         <div class="flex items-center justify-between gap-2">
-                            <p class="font-bold text-white truncate">🎓 {{ $st->full_name }}</p>
+                            <a href="{{ route('parvoz.student.show', $st) }}" class="font-bold text-white truncate hover:text-sky-300">🎓 {{ $st->full_name }} ›</a>
                             <span class="text-xs shrink-0">{{ $st->telegram_id ? '✅' : '⏳' }}</span>
                         </div>
 
